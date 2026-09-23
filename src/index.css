@@ -427,18 +427,40 @@ img {
   height: 100%;
 }
 
-.map-sheet {
+.map-search-bar {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: max(14px, env(safe-area-inset-top));
+  left: 14px;
+  right: 14px;
+  z-index: 1150;
+}
+
+.map-search-input {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+.map-locate-btn {
+  position: absolute;
+  right: 14px;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 1250;
   background: #fff;
-  border-radius: 20px 20px 0 0;
-  padding: 10px 16px calc(var(--nav-h) + 18px);
-  max-height: 42%;
-  overflow: auto;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
-  z-index: 1200;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.map-locate-toast {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 56px);
+  z-index: 1250;
+  background: rgba(20, 15, 12, 0.86);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  padding: 9px 12px;
+  border-radius: 10px;
 }
 
 .ticket {

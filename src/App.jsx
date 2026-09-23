@@ -132,30 +132,32 @@ function MiniMap({ lat, lng, label }) {
   return <div ref={ref} style={{ height: 180, borderRadius: 14, overflow: "hidden", background: "#e8eee8" }} />;
 }
 
-function ExploreMap({ items, selectedId, onSelect, userLocation, footer }) {
+function ExploreMap({ items, onOpen }) {
   const ref = useRef(null);
   const mapRef = useRef(null);
   const userMarkerRef = useRef(null);
+  const markersRef = useRef([]);
   const [failed, setFailed] = useState(false);
+  const [query, setQuery] = useState("");
+  const [locating, setLocating] = useState(false);
+  const [locateError, setLocateError] = useState(false);
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((e) => `${e.title} ${e.place} ${e.type}`.toLowerCase().includes(q));
+  }, [items, query]);
+
+  // Карта создаётся один раз при монтировании
   useEffect(() => {
     let cancelled = false;
     loadLeaflet().then((L) => {
       if (cancelled || !ref.current) return;
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
       const map = L.map(ref.current).setView([CITY.lat, CITY.lng], 14);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap",
       }).addTo(map);
-      items.forEach((exp) => {
-        L.marker([exp.lat, exp.lng]).addTo(map)
-          .bindTooltip(exp.place, { permanent: false })
-          .on("click", () => onSelect(exp.id));
-      });
       mapRef.current = map;
       setTimeout(() => map.invalidateSize(), 120);
     }).catch(() => {
@@ -164,28 +166,105 @@ function ExploreMap({ items, selectedId, onSelect, userLocation, footer }) {
     return () => {
       cancelled = true;
       userMarkerRef.current = null;
+      markersRef.current = [];
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-  }, [items, onSelect]);
+  }, []);
 
+  // Маркеры пересобираются при поиске, не трогая саму карту.
+  // Тап по метке сразу открывает карточку места на весь экран.
   useEffect(() => {
-    const map = mapRef.current;
-    const exp = items.find((x) => x.id === selectedId);
-    if (map && exp) map.setView([exp.lat, exp.lng], 15);
-  }, [selectedId, items]);
+    let cancelled = false;
+    loadLeaflet().then((L) => {
+      const map = mapRef.current;
+      if (cancelled || !map) return;
+      markersRef.current.forEach((m) => map.removeLayer(m));
+      markersRef.current = filtered.map((exp) =>
+        L.marker([exp.lat, exp.lng])
+          .addTo(map)
+          .bindTooltip(exp.place, { permanent: false })
+          .on("click", () => onOpen(exp))
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [filtered, onOpen]);
+
+  function locateMe() {
+    if (!navigator.geolocation) {
+      setLocateError(true);
+      return;
+    }
+    setLocating(true);
+    setLocateError(false);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        loadLeaflet().then((L) => {
+          const map = mapRef.current;
+          setLocating(false);
+          if (!map) return;
+          if (userMarkerRef.current) {
+            userMarkerRef.current.setLatLng([latitude, longitude]);
+          } else {
+            userMarkerRef.current = L.circleMarker([latitude, longitude], {
+              radius: 8,
+              color: "#fff",
+              weight: 3,
+              fillColor: "#2b7fff",
+              fillOpacity: 1,
+            })
+              .addTo(map)
+              .bindTooltip("Вы здесь");
+          }
+          map.setView([latitude, longitude], 15);
+        });
+      },
+      () => {
+        setLocating(false);
+        setLocateError(true);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
 
   return (
     <div className="map-wrap">
       <div ref={ref} className="map-canvas" />
+
+      <div className="map-search-bar">
+        <div className="search map-search-input">
+          <Search size={18} color="#888" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Найти место на карте…"
+          />
+        </div>
+      </div>
+
+      <button
+        className="icon-btn map-locate-btn"
+        onClick={locateMe}
+        aria-label="Моё местоположение"
+        disabled={locating}
+      >
+        <Navigation size={18} color={locating ? "#bbb" : "var(--terracotta)"} />
+      </button>
+
+      {locateError && (
+        <div className="map-locate-toast">Не удалось определить местоположение</div>
+      )}
+
       {failed && (
         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "#eef2ee" }}>
           Карта временно недоступна.
         </div>
       )}
-      {footer}
     </div>
   );
 }
@@ -551,10 +630,141 @@ function ToursView({
 }
 
 // 4. ПРОФИЛЬ: НАСТРОЙКИ, ЯЗЫК, ВАЛЮТА, ПОДДЕРЖКА
+const LANGUAGES = [
+  { code: "RU", label: "Русский", native: "Русский" },
+  { code: "KY", label: "Кыргызча", native: "Кыргызча" },
+  { code: "EN", label: "Английский", native: "English" },
+  { code: "UZ", label: "Узбекский", native: "Oʻzbekcha" },
+  { code: "KK", label: "Казахский", native: "Қазақша" },
+  { code: "TG", label: "Таджикский", native: "Тоҷикӣ" },
+  { code: "TR", label: "Турецкий", native: "Türkçe" },
+  { code: "ZH", label: "Китайский", native: "中文" },
+  { code: "JA", label: "Японский", native: "日本語" },
+  { code: "KO", label: "Корейский", native: "한국어" },
+  { code: "DE", label: "Немецкий", native: "Deutsch" },
+  { code: "FR", label: "Французский", native: "Français" },
+  { code: "ES", label: "Испанский", native: "Español" },
+  { code: "IT", label: "Итальянский", native: "Italiano" },
+  { code: "PT", label: "Португальский", native: "Português" },
+  { code: "AR", label: "Арабский", native: "العربية" },
+  { code: "FA", label: "Персидский", native: "فارسی" },
+  { code: "HI", label: "Хинди", native: "हिन्दी" },
+];
+
+const CURRENCIES = [
+  { code: "USD", label: "Доллар США", symbol: "$" },
+  { code: "EUR", label: "Евро", symbol: "€" },
+  { code: "KGS", label: "Кыргызский сом", symbol: "с" },
+  { code: "RUB", label: "Российский рубль", symbol: "₽" },
+  { code: "KZT", label: "Казахстанский тенге", symbol: "₸" },
+  { code: "UZS", label: "Узбекский сум", symbol: "soʻm" },
+  { code: "GBP", label: "Фунт стерлингов", symbol: "£" },
+  { code: "CNY", label: "Китайский юань", symbol: "¥" },
+  { code: "JPY", label: "Японская иена", symbol: "¥" },
+  { code: "TRY", label: "Турецкая лира", symbol: "₺" },
+  { code: "AED", label: "Дирхам ОАЭ", symbol: "د.إ" },
+  { code: "INR", label: "Индийская рупия", symbol: "₹" },
+];
+
+function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
+  const [q, setQ] = useState("");
+  const filtered = items.filter((it) => {
+    const s = q.trim().toLowerCase();
+    if (!s) return true;
+    return `${it.label} ${it.native || ""} ${it.code}`.toLowerCase().includes(s);
+  });
+
+  return (
+    <div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }}>
+      <div className="screen-head">
+        <button className="icon-btn" onClick={onBack} aria-label="Назад">
+          <ChevronLeft size={20} />
+        </button>
+        <b>{title}</b>
+      </div>
+      <div style={{ padding: 16 }}>
+        <div className="search" style={{ marginBottom: 14 }}>
+          <Search size={18} color="#888" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Поиск…" />
+        </div>
+        <div className="card" style={{ overflow: "hidden" }}>
+          {filtered.map((it, idx) => (
+            <div
+              key={it.code}
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelect(it.code)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") onSelect(it.code);
+              }}
+              className="row"
+              style={{
+                justifyContent: "space-between",
+                padding: "14px 16px",
+                borderTop: idx === 0 ? "none" : "1px solid var(--line)",
+                cursor: "pointer",
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{it.label}</div>
+                {it.native && it.native !== it.label && (
+                  <div className="muted" style={{ fontSize: 11 }}>{it.native}</div>
+                )}
+              </div>
+              <div className="row" style={{ gap: 10 }}>
+                {it.symbol && <span className="muted" style={{ fontSize: 12 }}>{it.symbol}</span>}
+                <span className="muted" style={{ fontSize: 12, fontWeight: 700 }}>{it.code}</span>
+                {activeCode === it.code && <Check size={18} color="var(--terracotta)" />}
+              </div>
+            </div>
+          ))}
+          {filtered.length === 0 && (
+            <div className="muted" style={{ padding: 16, textAlign: "center" }}>Ничего не найдено</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProfileView({ bookings, onOpenTicket }) {
   const [lang, setLang] = useState("RU");
   const [currency, setCurrency] = useState("USD");
   const [notifs, setNotifs] = useState(true);
+  const [screen, setScreen] = useState(null); // null | "lang" | "currency"
+
+  const currentLang = LANGUAGES.find((l) => l.code === lang);
+  const currentCurrency = CURRENCIES.find((c) => c.code === currency);
+
+  if (screen === "lang") {
+    return (
+      <PickerScreen
+        title="Язык приложения"
+        items={LANGUAGES}
+        activeCode={lang}
+        onSelect={(code) => {
+          setLang(code);
+          setScreen(null);
+        }}
+        onBack={() => setScreen(null)}
+      />
+    );
+  }
+
+  if (screen === "currency") {
+    return (
+      <PickerScreen
+        title="Валюта"
+        items={CURRENCIES}
+        activeCode={currency}
+        onSelect={(code) => {
+          setCurrency(code);
+          setScreen(null);
+        }}
+        onBack={() => setScreen(null)}
+      />
+    );
+  }
 
   return (
     <div className="gyg-scroll" style={{ padding: 16 }}>
@@ -609,40 +819,36 @@ function ProfileView({ bookings, onOpenTicket }) {
       </div>
 
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
-        <div className="row" style={{ gap: 8, marginBottom: 10 }}>
-          <Globe size={16} color="var(--terracotta)" />
-          <b>Язык приложения</b>
-        </div>
-        <div className="row" style={{ gap: 6 }}>
-          {["RU", "KY", "EN"].map((l) => (
-            <button
-              key={l}
-              className={`pill ${lang === l ? "on" : ""}`}
-              style={{ flex: 1, textAlign: "center" }}
-              onClick={() => setLang(l)}
-            >
-              {l === "RU" ? "Русский" : l === "KY" ? "Кыргызча" : "English"}
-            </button>
-          ))}
+        <div
+          className="row"
+          style={{ justifyContent: "space-between", cursor: "pointer" }}
+          onClick={() => setScreen("lang")}
+        >
+          <div className="row" style={{ gap: 8 }}>
+            <Globe size={16} color="var(--terracotta)" />
+            <b>Язык приложения</b>
+          </div>
+          <div className="row" style={{ gap: 6 }}>
+            <span className="muted" style={{ fontSize: 12 }}>{currentLang?.native || lang}</span>
+            <ChevronRight size={18} color="#888" />
+          </div>
         </div>
       </div>
 
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
-        <div className="row" style={{ gap: 8, marginBottom: 10 }}>
-          <DollarSign size={16} color="var(--terracotta)" />
-          <b>Валюта</b>
-        </div>
-        <div className="row" style={{ gap: 6 }}>
-          {["USD", "KGS", "EUR", "RUB"].map((c) => (
-            <button
-              key={c}
-              className={`pill ${currency === c ? "on" : ""}`}
-              style={{ flex: 1, textAlign: "center" }}
-              onClick={() => setCurrency(c)}
-            >
-              {c}
-            </button>
-          ))}
+        <div
+          className="row"
+          style={{ justifyContent: "space-between", cursor: "pointer" }}
+          onClick={() => setScreen("currency")}
+        >
+          <div className="row" style={{ gap: 8 }}>
+            <DollarSign size={16} color="var(--terracotta)" />
+            <b>Валюта</b>
+          </div>
+          <div className="row" style={{ gap: 6 }}>
+            <span className="muted" style={{ fontSize: 12 }}>{currentCurrency?.code || currency}</span>
+            <ChevronRight size={18} color="#888" />
+          </div>
         </div>
       </div>
 
@@ -798,11 +1004,8 @@ export default function App() {
   const [bookingExp, setBookingExp] = useState(null);
   const [ticket, setTicket] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [mapSelected, setMapSelected] = useState(EXPERIENCES[0].id);
 
   const [routeItems, setRouteItems] = useState([EXPERIENCES[3], EXPERIENCES[4], EXPERIENCES[0]]);
-
-  const mapItem = EXPERIENCES.find((e) => e.id === mapSelected) || EXPERIENCES[0];
 
   function toggleSave(id) {
     setSaved((prev) => {
@@ -847,42 +1050,7 @@ export default function App() {
     <div className="gyg-app ornament-bg">
       {tab === "home" && <HomeView onGoToRoute={() => setTab("route")} onGoTo={setTab} />}
 
-      {tab === "map" && (
-        <ExploreMap
-          items={EXPERIENCES}
-          selectedId={mapSelected}
-          onSelect={setMapSelected}
-          footer={(
-            <div className="map-sheet">
-              <div style={{ width: 36, height: 4, background: "#ded0bc", borderRadius: 2, margin: "0 auto 10px" }} />
-              <div className="muted" style={{ fontSize: 12, marginBottom: 8 }}>Карта Оша · выберите точку</div>
-              <div style={{ display: "flex", gap: 10, overflowX: "auto" }}>
-                {EXPERIENCES.map((exp) => (
-                  <button
-                    key={exp.id}
-                    onClick={() => setMapSelected(exp.id)}
-                    style={{
-                      minWidth: 220,
-                      textAlign: "left",
-                      border: mapSelected === exp.id ? "2px solid var(--terracotta)" : "1px solid rgba(70,50,35,0.08)",
-                      borderRadius: 14,
-                      background: "#fff",
-                      padding: 10,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div style={{ fontWeight: 800, fontSize: 13 }}>{exp.title}</div>
-                    <div className="muted" style={{ fontSize: 11 }}>{exp.place} · от ${exp.price}</div>
-                  </button>
-                ))}
-              </div>
-              <button className="cta" style={{ marginTop: 12 }} onClick={() => setSelected(mapItem)}>
-                Открыть карточку места
-              </button>
-            </div>
-          )}
-        />
-      )}
+      {tab === "map" && <ExploreMap items={EXPERIENCES} onOpen={setSelected} />}
 
       {tab === "route" && (
         <RouteView items={routeItems} setItems={setRouteItems} onGoToTours={() => setTab("tours")} />
