@@ -727,7 +727,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   );
 }
 
-function ProfileView({ bookings, onOpenTicket }) {
+function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved }) {
   const [lang, setLang] = useState("RU");
   const [currency, setCurrency] = useState("USD");
   const [notifs, setNotifs] = useState(true);
@@ -735,6 +735,7 @@ function ProfileView({ bookings, onOpenTicket }) {
 
   const currentLang = LANGUAGES.find((l) => l.code === lang);
   const currentCurrency = CURRENCIES.find((c) => c.code === currency);
+  const savedItems = EXPERIENCES.filter((e) => saved.has(e.id));
 
   if (screen === "lang") {
     return (
@@ -813,6 +814,44 @@ function ProfileView({ bookings, onOpenTicket }) {
                 <div style={{ fontWeight: 800, fontSize: 13 }}>{b.exp.title}</div>
                 <div className="muted" style={{ fontSize: 11 }}>{b.date} · {b.guests} гостя · {b.code}</div>
               </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="card" style={{ padding: 16, marginBottom: 14 }}>
+        <div className="row" style={{ gap: 8, marginBottom: 10 }}>
+          <Heart size={16} color="var(--terracotta)" />
+          <b>Избранное ({savedItems.length})</b>
+        </div>
+        {savedItems.length === 0 ? (
+          <div className="muted" style={{ fontSize: 13 }}>
+            Пока пусто. Нажмите ♥ на карточке тура, чтобы сохранить место.
+          </div>
+        ) : (
+          <div className="h-scroll" style={{ padding: "2px 0 0", margin: "0 -16px", paddingLeft: 16, paddingRight: 16 }}>
+            {savedItems.map((exp) => (
+              <button
+                key={exp.id}
+                onClick={() => onOpenSaved(exp)}
+                style={{
+                  minWidth: 132,
+                  textAlign: "left",
+                  border: "1px solid var(--line)",
+                  borderRadius: 14,
+                  background: "#fff",
+                  padding: 0,
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              >
+                <img src={exp.image} alt="" style={{ width: "100%", height: 72, objectFit: "cover" }} />
+                <div style={{ padding: 8 }}>
+                  <div style={{ fontWeight: 800, fontSize: 12, lineHeight: 1.25 }}>{exp.title}</div>
+                  <div className="muted" style={{ fontSize: 10.5, marginTop: 2 }}>от ${exp.price}</div>
+                </div>
+              </button>
             ))}
           </div>
         )}
@@ -1071,7 +1110,7 @@ export default function App() {
       )}
 
       {tab === "profile" && (
-        <ProfileView bookings={bookings} onOpenTicket={setTicket} />
+        <ProfileView bookings={bookings} onOpenTicket={setTicket} saved={saved} onOpenSaved={setSelected} />
       )}
 
       {/* Нижняя панель Liquid Glass */}
