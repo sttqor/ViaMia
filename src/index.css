@@ -1,9 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Playfair+Display:wght@700;800;900&display=swap");
+
 :root {
   --orange: #ff5533;
   --orange-dark: #e63e1c;
   --terracotta: #ff5533;
   --terracotta-dark: #e63e1c;
   --terracotta-glow: #fff1ec;
+
+  /* новые цвета: небо, майолика, золото, шырдак */
+
+
   --sand-50: #fbf8f3;
   --sand-100: #f3ece1;
   --sand-200: #e6dac9;
@@ -16,7 +22,14 @@
   --green: #0f7b4c;
   --radius: 16px;
   --nav-h: 78px;
-  --sans: "Segoe UI", system-ui, sans-serif;
+  --sans: "Manrope", system-ui, sans-serif;
+  --display: "Playfair Display", Georgia, serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--display);
 }
 
 * {
@@ -375,6 +388,7 @@ img {
   position: sticky;
   top: 0;
   z-index: 20;
+
 }
 
 .icon-btn {
@@ -722,4 +736,73 @@ img {
   font-weight: 800;
   font-size: 12px;
   cursor: pointer;
+}
+
+/* читаемые размеры */
+.gyg-nav span {
+  font-size: 11px;
+}
+
+.home-route-cta {
+  padding: 11px 18px;
+  font-size: 14px;
+  border-radius: 12px;
+}
+
+.fact-card {
+  padding: 14px;
+  border: 1px solid #eee5da;
+  border-left: 4px solid var(--turquoise);
+}
+
+.fact-card b {
+  font-size: 15px;
+  color: var(--indigo);
+  margin-bottom: 6px;
+}
+
+.fact-card p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.fact-more {
+  font-size: 12px;
+  margin-top: 8px;
+  color: var(--turquoise);
+}
+
+.fact-tag {
+  background: var(--gold);
+  color: var(--indigo-dark);
+  font-size: 11px;
+  padding: 4px 9px;
+}
+
+.route-stat-label {
+  font-size: 11px;
+}
+
+/* акценты новой палитры */
+.date-chip.on {
+  border-color: var(--turquoise);
+  background: #e9f6f6;
+}
+
+.fact-card:hover {
+  border-color: var(--turquoise);
+  box-shadow: 0 6px 18px rgba(42, 157, 159, 0.16);
+}
+
+.route-timeline-dot {
+  background: var(--indigo);
+  box-shadow: 0 0 0 2px var(--indigo);
+}
+
+.route-timeline-line {
+  border-left-color: #b9c6d8;
+}
+
+.pill.on {
+  background: var(--indigo);
 }

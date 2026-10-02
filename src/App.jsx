@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell,
   Calendar,
@@ -335,19 +336,27 @@ function HomeView({ onGoToRoute, onGoTo }) {
 
   return (
     <div className="gyg-scroll">
-      <section style={{ position: "relative", height: 154, overflow: "hidden", color: "#fff" }}>
-        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85" alt="Сулайман-Тоо, Ош" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(27,22,18,.74), rgba(27,22,18,.28))" }} />
-        <div style={{ position: "absolute", left: 16, right: 16, bottom: 13 }}>
-          <span style={{ display: "inline-block", background: "var(--terracotta)", padding: "3px 7px", borderRadius: 5, fontSize: 8, fontWeight: 900, marginBottom: 5 }}>ДРЕВНИЙ ОШ · 3000 ЛЕТ</span>
-          <h1 style={{ fontSize: 20, lineHeight: 1.08, margin: "0 0 4px", fontWeight: 900, letterSpacing: -0.45 }}>Ош: Сердце Шёлкового пути</h1>
-          <p style={{ margin: "0 0 8px", fontSize: 9.5, lineHeight: 1.25, maxWidth: 310 }}>Священная а Сулайман-Тоо, древнейшие базары Востока, аромат тандырной самсы и живые ремёсла.</p>
+      <section style={{ position: "relative", height: 290, overflow: "hidden", color: "#fff" }}>
+        <img
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85"
+          alt="Сулайман-Тоо, Ош"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(20,40,74,.15) 0%, rgba(20,40,74,.88) 100%)" }} />
+        <div style={{ position: "absolute", left: 18, right: 18, bottom: 22 }}>
+          <span className="fact-tag" style={{ marginBottom: 10 }}>ДРЕВНИЙ ОШ · 3000 ЛЕТ</span>
+          <h1 style={{ fontSize: 32, lineHeight: 1.08, margin: "8px 0 8px", fontWeight: 900, letterSpacing: -0.5 }}>
+            Ош: сердце Шёлкового пути
+          </h1>
+          <p style={{ margin: "0 0 16px", fontSize: 14, lineHeight: 1.45, maxWidth: 330, opacity: 0.95 }}>
+            Священная гора Сулайман-Тоо, древнейшие базары Востока, аромат тандырной самсы и живые ремёсла.
+          </p>
           <button className="cta home-route-cta" onClick={onGoToRoute}>Собрать маршрут →</button>
         </div>
       </section>
 
-      <section style={{ padding: "14px 16px 0" }}>
-        <h2 style={{ fontSize: 15, fontWeight: 900, margin: "0 0 10px" }}>Интересные факты</h2>
+      <section style={{ padding: "18px 16px 0" }}>
+        <h2 style={{ fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>Интересные факты</h2>
         <div style={{ display: "grid", gap: 10 }}>
           {FACTS.map((f) => (
             <article
@@ -386,7 +395,6 @@ function HomeView({ onGoToRoute, onGoTo }) {
     </div>
   );
 }
-
 // 2. МАРШРУТ: ЧИСТЫЙ ПЛАНИРОВЩИК (БЕЗ ВЫБОРА МЕСТ СНИЗУ)
 function parseDurationMinutes(duration) {
   if (!duration) return 90;
@@ -612,19 +620,38 @@ function ToursView({
         ))}
       </div>
 
-      <div style={{ padding: "0 16px 20px", display: "grid", gap: 14, marginTop: 10 }}>
-        {filtered.map((exp) => (
-          <ExperienceCard
-            key={exp.id}
-            exp={exp}
-            saved={saved.has(exp.id)}
-            inRoute={routeItems.some((r) => r.id === exp.id)}
-            onOpen={onOpen}
-            onToggleSave={onToggleSave}
-            onToggleRoute={onToggleRoute}
-          />
-        ))}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${category}-${query.trim()}`}
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          style={{ padding: "0 16px 20px", display: "grid", gap: 14, marginTop: 10 }}
+        >
+          {filtered.map((exp, index) => (
+            <motion.div
+              key={exp.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.3,
+                delay: Math.min(index * 0.03, 0.18),
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              <ExperienceCard
+                exp={exp}
+                saved={saved.has(exp.id)}
+                inRoute={routeItems.some((r) => r.id === exp.id)}
+                onOpen={onOpen}
+                onToggleSave={onToggleSave}
+                onToggleRoute={onToggleRoute}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
