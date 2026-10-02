@@ -518,6 +518,7 @@ img {
 }
 
 /* Кыргызский орнамент: один декоративный слой за существующим интерфейсом. */
+/* Фон: орнамент + свечения + горы */
 .ornament-bg {
   background-color: #fdf9f6;
   position: relative;
@@ -536,8 +537,29 @@ img {
   background-image: url("/ornament-tile.webp");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 100% 100%;
-  opacity: 0.34;
+  background-size: cover;
+  opacity: 0.50;
+}
+
+.ornament-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 430 180' preserveAspectRatio='none'%3E%3Cpath d='M0 180 L0 110 L50 70 L90 100 L150 40 L210 95 L260 60 L320 105 L370 75 L430 110 L430 180 Z' fill='%231e3a5f' fill-opacity='.07'/%3E%3Cpath d='M0 180 L0 140 L70 105 L120 130 L190 85 L250 125 L310 100 L380 135 L430 115 L430 180 Z' fill='%23ff5533' fill-opacity='.09'/%3E%3C/svg%3E") bottom center / 100% 180px no-repeat,
+    radial-gradient(420px 320px at 100% 0%, rgba(255, 85, 51, 0.12), transparent 70%),
+    radial-gradient(380px 300px at 0% 55%, rgba(42, 157, 159, 0.10), transparent 70%),
+    radial-gradient(420px 320px at 100% 100%, rgba(212, 163, 89, 0.16), transparent 70%);
+}
+
+/* карточки чуть прозрачные, чтобы фон просвечивал */
+.card {
+  background: rgba(255, 255, 255, 0.92);
 }
 
 /* Кликабельные карточки фактов */
