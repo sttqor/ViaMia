@@ -8,7 +8,11 @@
   --terracotta-glow: #fff1ec;
 
   /* новые цвета: небо, майолика, золото, шырдак */
-
+  --turquoise: #2a9d9f;
+  --turquoise-deep: #1b7578;
+  --indigo: #2b3b5f;
+  --indigo-dark: #1d2b48;
+  --gold: #f4c76a;
 
   --sand-50: #fbf8f3;
   --sand-100: #f3ece1;
@@ -519,6 +523,9 @@ img {
 
 /* Кыргызский орнамент: один декоративный слой за существующим интерфейсом. */
 /* Фон: орнамент + свечения + горы */
+
+/* Фон: орнамент как в первой версии + горы */
+/* Фон: орнамент как в первой версии + горы */
 .ornament-bg {
   background-color: #fdf9f6;
   position: relative;
@@ -537,24 +544,22 @@ img {
   background-image: url("/ornament-tile.webp");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: cover;
-  opacity: 0.50;
+  background-size: 100% 100%;
+  opacity: 0.34;
 }
 
 .ornament-bg::after {
   content: "";
   position: fixed;
-  inset: 0;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
   width: 100%;
   max-width: 430px;
-  margin: 0 auto;
+  height: 240px;
   pointer-events: none;
   z-index: 0;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 430 180' preserveAspectRatio='none'%3E%3Cpath d='M0 180 L0 110 L50 70 L90 100 L150 40 L210 95 L260 60 L320 105 L370 75 L430 110 L430 180 Z' fill='%231e3a5f' fill-opacity='.07'/%3E%3Cpath d='M0 180 L0 140 L70 105 L120 130 L190 85 L250 125 L310 100 L380 135 L430 115 L430 180 Z' fill='%23ff5533' fill-opacity='.09'/%3E%3C/svg%3E") bottom center / 100% 180px no-repeat,
-    radial-gradient(420px 320px at 100% 0%, rgba(255, 85, 51, 0.12), transparent 70%),
-    radial-gradient(380px 300px at 0% 55%, rgba(42, 157, 159, 0.10), transparent 70%),
-    radial-gradient(420px 320px at 100% 100%, rgba(212, 163, 89, 0.16), transparent 70%);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 430 240' preserveAspectRatio='none'%3E%3Cpath d='M0 240 V120 L40 90 L85 115 L140 60 L190 105 L240 75 L300 120 L350 85 L430 125 V240 Z' fill='%231e3a5f' fill-opacity='.10'/%3E%3Cpath d='M122 80 L140 60 L158 82 L148 76 L140 84 L131 76 Z' fill='%23ffffff' fill-opacity='.7'/%3E%3Cpath d='M0 240 V150 L60 115 L110 140 L175 95 L230 135 L290 110 L350 145 L430 120 V240 Z' fill='%231e3a5f' fill-opacity='.12'/%3E%3Cpath d='M0 240 V185 L70 150 L130 175 L200 140 L270 172 L340 150 L430 180 V240 Z' fill='%23ff5533' fill-opacity='.14'/%3E%3C/svg%3E") bottom center / 100% 100% no-repeat;
 }
 
 /* карточки чуть прозрачные, чтобы фон просвечивал */
