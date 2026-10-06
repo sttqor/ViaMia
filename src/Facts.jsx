@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useDragControls } from "framer-motion";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { EXPERIENCES, FACTS } from "./data";
-import "./facts.css";
+import "./Facts.css";
 
 // Какой тур открывать по кнопке в факте (id из EXPERIENCES).
 // Если факта здесь нет, кнопка ведёт на вкладку из fact.linkTab.

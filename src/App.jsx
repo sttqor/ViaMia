@@ -656,7 +656,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   );
 }
 
-function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved }) {
+function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }) {
   const [lang, setLang] = useState("RU");
   const [currency, setCurrency] = useState("USD");
   const [notifs, setNotifs] = useState(true);
@@ -697,7 +697,7 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved }) {
   }
 
   return (
-    <div className="gyg-scroll" style={{ padding: 16 }}>
+    <div className="gyg-scroll" style={{ paddingTop: 16,paddingLeft: 16,paddingRight: 16 }}>
       <h2 style={{ margin: "8px 0 14px", fontWeight: 900 }}>Профиль</h2>
 
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
@@ -719,9 +719,7 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved }) {
             <div style={{ fontWeight: 800, fontSize: 15 }}>Гостевой доступ</div>
             <div className="muted" style={{ fontSize: 11 }}>Данные сохраняются на устройстве</div>
           </div>
-          <button className="pill" style={{ padding: "6px 12px", fontSize: 12 }}>
-            Войти
-          </button>
+          <button className="cta cta-sm">Войти</button>
         </div>
       </div>
 
@@ -731,7 +729,10 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved }) {
           <b>Ваши билеты ({bookings.length})</b>
         </div>
         {bookings.length === 0 ? (
-          <div className="muted" style={{ fontSize: 13 }}>Пока нет активных броней.</div>
+          <div className="empty-cta">
+  <div className="muted">Пока нет активных броней. Выберите тур, и билет появится здесь.</div>
+  <button className="cta cta-sm" onClick={onGoToTours}>Смотреть туры</button>
+</div>
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
             {bookings.map((b) => (
@@ -754,9 +755,10 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved }) {
           <b>Избранное ({savedItems.length})</b>
         </div>
         {savedItems.length === 0 ? (
-          <div className="muted" style={{ fontSize: 13 }}>
-            Пока пусто. Нажмите ♥ на карточке тура, чтобы сохранить место.
-          </div>
+          <div className="empty-cta">
+  <div className="muted">Пока пусто. Нажмите ♥ на карточке тура, чтобы сохранить место.</div>
+  <button className="cta cta-sm" onClick={onGoToTours}>Смотреть туры</button>
+</div>
         ) : (
           <div className="h-scroll" style={{ padding: "2px 0 0", margin: "0 -16px", paddingLeft: 16, paddingRight: 16 }}>
             {savedItems.map((exp) => (
@@ -1039,7 +1041,13 @@ export default function App() {
       )}
 
       {tab === "profile" && (
-        <ProfileView bookings={bookings} onOpenTicket={setTicket} saved={saved} onOpenSaved={setSelected} />
+      <ProfileView
+  bookings={bookings}
+  onOpenTicket={setTicket}
+  saved={saved}
+  onOpenSaved={setSelected}
+  onGoToTours={() => setTab("tours")}
+/>
       )}
 
       {/* Нижняя панель Liquid Glass */}
