@@ -660,7 +660,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   );
 }
 
-function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved }) {
+function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }) {
   const { t, loc, money, fmtDate, plural, lang, setLang, currency, setCurrency, notifs, setNotifs } = useSettings();
   const [screen, setScreen] = useState(null); // null | "lang" | "currency"
 
@@ -736,7 +736,10 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved }) {
           <b>{t("profile.tickets", { n: bookings.length })}</b>
         </div>
         {bookings.length === 0 ? (
-          <div className="muted" style={{ fontSize: 13 }}>{t("profile.noTickets")}</div>
+          <div className="empty-cta">
+            <div className="muted" style={{ fontSize: 13 }}>{t("profile.noTickets")}</div>
+            <button className="cta cta-sm" onClick={onGoToTours}>{t("profile.seeTours")}</button>
+          </div>
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
             {bookings.map((b) => {
@@ -764,7 +767,10 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved }) {
           <b>{t("profile.saved", { n: savedItems.length })}</b>
         </div>
         {savedItems.length === 0 ? (
-          <div className="muted" style={{ fontSize: 13 }}>{t("profile.noSaved")}</div>
+          <div className="empty-cta">
+            <div className="muted" style={{ fontSize: 13 }}>{t("profile.noSaved")}</div>
+            <button className="cta cta-sm" onClick={onGoToTours}>{t("profile.seeTours")}</button>
+          </div>
         ) : (
           <div className="h-scroll" style={{ padding: "2px 0 0", margin: "0 -16px", paddingLeft: 16, paddingRight: 16 }}>
             {savedItems.map((exp) => (
@@ -1197,7 +1203,13 @@ export default function App() {
       )}
 
       {tab === "profile" && (
-        <ProfileView bookings={bookings} onOpenTicket={setTicket} saved={saved} onOpenSaved={setSelected} />
+        <ProfileView
+          bookings={bookings}
+          onOpenTicket={setTicket}
+          saved={saved}
+          onOpenSaved={setSelected}
+          onGoToTours={() => setTab("tours")}
+        />
       )}
 
       <nav className="gyg-nav">
