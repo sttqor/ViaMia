@@ -1,13 +1,28 @@
 import { Sparkles, Hand, Compass, UtensilsCrossed, Landmark, Mountain } from "lucide-react";
+
+// ─────────────────────────────────────────────────────────────
+// КАК ДОБАВИТЬ / ИЗМЕНИТЬ КАРТОЧКУ
+//
+// • Основной текст пишется по-русски прямо в карточке.
+// • Перевод — блок `en: { ... }` внутри той же карточки. Можно переводить
+//   не все поля: чего нет в `en`, покажется по-русски.
+// • Цена `price` — всегда в USD. В приложении она сама пересчитается
+//   в выбранную валюту.
+// • Длительность `duration` — "2 часа", "1.5 часа", "45 мин" или число минут (120).
+//   На другие языки она переводится автоматически.
+// • У факта поле `expId` — id тура, который откроется по кнопке
+//   (и покажется на мини-карте). Без него кнопка ведёт на вкладку `linkTab`.
+// ─────────────────────────────────────────────────────────────
+
 export const CITY = { name: "Ош", lat: 40.5283, lng: 72.7985 };
 
 export const CATEGORIES = [
-  { id: "all", label: "Все", Icon: Sparkles },
-  { id: "practices", label: "Практики", Icon: Hand },
-  { id: "tours", label: "Экскурсии", Icon: Compass },
-  { id: "food", label: "Еда", Icon: UtensilsCrossed },
-  { id: "culture", label: "Культура", Icon: Landmark },
-  { id: "nature", label: "Природа", Icon: Mountain },
+  { id: "all", label: "Все", en: { label: "All" }, Icon: Sparkles },
+  { id: "practices", label: "Практики", en: { label: "Workshops" }, Icon: Hand },
+  { id: "tours", label: "Экскурсии", en: { label: "Tours" }, Icon: Compass },
+  { id: "food", label: "Еда", en: { label: "Food" }, Icon: UtensilsCrossed },
+  { id: "culture", label: "Культура", en: { label: "Culture" }, Icon: Landmark },
+  { id: "nature", label: "Природа", en: { label: "Nature" }, Icon: Mountain },
 ];
 
 export const EXPERIENCES = [
@@ -32,6 +47,17 @@ export const EXPERIENCES = [
     description: "Местный гончар покажет, как крутить пиалу на круге. Вы унесёте своё изделие — практика, а не лекция.",
     highlights: ["Работа за гончарным кругом", "История ошской керамики", "Изделие с собой"],
     includes: ["Глина и обжиг", "Фартук", "Чай"],
+    en: {
+      title: "Pottery workshop: make your own piala",
+      type: "Workshop",
+      place: "Old Town workshop",
+      badge: "Hands-on",
+      group: "up to 8 people",
+      meeting: "Workshop on Kurmanjan Datka St.",
+      description: "A local potter shows you how to throw a piala bowl on the wheel. You take your piece home — hands-on, not a lecture.",
+      highlights: ["Work at the potter's wheel", "History of Osh ceramics", "Take your bowl home"],
+      includes: ["Clay and firing", "Apron", "Tea"],
+    },
   },
   {
     id: "cooking",
@@ -54,6 +80,17 @@ export const EXPERIENCES = [
     description: "Готовите с семьёй повара: тесто, начинка, лагман. Потом едите то, что сделали сами, на дворике.",
     highlights: ["Готовите сами, не смотрите со стороны", "Рецепты с собой", "Обед включён"],
     includes: ["Продукты", "Обед и чай", "Рецепты PDF"],
+    en: {
+      title: "Cooking class: samsa and lagman",
+      type: "Workshop",
+      place: "House near Jayma",
+      badge: "Hands-on",
+      group: "up to 10 people",
+      meeting: "Jayma Bazaar, south gate",
+      description: "Cook with a chef's family: dough, filling, lagman noodles. Then eat what you made in the courtyard.",
+      highlights: ["You cook, not just watch", "Recipes to take home", "Lunch included"],
+      includes: ["Ingredients", "Lunch and tea", "PDF recipes"],
+    },
   },
   {
     id: "photo-walk",
@@ -76,6 +113,17 @@ export const EXPERIENCES = [
     description: "Короткий маршрут с фотографом: свет, кадр, люди на улице. Телефон или камера — без разницы.",
     highlights: ["Разбор 10 ваших кадров", "Точки с лучшим светом", "Малая группа"],
     includes: ["Гид-фотограф", "Маршрут", "Заметки по съёмке"],
+    en: {
+      title: "Photo walk: golden hour in the Old Town",
+      type: "Workshop",
+      place: "Old Town",
+      badge: "Hands-on",
+      group: "up to 6 people",
+      meeting: "Square by the south gate",
+      description: "A short walk with a photographer: light, framing, street life. Phone or camera — either works.",
+      highlights: ["Review of 10 of your shots", "Spots with the best light", "Small group"],
+      includes: ["Photographer guide", "Route", "Shooting notes"],
+    },
   },
   {
     id: "sulaiman",
@@ -98,6 +146,17 @@ export const EXPERIENCES = [
     description: "Подъём до рассвета, пещеры, петроглифы и вид на Ферганскую долину. Гиды — из Оша, не приезжие шаблоны.",
     highlights: ["Священная гора ЮНЕСКО", "Рассвет над долиной", "Истории паломников"],
     includes: ["Лицензированный гид", "Входной билет", "Вода"],
+    en: {
+      title: "Sunrise on Sulaiman-Too with a local guide",
+      type: "Tour",
+      place: "Sulaiman-Too",
+      badge: "Bestseller",
+      group: "up to 12 people",
+      meeting: "Main entrance to Sulaiman-Too",
+      description: "Climb before dawn: caves, petroglyphs and a view over the Fergana Valley. Guides are from Osh, not scripted visitors.",
+      highlights: ["Sacred UNESCO mountain", "Sunrise over the valley", "Pilgrims' stories"],
+      includes: ["Licensed guide", "Entrance ticket", "Water"],
+    },
   },
   {
     id: "bazaar",
@@ -120,6 +179,17 @@ export const EXPERIENCES = [
     description: "Самса, курут, халва, ряды специй. Гид научит торговаться и не брать туристическую наценку.",
     highlights: ["5 дегустаций", "Как выбирать сухофрукты", "Скрытые ряды"],
     includes: ["Гид", "Дегустации", "Чай в чайхане"],
+    en: {
+      title: "Jayma Bazaar with a spice tasting",
+      type: "Food tour",
+      place: "Jayma Bazaar",
+      badge: "Near the center",
+      group: "up to 8 people",
+      meeting: "Main gate of Jayma Bazaar",
+      description: "Samsa, kurut, halva, rows of spices. Your guide teaches you to bargain and skip the tourist markup.",
+      highlights: ["5 tastings", "How to pick dried fruit", "Hidden rows"],
+      includes: ["Guide", "Tastings", "Tea at a chaikhana"],
+    },
   },
   {
     id: "mosque",
@@ -142,6 +212,16 @@ export const EXPERIENCES = [
     description: "Спокойный маршрут по архитектуре и этикету. Платок для женщин выдаём на месте.",
     highlights: ["Архитектура и орнамент", "Правила посещения", "Коротко и по делу"],
     includes: ["Гид", "Платок при необходимости"],
+    en: {
+      title: "Ravzat Mosque and Islamic architecture of Osh",
+      type: "Tour",
+      place: "Ravzat Mosque",
+      group: "up to 15 people",
+      meeting: "Square in front of Ravzat Mosque",
+      description: "A calm walk through architecture and etiquette. Headscarves for women are provided on site.",
+      highlights: ["Architecture and ornament", "Visiting etiquette", "Short and to the point"],
+      includes: ["Guide", "Headscarf if needed"],
+    },
   },
   {
     id: "akbuura",
@@ -164,6 +244,17 @@ export const EXPERIENCES = [
     description: "Тихий маршрут по берегу: мосты, птицы, утро города. Подходит, если не хотите крутой подъём.",
     highlights: ["Ровный маршрут", "Фото у реки", "Местный завтрак-опция"],
     includes: ["Гид", "Маршрут 3 км"],
+    en: {
+      title: "Sunrise walk along the Ak-Buura river",
+      type: "Walk",
+      place: "Ak-Buura River",
+      badge: "Outdoors",
+      group: "up to 10 people",
+      meeting: "Bridge by the park",
+      description: "A quiet riverside route: bridges, birds, the city waking up. Good if you'd rather skip a steep climb.",
+      highlights: ["Flat route", "Photos by the river", "Optional local breakfast"],
+      includes: ["Guide", "3 km route"],
+    },
   },
   {
     id: "oldtown",
@@ -186,6 +277,17 @@ export const EXPERIENCES = [
     description: "Дворы, дома старше века, чайхана. Гиды рассказывают семейные истории, а не википедию.",
     highlights: ["Жилые дворы", "Чай в конце", "Малые группы"],
     includes: ["Гид", "Чай"],
+    en: {
+      title: "Old Town walking tour",
+      type: "Tour",
+      place: "Old Town",
+      badge: "Free cancellation",
+      group: "up to 12 people",
+      meeting: "Chaikhana by the east gate",
+      description: "Courtyards, century-old houses, a chaikhana. Guides share family stories, not Wikipedia.",
+      highlights: ["Residential courtyards", "Tea at the end", "Small groups"],
+      includes: ["Guide", "Tea"],
+    },
   },
 ];
 
@@ -214,6 +316,8 @@ export function loadLeaflet() {
     script.addEventListener("load", () => {
       const L = window.L;
       if (!L) {
+        leafletPromise = null;
+        script.remove();
         reject(new Error("Leaflet не загрузился"));
         return;
       }
@@ -224,24 +328,30 @@ export function loadLeaflet() {
       });
       resolve(L);
     }, { once: true });
-    script.addEventListener("error", () => reject(new Error("Leaflet script error")), { once: true });
+    script.addEventListener("error", () => {
+      // сбрасываем, чтобы при следующем открытии карты была новая попытка
+      leafletPromise = null;
+      script.remove();
+      reject(new Error("Leaflet script error"));
+    }, { once: true });
     document.head.appendChild(script);
   });
   return leafletPromise;
 }
 
+// Ключ даты по локальному времени (toISOString даёт UTC и ночью сдвигает день)
+function localKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// Ближайшие дни: { key: "2026-11-11", date: Date }. Подписи делаются на нужном языке в интерфейсе.
 export function upcomingDates(count = 8) {
-  const days = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
   const out = [];
   const now = new Date();
   for (let i = 0; i < count; i += 1) {
     const d = new Date(now);
     d.setDate(now.getDate() + i);
-    out.push({
-      key: d.toISOString().slice(0, 10),
-      label: i === 0 ? "Сегодня" : i === 1 ? "Завтра" : days[d.getDay()],
-      num: d.getDate(),
-    });
+    out.push({ key: localKey(d), date: d });
   }
   return out;
 }
@@ -270,6 +380,22 @@ export const FACTS = [
     ],
     linkLabel: "Посмотреть туры по Сулайман-Тоо",
     linkTab: "tours",
+    expId: "sulaiman",
+    en: {
+      title: "A city older than Rome",
+      short: "Archaeological finds on the slopes of Sulaiman-Too point to more than 3,000 years of continuous urban history.",
+      tag: "History",
+      body: [
+        "Osh is considered one of the oldest cities in Central Asia: Bronze Age settlement traces have been found on the slopes and at the foot of Sulaiman-Too — more than three thousand years of continuous city life.",
+        "The city grew at a crossroads of Fergana trade routes: caravans travelling from Kashgar to Samarkand stopped here, and trade shaped the character of the Osh bazaars, which still operate in the same places today.",
+      ],
+      points: [
+        "Sulaiman-Too has been a UNESCO World Heritage Site since 2009",
+        "The mountain has over 100 sites with petroglyphs and places of worship",
+        "A museum inside the mountain occupies a natural cave",
+      ],
+      linkLabel: "See Sulaiman-Too tours",
+    },
   },
   {
     id: "devzira",
@@ -289,6 +415,22 @@ export const FACTS = [
     ],
     linkLabel: "Кулинарные практики Оша",
     linkTab: "tours",
+    expId: "cooking",
+    en: {
+      title: "The legendary Devzira rice",
+      short: "The key rice for Osh plov is grown in local fields of the Fergana Valley.",
+      tag: "Cuisine",
+      body: [
+        "Devzira is a pinkish-brown, firm-grained rice grown in the Fergana Valley. It gives Osh plov its signature fluffiness: the grain soaks up the broth without turning mushy.",
+        "At the bazaar you can spot Devzira by its powdery coating and a groove along the grain. Sellers invite you to rub it between your palms — real Devzira squeaks a little and leaves a light dust.",
+      ],
+      points: [
+        "It ripens longer than ordinary rice — hence the higher price",
+        "Before cooking it is rinsed and soaked in warm salted water",
+        "Osh plov is cooked in tail fat, with carrots laid in two layers",
+      ],
+      linkLabel: "Cooking classes in Osh",
+    },
   },
   {
     id: "jaima-bazaar",
@@ -308,6 +450,22 @@ export const FACTS = [
     ],
     linkLabel: "Экскурсии по базару",
     linkTab: "tours",
+    expId: "bazaar",
+    en: {
+      title: "A bazaar thousands of years old",
+      short: "Jayma Bazaar stretches along the Ak-Buura river and remains one of the largest markets in Central Asia.",
+      tag: "Traditions",
+      body: [
+        "Jayma isn't a tourist set — it's a living market that has traded on the banks of the Ak-Buura for centuries. The rows run for almost a kilometre: spices, dried fruit, knives, skullcaps, fabrics, horse tack.",
+        "The best time is the morning before 11:00: it's still cool, the goods are fresh, and traders are happier to offer a taste and chat. Bargaining is part of the etiquette, but it's done calmly and with a smile.",
+      ],
+      points: [
+        "Hand-forged knives are one of the top local souvenirs",
+        "Kurut, dried apricots and walnuts are sold by weight — tasting is free",
+        "Cash in som is usual — cards aren't accepted everywhere",
+      ],
+      linkLabel: "Bazaar tours",
+    },
   },
   {
     id: "silk-road-crossroads",
@@ -327,5 +485,20 @@ export const FACTS = [
     ],
     linkLabel: "Собрать маршрут по городу",
     linkTab: "route",
+    en: {
+      title: "A Silk Road crossroads",
+      short: "A northern branch of the Great Silk Road ran through Osh into the Fergana Valley.",
+      tag: "Silk Road",
+      body: [
+        "Osh lay on a branch of the Great Silk Road linking Kashgar with Fergana and on to Samarkand and Bukhara. Caravans crossed mountain passes, and the city was the last big stop before the climb into the Alay Mountains.",
+        "That transit left the city its many languages, craft quarters and a cuisine where Uyghur lagman, Uzbek samsa and Kyrgyz beshbarmak sit side by side.",
+      ],
+      points: [
+        "The Pamir Highway starts here — the road to the Alay passes",
+        "Craft quarters survive in the Old Town",
+        "The city is historically bilingual: Kyrgyz and Uzbek",
+      ],
+      linkLabel: "Plan a route around the city",
+    },
   },
 ];

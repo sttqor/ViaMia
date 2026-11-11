@@ -1,29 +1,31 @@
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Playfair+Display:wght@700;800;900&display=swap");
 
 :root {
-  --orange: #ff5533;
-  --orange-dark: #e63e1c;
-  --terracotta: #ff5533;
-  --terracotta-dark: #e63e1c;
-  --terracotta-glow: #fff1ec;
+  /* утверждённая палитра (см. CLAUDE.md): один акцент — терракота */
+  --terracotta: #d4532b;
+  --terracotta-dark: #b8431f;
+  --terracotta-glow: #fbeee8;
+  /* старые имена оставлены как алиасы, чтобы не ломать стили */
+  --orange: var(--terracotta);
+  --orange-dark: var(--terracotta-dark);
+  --turquoise: var(--terracotta);
+  --turquoise-deep: var(--terracotta-dark);
 
-  /* новые цвета: небо, майолика, золото, шырдак */
-  --turquoise: #2a9d9f;
-  --turquoise-deep: #1b7578;
-  --indigo: #2b3b5f;
-  --indigo-dark: #1d2b48;
-  --gold: #f4c76a;
+  --indigo: #1e2638;
+  --indigo-dark: #141a28;
+  --gold: #e9b44c;
 
-  --sand-50: #fbf8f3;
-  --sand-100: #f3ece1;
-  --sand-200: #e6dac9;
-  --ink: #1a1a1a;
-  --ink-soft: #38312b;
-  --muted: #6b6b6b;
-  --line: #ececec;
-  --bg: #f6f6f6;
+  --sand-50: #faf6f0;
+  --sand-100: #f1e9dd;
+  --sand-200: #e8e0d4;
+  --ink: #1e2638;
+  --ink-soft: #3a3f4d;
+  --muted: #6b6459;
+  --line: #e8e0d4;
+  --bg: #faf6f0;
   --card: #ffffff;
-  --green: #0f7b4c;
+  --green: #1f6b45;
+  --green-bg: #e8f3ec;
   --radius: 16px;
   --nav-h: 78px;
   --sans: "Manrope", system-ui, sans-serif;
@@ -165,7 +167,7 @@ img {
   border-radius: 16px;
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(255, 245, 240, 0.85));
   box-shadow:
-    0 3px 12px rgba(230, 62, 28, 0.12),
+    0 3px 12px rgba(184, 67, 31, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     inset 0 -1px 1px rgba(0, 0, 0, 0.03);
 }
@@ -201,8 +203,8 @@ img {
   color: #fff;
   transform: translateY(-14px);
   box-shadow:
-    0 12px 26px rgba(255, 85, 51, 0.45),
-    0 5px 10px rgba(230, 62, 28, 0.25),
+    0 12px 26px rgba(212, 83, 43, 0.45),
+    0 5px 10px rgba(184, 67, 31, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
   border: 2px solid rgba(255, 255, 255, 0.45);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
@@ -211,16 +213,16 @@ img {
 .gyg-nav button.route-tab:active .nav-icon {
   transform: translateY(-10px) scale(0.95);
   box-shadow:
-    0 6px 16px rgba(255, 85, 51, 0.4),
-    0 3px 6px rgba(230, 62, 28, 0.22),
+    0 6px 16px rgba(212, 83, 43, 0.4),
+    0 3px 6px rgba(184, 67, 31, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .gyg-nav button.route-tab.active .nav-icon {
-  background: linear-gradient(135deg, var(--orange-dark) 0%, #c72e12 100%);
+  background: linear-gradient(135deg, var(--orange-dark) 0%, #9e3818 100%);
   box-shadow:
-    0 14px 30px rgba(255, 85, 51, 0.5),
-    0 6px 12px rgba(230, 62, 28, 0.3),
+    0 14px 30px rgba(212, 83, 43, 0.5),
+    0 6px 12px rgba(184, 67, 31, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
@@ -437,7 +439,26 @@ img {
 
 .map-wrap {
   position: relative;
-  height: calc(100svh - var(--nav-h));
+  height: 100svh;
+  isolation: isolate;
+}
+
+/* кнопки карты — над плавающей навигацией */
+.map-wrap .leaflet-bottom {
+  bottom: calc(var(--nav-h) + 22px);
+}
+
+.map-failed {
+  position: absolute;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  background: var(--sand-50);
 }
 
 .map-canvas {
@@ -460,7 +481,7 @@ img {
 .map-locate-btn {
   position: absolute;
   right: 14px;
-  bottom: max(14px, env(safe-area-inset-bottom));
+  bottom: calc(var(--nav-h) + 30px);
   z-index: 1250;
   background: #fff;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
@@ -470,7 +491,7 @@ img {
   position: absolute;
   left: 14px;
   right: 14px;
-  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 56px);
+  bottom: calc(var(--nav-h) + 84px);
   z-index: 1250;
   background: rgba(20, 15, 12, 0.86);
   color: #fff;
@@ -483,9 +504,9 @@ img {
 
 .ticket {
   background: #fff;
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(29, 43, 72, 0.12);
 }
 
 .empty {
@@ -576,7 +597,7 @@ img {
 
 .fact-card:hover {
   border-color: #ffcdbd;
-  box-shadow: 0 6px 18px rgba(230, 62, 28, 0.12);
+  box-shadow: 0 6px 18px rgba(184, 67, 31, 0.12);
   transform: translateY(-1px);
 }
 
@@ -832,4 +853,339 @@ img {
 
 .pill.on {
   background: var(--indigo);
+}
+/* ===== доработки дизайна ===== */
+
+.mini-map {
+  height: 180px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #e8eee8;
+  isolation: isolate; /* панели Leaflet не перекрывают липкие панели */
+}
+
+.exp-card .cover {
+  cursor: pointer;
+}
+
+.exp-title {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.3;
+  margin-bottom: 8px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.exp-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.exp-card:hover {
+  box-shadow: 0 10px 26px rgba(29, 43, 72, 0.12);
+}
+
+.ornament-accent {
+  position: relative;
+  border-top: 4px solid var(--turquoise);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(244, 199, 106, 0.22), transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(42, 157, 159, 0.12), transparent 45%),
+    rgba(255, 255, 255, 0.95);
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.empty b {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.empty span {
+  font-size: 13px;
+}
+
+.icon-btn:disabled,
+.pill:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.icon-btn-sm {
+  width: 28px;
+  height: 28px;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--turquoise);
+  outline-offset: 2px;
+}
+
+.cta {
+  transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 16px rgba(212, 83, 43, 0.28);
+}
+
+.cta:hover {
+  background: var(--orange-dark);
+}
+
+.cta:active {
+  transform: scale(0.98);
+}
+
+/* бейдж с числом точек на кнопке маршрута */
+.gyg-nav .nav-icon {
+  position: relative;
+}
+
+.nav-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--indigo);
+  color: #fff;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 16px;
+  border: 2px solid #fff;
+  text-align: center;
+}
+
+/* маршрут */
+.route-guide-note {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #e9f6f6;
+  color: var(--turquoise-deep);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.route-leg {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--turquoise-deep);
+  margin: -2px 0 8px;
+}
+
+/* детальная страница */
+.detail-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.detail-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--sand-100);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.detail-chip.green {
+  background: #e7f5ee;
+  color: var(--green);
+}
+
+.check-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 16px;
+}
+
+.check-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.check-list li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sticky-buy {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+}
+
+/* бронирование */
+.booking-summary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: var(--sand-50);
+  border: 1px solid var(--sand-200);
+}
+
+.booking-summary img {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.date-chip {
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+/* билеты в профиле */
+.booking-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-top: 1px solid var(--line);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.booking-row img {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* билет */
+.ticket-cover {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.ticket-body {
+  padding: 16px;
+}
+
+.ticket-cut {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed var(--sand-200);
+  margin: 0 18px;
+}
+
+.ticket-cut::before,
+.ticket-cut::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+.ticket-cut::before {
+  left: -30px;
+}
+
+.ticket-cut::after {
+  right: -30px;
+}
+
+.ticket-code {
+  padding: 14px 16px 18px;
+  text-align: center;
+}
+
+.ticket-code div {
+  margin-top: 6px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--indigo-dark);
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 3px;
+  font-size: 18px;
+}
+
+/* переключатель уведомлений */
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 13px;
+  background: #d9d9d9;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.switch:checked {
+  background: var(--turquoise);
+}
+
+.switch:checked::after {
+  transform: translateX(18px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

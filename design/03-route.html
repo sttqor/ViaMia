@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>03-route</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Playfair+Display:wght@700;800&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#B8431F}a:hover{color:#1E2638}
+</style>
+<style>body{background:#ddd;display:flex;justify-content:center;padding:24px}</style>
+</head>
+<body>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; background: #FAF6F0; font-family: Manrope, system-ui, sans-serif; color: #1E2638">
+<div style="padding: 22px 16px 14px; display: flex; flex-direction: column; gap: 12px; background: #FFFFFF; border-bottom: 1px solid #E8E0D4">
+<span style="font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: #6B6459">ПЛАНИРОВЩИК ДНЯ · ОШ</span>
+<h1 style="margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 26px">Ваш маршрут</h1>
+<div style="display: flex; padding: 4px; border-radius: 14px; background: #F1E9DD">
+<button type="button" style="flex: 1; height: 40px; border: none; border-radius: 11px; background: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 800; color: #1E2638; box-shadow: 0 1px 4px rgba(30,38,56,0.1); display: inline-flex; align-items: center; justify-content: center; gap: 6px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"></circle><path d="m7 21 3-6 3 2v4"></path><path d="m10 15-1-5 4-2 3 4h3"></path></svg>Сами</button>
+<button type="button" style="flex: 1; height: 40px; border: none; border-radius: 11px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 700; color: #6B6459; display: inline-flex; align-items: center; justify-content: center; gap: 6px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"></circle><path d="M2 21a7 7 0 0 1 14 0"></path><path d="M16 3.1a4 4 0 0 1 0 7.8"></path><path d="M22 21a7 7 0 0 0-5-6.7"></path></svg>С гидом</button>
+</div>
+</div>
+<div style="padding: 14px 16px 0">
+<div style="background: #FFFFFF; border-radius: 20px; border: 1px solid #E8E0D4; overflow: hidden; display: flex; padding: 14px 6px"><div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4532B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>2.1 км</span><span style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; color: #6B6459">ПЕШКОМ</span></div><span style="width: 1px; background: #E8E0D4"></span><div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4532B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>8 ч 30 мин</span><span style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; color: #6B6459">ВРЕМЯ</span></div><span style="width: 1px; background: #E8E0D4"></span><div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4532B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"></circle><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"></path><circle cx="18" cy="5" r="3"></circle></svg>3</span><span style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; color: #6B6459">ТОЧКИ</span></div></div>
+</div>
+<div style="padding: 16px 16px 0">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px"><b style="font-size: 16px">План на день</b><a href="02-tours.html" style="font-size: 13px; font-weight: 800; color: #B8431F; text-decoration: none">+ Добавить</a></div>
+<div style="display: flex; gap: 10px">
+<div style="width: 44px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding-top: 4px">
+<span style="font-size: 11px; font-weight: 800; margin-bottom: 6px">09:00</span>
+<span style="width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF; border: 3px solid #D4532B"></span>
+<span style="flex: 1; width: 0; border-left: 2px dashed #E8E0D4; margin-top: 4px"></span>
+</div>
+<div style="background: #FFFFFF; border-radius: 20px; border: 1px solid #E8E0D4; overflow: hidden; flex: 1; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px">
+
+<div style="display: flex; gap: 10px; align-items: center">
+<div role="img" aria-label="фото: Восход на Сулайман-Тоо" style="height: 52px; border-radius: 12px; background: #F1E9DD; display: flex; align-items: center; justify-content: center; color: #A89A86; flex-shrink: 0; width: 52px"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A89A86" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 20 6-10 4 6 3-4 5 8z"></path></svg></div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><b style="font-size: 14px; line-height: 1.25">Восход на Сулайман-Тоо</b><span style="font-size: 11px; color: #6B6459">Экскурсия · 3 часа</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<button type="button" aria-label="Выше" style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; border: 1px solid #E8E0D4; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #1E2638; flex-shrink: 0; padding: 0; width: 32px; height: 32px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg></button>
+<button type="button" aria-label="Удалить" style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; border: 1px solid #E8E0D4; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #1E2638; flex-shrink: 0; padding: 0; width: 32px; height: 32px; color: #D4532B"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+</div>
+</div>
+</div>
+</div>
+<div style="display: flex; gap: 10px">
+<div style="width: 44px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding-top: 4px">
+<span style="font-size: 11px; font-weight: 800; margin-bottom: 6px">12:10</span>
+<span style="width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF; border: 3px solid #D4532B"></span>
+<span style="flex: 1; width: 0; border-left: 2px dashed #E8E0D4; margin-top: 4px"></span>
+</div>
+<div style="background: #FFFFFF; border-radius: 20px; border: 1px solid #E8E0D4; overflow: hidden; flex: 1; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px">
+<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #6B6459"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"></circle><path d="m7 21 3-6 3 2v4"></path><path d="m10 15-1-5 4-2 3 4h3"></path></svg>650 м пешком</span>
+<div style="display: flex; gap: 10px; align-items: center">
+<div role="img" aria-label="фото: Джайма: рынок и специи" style="height: 52px; border-radius: 12px; background: #F1E9DD; display: flex; align-items: center; justify-content: center; color: #A89A86; flex-shrink: 0; width: 52px"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A89A86" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 20 6-10 4 6 3-4 5 8z"></path></svg></div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><b style="font-size: 14px; line-height: 1.25">Джайма: рынок и специи</b><span style="font-size: 11px; color: #6B6459">Гастротур · 2 часа</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<button type="button" aria-label="Выше" style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; border: 1px solid #E8E0D4; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #1E2638; flex-shrink: 0; padding: 0; width: 32px; height: 32px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg></button>
+<button type="button" aria-label="Удалить" style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; border: 1px solid #E8E0D4; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #1E2638; flex-shrink: 0; padding: 0; width: 32px; height: 32px; color: #D4532B"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+</div>
+</div>
+</div>
+</div>
+<div style="display: flex; gap: 10px">
+<div style="width: 44px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding-top: 4px">
+<span style="font-size: 11px; font-weight: 800; margin-bottom: 6px">14:25</span>
+<span style="width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF; border: 3px solid #D4532B"></span>
+
+</div>
+<div style="background: #FFFFFF; border-radius: 20px; border: 1px solid #E8E0D4; overflow: hidden; flex: 1; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px">
+<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #6B6459"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"></circle><path d="m7 21 3-6 3 2v4"></path><path d="m10 15-1-5 4-2 3 4h3"></path></svg>1.2 км пешком</span>
+<div style="display: flex; gap: 10px; align-items: center">
+<div role="img" aria-label="фото: Гончарная практика" style="height: 52px; border-radius: 12px; background: #F1E9DD; display: flex; align-items: center; justify-content: center; color: #A89A86; flex-shrink: 0; width: 52px"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A89A86" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 20 6-10 4 6 3-4 5 8z"></path></svg></div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><b style="font-size: 14px; line-height: 1.25">Гончарная практика</b><span style="font-size: 11px; color: #6B6459">Мастер-класс · 2 часа</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<button type="button" aria-label="Выше" style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; border: 1px solid #E8E0D4; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #1E2638; flex-shrink: 0; padding: 0; width: 32px; height: 32px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg></button>
+<button type="button" aria-label="Удалить" style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; border: 1px solid #E8E0D4; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #1E2638; flex-shrink: 0; padding: 0; width: 32px; height: 32px; color: #D4532B"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<nav aria-label="Навигация" style="position: absolute; left: 14px; right: 14px; bottom: 18px; height: 68px; border-radius: 24px; background: #FFFFFF; border: 1px solid #E8E0D4; box-shadow: 0 10px 30px rgba(30,38,56,0.12); display: flex; align-items: center; padding: 0 6px"><a href="01-home.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #9A9184; font-size: 11px; font-weight: 800; padding: 8px 0"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9184" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z"></path></svg><span>Гид</span><span style="width: 4px; height: 4px; border-radius: 2px; background: transparent"></span></a><a href="#" style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #9A9184; font-size: 11px; font-weight: 800; padding: 8px 0"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9184" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path></svg><span>Карта</span><span style="width: 4px; height: 4px; border-radius: 2px; background: transparent"></span></a><a href="03-route.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #B8431F; font-size: 11px; font-weight: 800"><span style="width: 52px; height: 52px; margin-top: -26px; border-radius: 18px; background: #D4532B; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 18px rgba(212,83,43,0.35); border: 3px solid #FFFFFF"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"></circle><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"></path><circle cx="18" cy="5" r="3"></circle></svg></span>Маршрут</a><a href="02-tours.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #9A9184; font-size: 11px; font-weight: 800; padding: 8px 0"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9184" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path></svg><span>Туры</span><span style="width: 4px; height: 4px; border-radius: 2px; background: transparent"></span></a><a href="#" style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #9A9184; font-size: 11px; font-weight: 800; padding: 8px 0"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9184" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span>Профиль</span><span style="width: 4px; height: 4px; border-radius: 2px; background: transparent"></span></a></nav>
+</div>
+</body>
+</html>

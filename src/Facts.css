@@ -22,6 +22,15 @@
     transition: transform .15s ease;
 }
 
+.fact2-card:hover {
+    box-shadow: 0 6px 18px rgba(42, 157, 159, 0.16);
+}
+
+.fact2-card:focus-visible {
+    outline: 2px solid var(--turquoise, #2a9d9f);
+    outline-offset: 2px;
+}
+
 .fact2-card:active {
     transform: scale(.985);
 }
@@ -71,7 +80,7 @@
 .fact2-overlay {
     position: fixed;
     inset: 0;
-    z-index: 200;
+    z-index: 1400;
     background: rgba(15, 20, 35, .55);
     display: flex;
     align-items: flex-end;

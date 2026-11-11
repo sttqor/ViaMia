@@ -1,0 +1,26 @@
+:root {
+  /* акцент — только кнопки и активные элементы */
+  --accent: #D4532B;
+  --accent-hover: #B8431F;
+  /* тёмный — текст, выбранные фильтры */
+  --ink: #1E2638;
+  /* золото — только метки */
+  --gold: #E9B44C;
+  --bg: #FAF6F0;
+  --bg-2: #F1E9DD;
+  --line: #E8E0D4;
+  --muted: #6B6459;
+  --card: #FFFFFF;
+  --success: #1F6B45;
+  --success-bg: #E8F3EC;
+
+  --radius-btn: 14px;
+  --radius-card: 20px;
+  --radius-chip: 999px;
+  --h-btn: 48px;
+  --h-chip: 36px;
+  --size-icon-btn: 44px;
+
+  --font-ui: "Manrope", system-ui, sans-serif;
+  --font-display: "Playfair Display", Georgia, serif;
+}

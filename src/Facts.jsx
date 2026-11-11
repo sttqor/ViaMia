@@ -1,26 +1,24 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useDragControls } from "framer-motion";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { EXPERIENCES, FACTS } from "./data";
-import "./facts.css";
+import { useSettings } from "./settings-context";
+import "./Facts.css";
 
-// Какой тур открывать по кнопке в факте (id из EXPERIENCES).
-// Если факта здесь нет, кнопка ведёт на вкладку из fact.linkTab.
-const FACT_TO_EXP = {
-    "older-than-rome": "sulaiman",
-    devzira: "cooking",
-    "jaima-bazaar": "bazaar",
-};
+// Тур для кнопки и мини-карты берётся из поля `expId` факта (см. data.js).
+// Если его нет, кнопка ведёт на вкладку из fact.linkTab.
 
 const small = (url) => url.replace("w=1200", "w=320");
 
 function FactHero({ fact, onClose }) {
+    const { t } = useSettings();
     const [loaded, setLoaded] = useState(false);
     return (
         <div className="fact2-hero">
             <img src={fact.image} alt="" className={loaded ? "loaded" : ""} onLoad={() => setLoaded(true)} />
             <div className="fact2-hero-fade" />
-            <button className="icon-btn fact2-close" onClick={onClose} aria-label="Закрыть">
+            <button className="icon-btn fact2-close" onClick={onClose} aria-label={t("facts.close")}>
                 <ChevronDown size={20} />
             </button>
             <div className="fact2-hero-text">
@@ -32,27 +30,35 @@ function FactHero({ fact, onClose }) {
 }
 
 function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
-    const fact = FACTS[index];
-    const exp = EXPERIENCES.find((e) => e.id === FACT_TO_EXP[fact.id]);
+    const { t, loc } = useSettings();
+    const fact = loc(FACTS[index]);
+    const expRaw = EXPERIENCES.find((e) => e.id === fact.expId);
+    const exp = loc(expRaw);
     const controls = useDragControls();
     const scrollRef = useRef(null);
-    const dir = useRef(1);
+    const [dir, setDir] = useState(1);
 
     const go = (next) => {
         if (next < 0 || next >= FACTS.length) return;
-        dir.current = next > index ? 1 : -1;
+        setDir(next > index ? 1 : -1);
         setIndex(next);
     };
 
     useEffect(() => {
         const onKey = (e) => {
             if (e.key === "Escape") onClose();
-            if (e.key === "ArrowRight") go(index + 1);
-            if (e.key === "ArrowLeft") go(index - 1);
+            if (e.key === "ArrowRight" && index < FACTS.length - 1) {
+                setDir(1);
+                setIndex(index + 1);
+            }
+            if (e.key === "ArrowLeft" && index > 0) {
+                setDir(-1);
+                setIndex(index - 1);
+            }
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-    });
+    }, [index, onClose, setIndex]);
 
     useEffect(() => {
         document.body.style.overflow = "hidden";
@@ -100,23 +106,27 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
                     <AnimatePresence mode="wait" initial={false}>
                         <motion.div
                             key={fact.id}
-                            initial={{ opacity: 0, x: 28 * dir.current }}
+                            initial={{ opacity: 0, x: 28 * dir }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -28 * dir.current }}
+                            exit={{ opacity: 0, x: -28 * dir }}
                             transition={{ duration: 0.18 }}
                         >
                             <FactHero fact={fact} onClose={onClose} />
                             <div className="fact2-body">
-                                {fact.body.map((p) => (
+                                {(fact.body || []).map((p) => (
                                     <p key={p}>{p}</p>
                                 ))}
 
-                                <h3>Коротко о главном</h3>
-                                <ul>
-                                    {fact.points.map((p) => (
-                                        <li key={p}>{p}</li>
-                                    ))}
-                                </ul>
+                                {fact.points?.length > 0 && (
+                                    <>
+                                        <h3>{t("facts.summary")}</h3>
+                                        <ul>
+                                            {fact.points.map((p) => (
+                                                <li key={p}>{p}</li>
+                                            ))}
+                                        </ul>
+                                    </>
+                                )}
 
                                 {exp && MiniMap && (
                                     <div className="fact2-map">
@@ -125,28 +135,30 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
                                     </div>
                                 )}
 
-                                <button className="cta" onClick={() => (exp ? onOpenExp(exp) : onGoTo(fact.linkTab))}>
-                                    {fact.linkLabel} →
-                                </button>
+                                {(expRaw || fact.linkTab) && fact.linkLabel && (
+                                    <button className="cta" onClick={() => (expRaw ? onOpenExp(expRaw) : onGoTo(fact.linkTab))}>
+                                        {fact.linkLabel} →
+                                    </button>
+                                )}
                             </div>
                         </motion.div>
                     </AnimatePresence>
                 </div>
 
                 <div className="fact2-nav">
-                    <button className="icon-btn" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Предыдущий факт">
+                    <button className="icon-btn" onClick={() => go(index - 1)} disabled={index === 0} aria-label={t("facts.prev")}>
                         <ChevronLeft size={18} />
                     </button>
                     <div className="fact2-dots">
                         {FACTS.map((f, i) => (
-                            <button key={f.id} className={i === index ? "on" : ""} onClick={() => go(i)} aria-label={`Факт ${i + 1}`} />
+                            <button key={f.id} className={i === index ? "on" : ""} onClick={() => go(i)} aria-label={t("facts.dot", { n: i + 1 })} />
                         ))}
                     </div>
                     <button
                         className="icon-btn"
                         onClick={() => go(index + 1)}
                         disabled={index === FACTS.length - 1}
-                        aria-label="Следующий факт"
+                        aria-label={t("facts.next")}
                     >
                         <ChevronRight size={18} />
                     </button>
@@ -157,34 +169,39 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
 }
 
 export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
+    const { t, loc } = useSettings();
     const [index, setIndex] = useState(null);
 
     return (
         <section className="fact2-section">
-            <h2>Интересные факты</h2>
+            <h2>{t("facts.title")}</h2>
             <div className="fact2-list">
-                {FACTS.map((f, i) => (
-                    <article
-                        key={f.id}
-                        className="card fact2-card"
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setIndex(i)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") setIndex(i);
-                        }}
-                    >
-                        <img className="fact2-thumb" src={small(f.image)} alt="" loading="lazy" />
-                        <div className="fact2-text">
-                            <span className="fact2-tag">{f.tag}</span>
-                            <b>{f.emoji} {f.title}</b>
-                            <p>{f.short}</p>
-                        </div>
-                        <ChevronRight size={16} color="var(--terracotta)" style={{ flexShrink: 0 }} />
-                    </article>
-                ))}
+                {FACTS.map((raw, i) => {
+                    const f = loc(raw);
+                    return (
+                        <article
+                            key={f.id}
+                            className="card fact2-card"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setIndex(i)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") setIndex(i);
+                            }}
+                        >
+                            <img className="fact2-thumb" src={small(f.image)} alt="" loading="lazy" />
+                            <div className="fact2-text">
+                                <span className="fact2-tag">{f.tag}</span>
+                                <b>{f.emoji} {f.title}</b>
+                                <p>{f.short}</p>
+                            </div>
+                            <ChevronRight size={16} color="var(--terracotta)" style={{ flexShrink: 0 }} />
+                        </article>
+                    );
+                })}
             </div>
 
+            {createPortal(
             <AnimatePresence>
                 {index !== null && (
                     <FactSheet
@@ -202,7 +219,9 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
                         MiniMap={MiniMap}
                     />
                 )}
-            </AnimatePresence>
+            </AnimatePresence>,
+            document.body
+            )}
         </section>
     );
 }
