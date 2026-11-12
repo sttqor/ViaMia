@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# секреты (supabase и т.п.)
+.env
+.env.*
+!.env.example

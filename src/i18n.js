@@ -56,6 +56,7 @@ export const DICT = {
     "nav.route": "Маршрут",
     "nav.tours": "Туры",
     "nav.profile": "Профиль",
+    "nav.label": "Навигация",
 
     "common.back": "Назад",
     "common.search": "Поиск…",
@@ -92,6 +93,7 @@ export const DICT = {
     "route.kicker": "ПЛАНИРОВЩИК ДНЯ · ОШ",
     "route.title": "Составьте свой маршрут",
     "route.subtitle": "Добавьте места во вкладке «Туры» — мы построим удобный путь на день.",
+    "route.modeLabel": "Как идти",
     "route.self": "🚶 Сами",
     "route.guide": "🧭 С гидом",
     "route.guideNote": "Местный гид проведёт по всем точкам ({n}) · от {price} с человека",
@@ -157,6 +159,9 @@ export const DICT = {
     "booking.contact": "Телефон или @telegram",
     "booking.note": "Гид свяжется с вами для подтверждения. Оплата на месте.",
     "booking.submit": "Отправить заявку · {total}",
+    "booking.sending": "Отправляем…",
+    "booking.error": "Не удалось отправить заявку. Проверьте интернет и попробуйте ещё раз.",
+    "ticket.cancelError": "Не удалось отменить бронь. Проверьте интернет и попробуйте ещё раз.",
 
     "ticket.title": "Ваш билет",
     "ticket.confirmed": "Подтверждено",
@@ -179,6 +184,7 @@ export const DICT = {
     "nav.route": "Route",
     "nav.tours": "Tours",
     "nav.profile": "Profile",
+    "nav.label": "Navigation",
 
     "common.back": "Back",
     "common.search": "Search…",
@@ -215,6 +221,7 @@ export const DICT = {
     "route.kicker": "DAY PLANNER · OSH",
     "route.title": "Build your route",
     "route.subtitle": "Add places in the Tours tab and we'll build a convenient route for the day.",
+    "route.modeLabel": "How to go",
     "route.self": "🚶 On my own",
     "route.guide": "🧭 With a guide",
     "route.guideNote": "A local guide will take you to all stops ({n}) · from {price} per person",
@@ -280,6 +287,9 @@ export const DICT = {
     "booking.contact": "Phone or @telegram",
     "booking.note": "The guide will contact you to confirm. Pay on site.",
     "booking.submit": "Send request · {total}",
+    "booking.sending": "Sending…",
+    "booking.error": "Couldn't send the request. Check your connection and try again.",
+    "ticket.cancelError": "Couldn't cancel the booking. Check your connection and try again.",
 
     "ticket.title": "Your ticket",
     "ticket.confirmed": "Confirmed",

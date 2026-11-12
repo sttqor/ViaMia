@@ -356,8 +356,14 @@ export function upcomingDates(count = 8) {
   return out;
 }
 
+// Код брони. По нему турист отменяет заявку, поэтому он случайный (crypto), а не Math.random.
+// Без похожих символов (0/O, 1/I), чтобы код было легко продиктовать гиду.
 export function makeCode() {
-  return `OSH-${Math.random().toString(36).slice(2, 6).toUpperCase()}${Date.now().toString().slice(-3)}`;
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  const s = Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
+  return `OSH-${s.slice(0, 4)}-${s.slice(4)}`;
 }
 
 // Интересные факты для главной страницы (кликабельные карточки)

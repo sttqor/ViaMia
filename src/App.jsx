@@ -27,14 +27,19 @@ import {
   Users,
 } from "lucide-react";
 import { CATEGORIES, CITY, EXPERIENCES, loadLeaflet, makeCode, upcomingDates } from "./data";
+import { useContent } from "./content-context";
+import { cancelBookingRequest, submitBookingRequest } from "./api";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName, durationMinutes, weekdayShort } from "./i18n";
 import { useSettings } from "./settings-context";
 import { FactsSection } from "./Facts";
+import { TabBar } from "./TabBar";
+import { Segmented } from "./Segmented";
+import { useMinimizeOnScroll } from "./useMinimizeOnScroll";
 
 const TABS = [
   { id: "home", key: "nav.home", Icon: Compass },
   { id: "map", key: "nav.map", Icon: MapIcon },
-  { id: "route", key: "nav.route", Icon: RouteIcon },
+  { id: "route", key: "nav.route", Icon: RouteIcon, accent: true },
   { id: "tours", key: "nav.tours", Icon: Sparkles },
   { id: "profile", key: "nav.profile", Icon: User },
 ];
@@ -384,13 +389,16 @@ function RouteView({ items, setItems, onGoToTours }) {
         <div className="muted" style={{ fontWeight: 700, fontSize: 11 }}>{t("route.kicker")}</div>
         <h1 style={{ fontSize: 24, fontWeight: 900, margin: "2px 0 10px" }}>{t("route.title")}</h1>
         <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t("route.subtitle")}</p>
-        <div className="row" style={{ background: "var(--sand-100)", borderRadius: 14, padding: 4, marginTop: 12 }}>
-          <button className={`pill ${mode === "self" ? "on" : ""}`} style={{ flex: 1, textAlign: "center" }} onClick={() => setMode("self")}>
-            {t("route.self")}
-          </button>
-          <button className={`pill ${mode === "guide" ? "on" : ""}`} style={{ flex: 1, textAlign: "center" }} onClick={() => setMode("guide")}>
-            {t("route.guide")}
-          </button>
+        <div style={{ marginTop: 12 }}>
+          <Segmented
+            label={t("route.modeLabel")}
+            value={mode}
+            onChange={setMode}
+            options={[
+              { value: "self", label: t("route.self") },
+              { value: "guide", label: t("route.guide") },
+            ]}
+          />
         </div>
         {mode === "guide" && items.length > 0 && (
           <div className="route-guide-note">
@@ -526,7 +534,8 @@ function ToursView({
 }) {
   const { t, loc } = useSettings();
   const q = query.trim().toLowerCase();
-  const filtered = EXPERIENCES.filter((raw) => {
+  const { tours } = useContent();
+  const filtered = tours.filter((raw) => {
     const byCat = category === "all" || raw.category === category;
     if (!byCat) return false;
     if (!q) return true;
@@ -665,7 +674,8 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
   const [screen, setScreen] = useState(null); // null | "lang" | "currency"
 
   const currentLang = LANGUAGES.find((l) => l.code === lang);
-  const savedItems = EXPERIENCES.filter((e) => saved.has(e.id)).map(loc);
+  const { tours } = useContent();
+  const savedRaw = tours.filter((e) => saved.has(e.id));
 
   if (screen === "lang") {
     return (
@@ -764,19 +774,21 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
         <div className="row" style={{ gap: 8, marginBottom: 10 }}>
           <Heart size={16} color="var(--terracotta)" />
-          <b>{t("profile.saved", { n: savedItems.length })}</b>
+          <b>{t("profile.saved", { n: savedRaw.length })}</b>
         </div>
-        {savedItems.length === 0 ? (
+        {savedRaw.length === 0 ? (
           <div className="empty-cta">
             <div className="muted" style={{ fontSize: 13 }}>{t("profile.noSaved")}</div>
             <button className="cta cta-sm" onClick={onGoToTours}>{t("profile.seeTours")}</button>
           </div>
         ) : (
           <div className="h-scroll" style={{ padding: "2px 0 0", margin: "0 -16px", paddingLeft: 16, paddingRight: 16 }}>
-            {savedItems.map((exp) => (
+            {savedRaw.map((raw) => {
+              const exp = loc(raw);
+              return (
               <button
                 key={exp.id}
-                onClick={() => onOpenSaved(EXPERIENCES.find((e) => e.id === exp.id))}
+                onClick={() => onOpenSaved(raw)}
                 style={{
                   minWidth: 132,
                   textAlign: "left",
@@ -795,7 +807,8 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
                   <div className="muted" style={{ fontSize: 10.5, marginTop: 2 }}>{t("price.from", { price: money(exp.price) })}</div>
                 </div>
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -931,6 +944,30 @@ function Booking({ exp: raw, onBack, onConfirm }) {
   const [contact, setContact] = useState("");
   const total = exp.price * guests; // в USD
   const canSubmit = name.trim().length >= 2 && contact.trim().length >= 5;
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState(false);
+
+  async function submit() {
+    setSending(true);
+    setSendError(false);
+    try {
+      await onConfirm({
+        exp: raw,
+        date,
+        guests,
+        total,
+        name: name.trim(),
+        contact: contact.trim(),
+        status: "pending",
+        createdAt: new Date().toISOString(),
+        code: makeCode(),
+      });
+    } catch (err) {
+      console.warn("Заявка не отправилась", err);
+      setSendError(true);
+      setSending(false);
+    }
+  }
 
   const dayLabel = (d, i) => (i === 0 ? t("booking.today") : i === 1 ? t("booking.tomorrow") : weekdayShort(d.date, lang));
 
@@ -990,24 +1027,12 @@ function Booking({ exp: raw, onBack, onConfirm }) {
         </div>
         <div className="muted" style={{ fontSize: 12, marginBottom: 16 }}>{t("booking.note")}</div>
 
-        <button
-          className="cta"
-          disabled={!canSubmit}
-          onClick={() =>
-            onConfirm({
-              exp: raw,
-              date,
-              guests,
-              total,
-              name: name.trim(),
-              contact: contact.trim(),
-              status: "pending",
-              createdAt: new Date().toISOString(),
-              code: makeCode(),
-            })
-          }
-        >
-          {t("booking.submit", { total: money(total) })}
+        {sendError && (
+          <div className="form-error" role="alert">{t("booking.error")}</div>
+        )}
+
+        <button className="cta" disabled={!canSubmit || sending} onClick={submit}>
+          {sending ? t("booking.sending") : t("booking.submit", { total: money(total) })}
         </button>
       </div>
     </div>
@@ -1018,6 +1043,21 @@ function TicketView({ booking, onClose, onCancel }) {
   const { t, loc, money, plural, fmtDate } = useSettings();
   const exp = loc(booking.exp);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState(false);
+
+  async function doCancel() {
+    setCancelling(true);
+    setCancelError(false);
+    try {
+      await onCancel(booking);
+    } catch (err) {
+      console.warn("Отмена не прошла", err);
+      setCancelError(true);
+      setCancelling(false);
+    }
+  }
+
   return (
     <div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }}>
       <div className="screen-head">
@@ -1052,13 +1092,17 @@ function TicketView({ booking, onClose, onCancel }) {
           </div>
         </div>
 
+        {cancelError && (
+          <div className="form-error" role="alert" style={{ marginTop: 16 }}>{t("ticket.cancelError")}</div>
+        )}
+
         {onCancel && (
           confirmCancel ? (
             <div className="row" style={{ gap: 8, marginTop: 16 }}>
-              <button className="pill" style={{ flex: 1, textAlign: "center" }} onClick={() => setConfirmCancel(false)}>
+              <button className="pill" style={{ flex: 1, textAlign: "center" }} disabled={cancelling} onClick={() => setConfirmCancel(false)}>
                 {t("ticket.keep")}
               </button>
-              <button className="cta" style={{ flex: 1 }} onClick={() => onCancel(booking)}>
+              <button className="cta" style={{ flex: 1 }} disabled={cancelling} onClick={doCancel}>
                 {t("ticket.confirmCancel")}
               </button>
             </div>
@@ -1076,19 +1120,21 @@ function TicketView({ booking, onClose, onCancel }) {
   );
 }
 
-// Сохранение на устройстве (localStorage может быть недоступен — тогда просто работаем в памяти)
+// Сохранение на устройстве (localStorage может быть недоступен — тогда просто работаем в памяти).
+// Избранное и маршрут храним как id туров (туры могут прийти из Supabase позже),
+// а в брони — копию тура на момент бронирования, чтобы билет не пропал, если тур снимут.
 const STORE_KEY = "osh-guide-v1";
-const byId = (id) => EXPERIENCES.find((e) => e.id === id);
+const legacyTour = (id) => EXPERIENCES.find((e) => e.id === id);
 
 function loadStore() {
   try {
     const raw = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
     if (!raw) return null;
     return {
-      saved: new Set((raw.saved || []).filter(byId)),
-      route: (raw.route || []).map(byId).filter(Boolean),
+      saved: new Set(raw.saved || []),
+      route: raw.route || [],
       bookings: (raw.bookings || [])
-        .map((b) => ({ ...b, exp: byId(b.expId) }))
+        .map((b) => (b.exp ? b : { ...b, exp: legacyTour(b.expId) })) // старый формат: только expId
         .filter((b) => b.exp),
     };
   } catch {
@@ -1097,10 +1143,12 @@ function loadStore() {
 }
 
 const initialStore = loadStore();
+const DEFAULT_ROUTE = ["sulaiman", "bazaar", "pottery"];
 
 // ГЛАВНЫЙ ЭКСПОРТ
 export default function App() {
-  const { t } = useSettings();
+  const { t, lang } = useSettings();
+  const { tours, byId } = useContent();
   const [tab, setTab] = useState("home");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -1109,25 +1157,22 @@ export default function App() {
   const [bookingExp, setBookingExp] = useState(null);
   const [ticket, setTicket] = useState(null);
   const [bookings, setBookings] = useState(() => initialStore?.bookings || []);
+  const [navMin, setNavMin] = useMinimizeOnScroll();
 
-  const [routeItems, setRouteItems] = useState(
-    () => initialStore?.route || [byId("sulaiman"), byId("bazaar"), byId("pottery")].filter(Boolean)
-  );
+  const [routeIds, setRouteIds] = useState(() => initialStore?.route || DEFAULT_ROUTE);
+  const routeItems = useMemo(() => routeIds.map(byId).filter(Boolean), [routeIds, byId]);
+  const setRouteItems = (items) => setRouteIds(items.map((x) => x.id));
 
   useEffect(() => {
     try {
       localStorage.setItem(
         STORE_KEY,
-        JSON.stringify({
-          saved: [...saved],
-          route: routeItems.map((r) => r.id),
-          bookings: bookings.map(({ exp, ...rest }) => ({ ...rest, expId: exp.id })),
-        })
+        JSON.stringify({ saved: [...saved], route: routeIds, bookings })
       );
     } catch {
       /* хранилище недоступно */
     }
-  }, [saved, routeItems, bookings]);
+  }, [saved, routeIds, bookings]);
 
   // При смене экрана — наверх
   useEffect(() => {
@@ -1144,22 +1189,22 @@ export default function App() {
   }
 
   function toggleRoute(exp) {
-    setRouteItems((prev) => {
-      const exists = prev.some((x) => x.id === exp.id);
-      if (exists) return prev.filter((x) => x.id !== exp.id);
-      return [...prev, exp];
-    });
+    setRouteIds((prev) => (prev.includes(exp.id) ? prev.filter((id) => id !== exp.id) : [...prev, exp.id]));
   }
 
-  function confirmBooking(entry) {
-    setBookings((b) => [entry, ...b]);
+  // Заявка уходит в Supabase (если он настроен). Ошибка пробрасывается — экран брони её покажет.
+  async function confirmBooking(entry) {
+    const { synced } = await submitBookingRequest(entry, lang);
+    const record = { ...entry, synced };
+    setBookings((b) => [record, ...b]);
     setBookingExp(null);
     setSelected(null);
-    setTicket(entry);
+    setTicket(record);
     setTab("profile");
   }
 
-  function cancelBooking(entry) {
+  async function cancelBooking(entry) {
+    if (entry.synced) await cancelBookingRequest(entry.code);
     setBookings((b) => b.filter((x) => x.code !== entry.code));
     setTicket(null);
   }
@@ -1182,7 +1227,7 @@ export default function App() {
     <div className="gyg-app ornament-bg">
       {tab === "home" && <HomeView onGoToRoute={() => setTab("route")} onGoTo={setTab} onOpenExp={setSelected} />}
 
-      {tab === "map" && <ExploreMap items={EXPERIENCES} onOpen={setSelected} />}
+      {tab === "map" && <ExploreMap items={tours} onOpen={setSelected} />}
 
       {tab === "route" && (
         <RouteView items={routeItems} setItems={setRouteItems} onGoToTours={() => setTab("tours")} />
@@ -1212,21 +1257,21 @@ export default function App() {
         />
       )}
 
-      <nav className="gyg-nav">
-        {TABS.map((tb) => (
-          <button
-            key={tb.id}
-            className={`${tab === tb.id ? "active" : ""} ${tb.id === "route" ? "route-tab" : ""}`}
-            onClick={() => setTab(tb.id)}
-            aria-current={tab === tb.id ? "page" : undefined}
-          >
-            <span className="nav-icon">
-              <tb.Icon size={20} />
-            </span>
-            <span>{t(tb.key)}</span>
-          </button>
-        ))}
-      </nav>
+      <TabBar
+        tabs={TABS.map((tb) => ({ id: tb.id, Icon: tb.Icon, accent: tb.accent, label: t(tb.key) }))}
+        activeId={tab}
+        label={t("nav.label")}
+        minimized={navMin}
+        onExpand={() => setNavMin(false)}
+        onSelect={(id) => {
+          setNavMin(false);
+          setTab(id);
+        }}
+        onReselect={() => {
+          setNavMin(false);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
     </div>
   );
 }

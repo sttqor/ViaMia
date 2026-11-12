@@ -22,7 +22,9 @@
 - `src/i18n.js` — словари интерфейса (`DICT`, сейчас ru/en), валюты с примерными курсами к USD, форматирование цен/дат/длительности. Новый язык = новый словарь в `DICT`, в профиле появится сам.
 - `src/SettingsProvider.jsx` + `src/settings-context.js` — язык/валюта/уведомления (ключ `osh-guide-settings`). В компонентах: `const { t, loc, money, plural, fmtDate, fmtDuration } = useSettings()`. Никаких строк интерфейса в JSX напрямую — только через `t()`.
 - Перевод карточки — блок `en: {...}` внутри тура/факта/категории в `data.js`; `loc(item)` подставляет его. Цены в `data.js` всегда в USD. У факта `expId` — связанный тур.
-- В стейт (маршрут, избранное, брони) кладём исходные объекты из `data.js`, `loc()` — только при отрисовке.
+- Туры и факты берутся через `useContent()` (`src/ContentProvider.jsx`): сначала кэш/`data.js`, потом свежие из Supabase. Напрямую `EXPERIENCES`/`FACTS` в компонентах не импортировать.
+- Supabase: `src/supabase.js` (клиент, `null` без ключей), `src/api.js` (чтение туров/фактов, заявка, отмена по коду). Схема и RLS — `supabase/schema.sql`; данные — `supabase/seed.sql`, генерируется `node scripts/make-seed.mjs` из `data.js`.
+- Маршрут и избранное в localStorage — id туров; бронь хранит копию тура (`exp`) и флаг `synced` (ушла ли в базу).
 
 ## Дизайн (утверждённый стиль)
 Макет: https://claude.ai/artifact/7zUSk4KrLpTE7MsphuV2tK
@@ -36,10 +38,10 @@
 - Фильтры-чипы: высота 36, радиус 999. Иконки-кнопки: круг 44, белые с тонкой рамкой (без «стекла»).
 - Карточки: радиус 20, рамка 1px, без тяжёлых теней.
 - Шрифты: Manrope (интерфейс), Playfair Display (крупные заголовки).
-- Нижняя навигация: белая, у «Маршрута» приподнятая терракотовая кнопка, **без цифры-бейджа**.
+- Нижняя навигация: **как в iOS 26** (решение пользователя, заменяет макет) — `src/TabBar.jsx` + `src/TabBar.css`: стеклянная капсула, «линза» под выбранной вкладкой, перетаскивание пальцем, повторный тап — наверх, сворачивание при прокрутке (`src/useMinimizeOnScroll.js`). «Маршрут» выделен терракотовым кружком внутри капсулы (`accent: true` в `TABS`). **Без цифры-бейджа**.
 
 ## План (следующие шаги)
-1. **Бэкенд на Supabase**: перенести туры из `data.js` в таблицы.
+1. **Бэкенд на Supabase** — код готов (схема, RLS, чтение, заявки). Осталось: пользователь создаёт проект, запускает `schema.sql` и `seed.sql`, кладёт ключи в `.env` и Vercel.
    - `agencies` (id, name, phone, telegram, verified, logo_url, owner_user_id)
    - `tours` (id, agency_id nullable, title, category, type, place, duration, price, lat, lng, images[], description, highlights[], includes[], meeting, published)
    - `booking_requests` (id, tour_id, agency_id, date, guests, name, contact, status, created_at)

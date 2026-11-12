@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useDragControls } from "framer-motion";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { EXPERIENCES, FACTS } from "./data";
+import { useContent } from "./content-context";
 import { useSettings } from "./settings-context";
 import "./Facts.css";
 
 // Тур для кнопки и мини-карты берётся из поля `expId` факта (см. data.js).
 // Если его нет, кнопка ведёт на вкладку из fact.linkTab.
 
-const small = (url) => url.replace("w=1200", "w=320");
+const small = (url) => (url || "").replace("w=1200", "w=320");
 
 function FactHero({ fact, onClose }) {
     const { t } = useSettings();
@@ -31,15 +31,16 @@ function FactHero({ fact, onClose }) {
 
 function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
     const { t, loc } = useSettings();
-    const fact = loc(FACTS[index]);
-    const expRaw = EXPERIENCES.find((e) => e.id === fact.expId);
+    const { facts, byId } = useContent();
+    const fact = loc(facts[index]);
+    const expRaw = fact.expId ? byId(fact.expId) : undefined;
     const exp = loc(expRaw);
     const controls = useDragControls();
     const scrollRef = useRef(null);
     const [dir, setDir] = useState(1);
 
     const go = (next) => {
-        if (next < 0 || next >= FACTS.length) return;
+        if (next < 0 || next >= facts.length) return;
         setDir(next > index ? 1 : -1);
         setIndex(next);
     };
@@ -47,7 +48,7 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
     useEffect(() => {
         const onKey = (e) => {
             if (e.key === "Escape") onClose();
-            if (e.key === "ArrowRight" && index < FACTS.length - 1) {
+            if (e.key === "ArrowRight" && index < facts.length - 1) {
                 setDir(1);
                 setIndex(index + 1);
             }
@@ -58,7 +59,7 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-    }, [index, onClose, setIndex]);
+    }, [index, onClose, setIndex, facts.length]);
 
     useEffect(() => {
         document.body.style.overflow = "hidden";
@@ -150,14 +151,14 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
                         <ChevronLeft size={18} />
                     </button>
                     <div className="fact2-dots">
-                        {FACTS.map((f, i) => (
+                        {facts.map((f, i) => (
                             <button key={f.id} className={i === index ? "on" : ""} onClick={() => go(i)} aria-label={t("facts.dot", { n: i + 1 })} />
                         ))}
                     </div>
                     <button
                         className="icon-btn"
                         onClick={() => go(index + 1)}
-                        disabled={index === FACTS.length - 1}
+                        disabled={index === facts.length - 1}
                         aria-label={t("facts.next")}
                     >
                         <ChevronRight size={18} />
@@ -170,13 +171,14 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
 
 export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
     const { t, loc } = useSettings();
+    const { facts } = useContent();
     const [index, setIndex] = useState(null);
 
     return (
         <section className="fact2-section">
             <h2>{t("facts.title")}</h2>
             <div className="fact2-list">
-                {FACTS.map((raw, i) => {
+                {facts.map((raw, i) => {
                     const f = loc(raw);
                     return (
                         <article
@@ -203,7 +205,7 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
 
             {createPortal(
             <AnimatePresence>
-                {index !== null && (
+                {index !== null && facts[index] && (
                     <FactSheet
                         index={index}
                         setIndex={setIndex}
