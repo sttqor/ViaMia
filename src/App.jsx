@@ -35,6 +35,35 @@ import { FactsSection } from "./Facts";
 import { TabBar } from "./TabBar";
 import { Segmented } from "./Segmented";
 import { useMinimizeOnScroll } from "./useMinimizeOnScroll";
+import splashVideo from "./splash.mp4";
+
+// Заставка при запуске: ролик с иконкой-дорогой. Пропускается тапом,
+// при prefers-reduced-motion не показывается вовсе.
+function Splash({ onDone }) {
+  const [hide, setHide] = useState(false);
+  const doneRef = useRef(false);
+  const finish = () => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    setHide(true);
+    setTimeout(onDone, 320);
+  };
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      doneRef.current = true;
+      onDone();
+      return;
+    }
+    const safety = setTimeout(finish, 7000); // если видео не загрузилось
+    return () => clearTimeout(safety);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <div className={`splash ${hide ? "splash-hide" : ""}`} onClick={finish}>
+      <video src={splashVideo} autoPlay muted playsInline onEnded={finish} onError={finish} />
+    </div>
+  );
+}
 
 const TABS = [
   { id: "home", key: "nav.home", Icon: Compass },
@@ -66,7 +95,7 @@ function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave, onTogg
           aria-label={saved ? t("common.unsave") : t("common.save")}
           onClick={() => onToggleSave(exp.id)}
         >
-          <Heart size={18} fill={saved ? "var(--terracotta)" : "none"} color={saved ? "var(--terracotta)" : "#222"} />
+          <Heart size={18} fill={saved ? "var(--terracotta)" : "none"} color={saved ? "var(--terracotta)" : "var(--ink)"} />
         </button>
       </div>
       <div style={{ padding: 14 }}>
@@ -252,13 +281,13 @@ function ExploreMap({ items, onOpen }) {
 
       <div className="map-search-bar">
         <div className="search map-search-input">
-          <Search size={18} color="#888" />
+          <Search size={18} color="var(--muted-2)" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("map.search")} />
         </div>
       </div>
 
       <button className="icon-btn map-locate-btn" onClick={locateMe} aria-label={t("map.locate")} disabled={locating}>
-        <Navigation size={18} color={locating ? "#bbb" : "var(--terracotta)"} />
+        <Navigation size={18} color={locating ? "var(--muted-2)" : "var(--terracotta)"} />
       </button>
 
       {locateError && <div className="map-locate-toast">{t("map.locateError")}</div>}
@@ -289,7 +318,7 @@ function HomeView({ onGoToRoute, onGoTo, onOpenExp }) {
           alt={t("home.heroAlt")}
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(20,40,74,.15) 0%, rgba(20,40,74,.88) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(30,38,56,.15) 0%, rgba(30,38,56,.88) 100%)" }} />
         <div style={{ position: "absolute", left: 18, right: 18, bottom: 22 }}>
           <span className="fact-tag">{t("home.tag")}</span>
           <h1 style={{ fontSize: 32, lineHeight: 1.08, margin: "8px 0 8px", fontWeight: 900, letterSpacing: -0.5 }}>
@@ -479,7 +508,7 @@ function RouteView({ items, setItems, onGoToTours }) {
                             {item.type} · {item.place}
                           </div>
                           {isOpen && (
-                            <p style={{ margin: "0 0 8px", fontSize: 12, lineHeight: 1.5, color: "#444" }}>
+                            <p style={{ margin: "0 0 8px", fontSize: 12, lineHeight: 1.5, color: "var(--ink-soft)" }}>
                               {item.description}
                             </p>
                           )}
@@ -550,7 +579,7 @@ function ToursView({
         <div className="muted" style={{ fontWeight: 700, fontSize: 11 }}>{t("tours.kicker")}</div>
         <h1 style={{ fontSize: 24, fontWeight: 900, margin: "2px 0 10px" }}>{t("tours.title")}</h1>
         <div className="search">
-          <Search size={18} color="#888" />
+          <Search size={18} color="var(--muted-2)" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("tours.search")} />
         </div>
       </div>
@@ -626,7 +655,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
       </div>
       <div style={{ padding: 16 }}>
         <div className="search" style={{ marginBottom: 14 }}>
-          <Search size={18} color="#888" />
+          <Search size={18} color="var(--muted-2)" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("common.search")} />
         </div>
         <div className="card" style={{ overflow: "hidden" }}>
@@ -672,6 +701,12 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
 function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }) {
   const { t, loc, money, fmtDate, plural, lang, setLang, currency, setCurrency, notifs, setNotifs } = useSettings();
   const [screen, setScreen] = useState(null); // null | "lang" | "currency"
+  const [helpToast, setHelpToast] = useState(false);
+  useEffect(() => {
+    if (!helpToast) return;
+    const timer = setTimeout(() => setHelpToast(false), 2500);
+    return () => clearTimeout(timer);
+  }, [helpToast]);
 
   const currentLang = LANGUAGES.find((l) => l.code === lang);
   const { tours } = useContent();
@@ -763,7 +798,7 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
                       {fmtDate(b.date)} · {plural("pl.guests", b.guests)} · {b.code}
                     </div>
                   </div>
-                  <ChevronRight size={16} color="#888" />
+                  <ChevronRight size={16} color="var(--muted-2)" />
                 </button>
               );
             })}
@@ -814,20 +849,20 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
       </div>
 
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
-        <div className="row" style={{ justifyContent: "space-between", cursor: "pointer" }} onClick={() => setScreen("lang")}>
+        <button className="row row-btn" style={{ justifyContent: "space-between" }} onClick={() => setScreen("lang")}>
           <div className="row" style={{ gap: 8 }}>
             <Globe size={16} color="var(--terracotta)" />
             <b>{t("profile.language")}</b>
           </div>
           <div className="row" style={{ gap: 6 }}>
             <span className="muted" style={{ fontSize: 12 }}>{currentLang?.native || lang}</span>
-            <ChevronRight size={18} color="#888" />
+            <ChevronRight size={18} color="var(--muted-2)" />
           </div>
-        </div>
+        </button>
       </div>
 
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
-        <div className="row" style={{ justifyContent: "space-between", cursor: "pointer" }} onClick={() => setScreen("currency")}>
+        <button className="row row-btn" style={{ justifyContent: "space-between" }} onClick={() => setScreen("currency")}>
           <div className="row" style={{ gap: 8 }}>
             <DollarSign size={16} color="var(--terracotta)" />
             <b>{t("profile.currency")}</b>
@@ -836,9 +871,9 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
             <span className="muted" style={{ fontSize: 12 }}>
               {currencySymbol(currency, lang)} {currency}
             </span>
-            <ChevronRight size={18} color="#888" />
+            <ChevronRight size={18} color="var(--muted-2)" />
           </div>
-        </div>
+        </button>
         {currency !== "USD" && (
           <div className="muted" style={{ fontSize: 11, marginTop: 8 }}>{t("profile.ratesNote")}</div>
         )}
@@ -858,18 +893,20 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
             aria-label={t("profile.notifs")}
           />
         </div>
-        <div
-          className="row"
-          style={{ justifyContent: "space-between", borderTop: "1px solid var(--line)", paddingTop: 12, cursor: "pointer" }}
-          onClick={() => alert(t("profile.helpSoon"))}
+        <button
+          className="row row-btn"
+          style={{ justifyContent: "space-between", borderTop: "1px solid var(--line)", paddingTop: 12 }}
+          onClick={() => setHelpToast(true)}
         >
           <div className="row" style={{ gap: 8 }}>
             <HelpCircle size={16} color="var(--terracotta)" />
             <span>{t("profile.help")}</span>
           </div>
-          <ChevronRight size={16} color="#888" />
-        </div>
+          <ChevronRight size={16} color="var(--muted-2)" />
+        </button>
       </div>
+
+      {helpToast && <div className="toast-note" role="status">{t("profile.helpSoon")}</div>}
     </div>
   );
 }
@@ -886,7 +923,7 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
           <ChevronLeft size={20} />
         </button>
         <button className="save-btn" style={{ position: "absolute", top: 12, right: 12 }} onClick={() => onToggleSave(exp.id)} aria-label={saved ? t("common.unsave") : t("common.save")}>
-          <Heart size={18} fill={saved ? "var(--terracotta)" : "none"} color={saved ? "var(--terracotta)" : "#222"} />
+          <Heart size={18} fill={saved ? "var(--terracotta)" : "none"} color={saved ? "var(--terracotta)" : "var(--ink)"} />
         </button>
       </div>
       <div style={{ padding: 16 }}>
@@ -902,7 +939,7 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
           {exp.group && <span className="detail-chip"><Users size={13} /> {exp.group}</span>}
           {exp.lang && <span className="detail-chip"><Globe size={13} /> {exp.lang}</span>}
         </div>
-        <p style={{ margin: "0 0 16px", color: "#333", lineHeight: 1.5 }}>{exp.description}</p>
+        <p style={{ margin: "0 0 16px", color: "var(--ink-soft)", lineHeight: 1.5 }}>{exp.description}</p>
         {exp.highlights?.length > 0 && (
           <>
             <b>{t("detail.whatsOn")}</b>
@@ -989,7 +1026,7 @@ function Booking({ exp: raw, onBack, onConfirm }) {
         <div className="h-scroll" style={{ padding: "12px 0" }}>
           {dates.map((d, i) => (
             <button key={d.key} className={`date-chip ${date === d.key ? "on" : ""}`} onClick={() => setDate(d.key)}>
-              <div style={{ fontSize: 11, color: "#888" }}>{dayLabel(d, i)}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)" }}>{dayLabel(d, i)}</div>
               <div style={{ fontWeight: 800 }}>{d.date.getDate()}</div>
             </button>
           ))}
@@ -1012,11 +1049,11 @@ function Booking({ exp: raw, onBack, onConfirm }) {
         <b>{t("booking.contacts")}</b>
         <div style={{ display: "grid", gap: 10, margin: "12px 0 6px" }}>
           <div className="search">
-            <User size={18} color="#888" />
+            <User size={18} color="var(--muted-2)" />
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("booking.name")} autoComplete="name" />
           </div>
           <div className="search">
-            <Bell size={18} color="#888" />
+            <Bell size={18} color="var(--muted-2)" />
             <input
               value={contact}
               onChange={(e) => setContact(e.target.value)}
@@ -1158,6 +1195,7 @@ export default function App() {
   const [ticket, setTicket] = useState(null);
   const [bookings, setBookings] = useState(() => initialStore?.bookings || []);
   const [navMin, setNavMin] = useMinimizeOnScroll();
+  const [splash, setSplash] = useState(true);
 
   const [routeIds, setRouteIds] = useState(() => initialStore?.route || DEFAULT_ROUTE);
   const routeItems = useMemo(() => routeIds.map(byId).filter(Boolean), [routeIds, byId]);
@@ -1178,6 +1216,28 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [tab, selected, bookingExp, ticket]);
+
+  // Системная «назад» закрывает верхний экран, а не приложение:
+  // каждое открытие кладёт запись в history, popstate снимает её.
+  const depth = (selected ? 1 : 0) + (bookingExp ? 1 : 0) + (ticket ? 1 : 0);
+  const prevDepth = useRef(0);
+  useEffect(() => {
+    if (depth > prevDepth.current) window.history.pushState({ screen: depth }, "");
+    prevDepth.current = depth;
+  }, [depth]);
+  useEffect(() => {
+    function onPop() {
+      if (ticket) setTicket(null);
+      else if (bookingExp) setBookingExp(null);
+      else if (selected) setSelected(null);
+      // экран уже закрыт кодом (бронь подтверждена/отменена) — запись лишняя, идём дальше назад
+      else window.history.back();
+    }
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [ticket, bookingExp, selected]);
+  // Кнопки «назад» в интерфейсе идут через history, чтобы стек не расходился
+  const closeScreen = () => window.history.back();
 
   function toggleSave(id) {
     setSaved((prev) => {
@@ -1209,14 +1269,15 @@ export default function App() {
     setTicket(null);
   }
 
-  if (ticket) return <TicketView booking={ticket} onClose={() => setTicket(null)} onCancel={cancelBooking} />;
-  if (bookingExp) return <Booking exp={bookingExp} onBack={() => setBookingExp(null)} onConfirm={confirmBooking} />;
+  if (splash) return <Splash onDone={() => setSplash(false)} />;
+  if (ticket) return <TicketView booking={ticket} onClose={closeScreen} onCancel={cancelBooking} />;
+  if (bookingExp) return <Booking exp={bookingExp} onBack={closeScreen} onConfirm={confirmBooking} />;
   if (selected) {
     return (
       <Detail
         exp={selected}
         saved={saved.has(selected.id)}
-        onBack={() => setSelected(null)}
+        onBack={closeScreen}
         onToggleSave={toggleSave}
         onBook={setBookingExp}
       />
