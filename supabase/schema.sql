@@ -91,7 +91,7 @@ create index if not exists booking_agency_idx on public.booking_requests (agency
 
 -- updated_at для туров
 create or replace function public.touch_updated_at() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = public as $$
 begin
   new.updated_at := now();
   return new;
@@ -123,6 +123,10 @@ end $$;
 drop trigger if exists booking_fill on public.booking_requests;
 create trigger booking_fill before insert on public.booking_requests
   for each row execute function public.booking_fill();
+
+-- триггерные функции не должны вызываться через API (/rest/v1/rpc)
+revoke all on function public.touch_updated_at() from public, anon, authenticated;
+revoke all on function public.booking_fill() from public, anon, authenticated;
 
 -- Турист отменяет свою заявку по коду брони (у него нет доступа к чтению таблицы)
 create or replace function public.cancel_booking(p_code text) returns boolean
