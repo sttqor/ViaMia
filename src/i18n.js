@@ -151,8 +151,11 @@ export const DICT = {
     "pl.tours": { one: "{n} тур", few: "{n} тура", many: "{n} туров", other: "{n} тура" },
 
     "tours.kicker": "КАТАЛОГ ВПЕЧАТЛЕНИЙ",
+    "tours.selfTag": "САМОСТОЯТЕЛЬНО · БЕСПЛАТНО",
+    "tours.selfTitle": "Свой маршрут по Ошу",
+    "tours.selfText": "Добавляйте места в маршрут — мы построим путь на день и откроем навигацию.",
     "tours.title": "Практики и туры",
-    "tours.search": "Найти мастер-класс, базар или гору…",
+    "tours.search": "Найти тур, место или агентство…",
     "tours.emptyTitle": "Ничего не нашли",
     "tours.emptyText": "Попробуйте другое слово или категорию «Все».",
 
@@ -311,8 +314,11 @@ export const DICT = {
     "pl.tours": { one: "{n} tour", other: "{n} tours" },
 
     "tours.kicker": "EXPERIENCES",
+    "tours.selfTag": "ON YOUR OWN · FREE",
+    "tours.selfTitle": "Your own route around Osh",
+    "tours.selfText": "Add places to your route — we'll plan the day and open navigation.",
     "tours.title": "Workshops & tours",
-    "tours.search": "Find a workshop, bazaar or mountain…",
+    "tours.search": "Find a tour, place or agency…",
     "tours.emptyTitle": "Nothing found",
     "tours.emptyText": "Try another word or the “All” category.",
 
