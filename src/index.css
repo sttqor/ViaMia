@@ -1272,3 +1272,7 @@ input:focus-visible {
   font-weight: 800;
   color: var(--ink-soft);
 }
+
+.home-hero-sm {
+  height: 230px;
+}

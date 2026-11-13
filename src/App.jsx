@@ -364,157 +364,31 @@ function ExploreMap({ items, onOpen }) {
   );
 }
 
-// 1. ГЛАВНАЯ: два режима. «Сам» — маршрут, карта и факты; «с гидом» — туры и агентства.
-// Логика общая, меняется только порядок и акцент блоков.
-function SelfHome({ onGoToRoute, onGoTo, onOpenExp }) {
+// 1. ГЛАВНАЯ: ИСТОРИЧЕСКИЙ ГИД И СОВЕТЫ
+function HomeView({ onGoToRoute, onGoTo, onOpenExp }) {
   const { t } = useSettings();
   return (
-    <>
-      <section className="home-hero">
-        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85" alt={t("home.heroAlt")} />
-        <div className="home-hero-fade" />
-        <div className="home-hero-text">
+    <div className="gyg-scroll">
+      <section style={{ position: "relative", height: 290, overflow: "hidden", color: "#fff" }}>
+        <img
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85"
+          alt={t("home.heroAlt")}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(30,38,56,.15) 0%, rgba(30,38,56,.88) 100%)" }} />
+        <div style={{ position: "absolute", left: 18, right: 18, bottom: 22 }}>
           <span className="fact-tag">{t("home.tag")}</span>
-          <h1>{t("home.title")}</h1>
-          <p>{t("home.text")}</p>
-          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-            <button className="cta home-route-cta" onClick={onGoToRoute}>{t("home.cta")}</button>
-            <button className="cta ghost home-route-cta" onClick={() => onGoTo("map")}>
-              <MapIcon size={16} /> {t("home.mapCta")}
-            </button>
-          </div>
+          <h1 style={{ fontSize: 32, lineHeight: 1.08, margin: "8px 0 8px", fontWeight: 900, letterSpacing: -0.5 }}>
+            {t("home.title")}
+          </h1>
+          <p style={{ margin: "0 0 16px", fontSize: 14, lineHeight: 1.45, maxWidth: 330, opacity: 0.95 }}>
+            {t("home.text")}
+          </p>
+          <button className="cta home-route-cta" onClick={onGoToRoute}>{t("home.cta")}</button>
         </div>
       </section>
 
       <FactsSection MiniMap={MiniMap} onGoTo={onGoTo} onOpenExp={onOpenExp} />
-    </>
-  );
-}
-
-const GUIDED_CATS = ["all", "tours", "trips", "trekking"];
-
-function siteOf(url) {
-  try {
-    return new URL(url).origin;
-  } catch {
-    return null;
-  }
-}
-
-function GuidedHome({ cards, onSeeAll }) {
-  const { t, plural } = useSettings();
-  const { tours } = useContent();
-  const [cat, setCat] = useState("all");
-  const cats = CATEGORIES.filter((c) => GUIDED_CATS.includes(c.id));
-  const picks = tours.filter((x) => cat === "all" || x.category === cat).slice(0, 4);
-  const hero = tours.find((x) => x.id === "pamir") || tours[0];
-
-  const agencies = useMemo(() => {
-    const map = new Map();
-    for (const x of tours) {
-      if (!x.agencyName) continue;
-      const a = map.get(x.agencyName) || { name: x.agencyName, count: 0, site: siteOf(x.url) };
-      a.count += 1;
-      map.set(x.agencyName, a);
-    }
-    return [...map.values()];
-  }, [tours]);
-
-  return (
-    <>
-      <section className="home-hero">
-        {hero && <img src={hero.image} alt="" />}
-        <div className="home-hero-fade" />
-        <div className="home-hero-text">
-          <span className="fact-tag">{t("home.guidedTag")}</span>
-          <h1>{t("home.guidedTitle")}</h1>
-          <p>{t("home.guidedText")}</p>
-          <button className="cta home-route-cta" onClick={() => onSeeAll("all")}>{t("home.guidedCta")}</button>
-        </div>
-      </section>
-
-      <div className="row" style={{ justifyContent: "space-between", padding: "18px 16px 4px" }}>
-        <b style={{ fontSize: 17 }}>{t("home.picks")}</b>
-        <button className="route-link" onClick={() => onSeeAll(cat)}>{t("home.seeAll")} →</button>
-      </div>
-      <ChipRow items={cats} value={cat} onChange={setCat} layoutId="cat-pill-home" />
-
-      <div style={{ padding: "0 16px", display: "grid", gap: 14 }}>
-        <AnimatePresence initial={false} mode="popLayout">
-          {picks.map((exp) => (
-            <motion.div
-              key={exp.id}
-              layout
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ ...SPRING, opacity: { duration: 0.2, ease: "easeOut" } }}
-            >
-              <ExperienceCard
-                exp={exp}
-                saved={cards.saved.has(exp.id)}
-                inRoute={cards.routeItems.some((r) => r.id === exp.id)}
-                onOpen={cards.onOpen}
-                onToggleSave={cards.onToggleSave}
-                onToggleRoute={cards.onToggleRoute}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {agencies.length > 0 && (
-        <div style={{ padding: "22px 16px 24px" }}>
-          <b style={{ fontSize: 17, display: "block", marginBottom: 12 }}>{t("home.agencies")}</b>
-          <div style={{ display: "grid", gap: 10 }}>
-            {agencies.map((a, i) => (
-              <motion.div key={a.name} className="card agency-card" {...inView(i)}>
-                <div className="agency-logo">{a.name.slice(0, 1)}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 800, fontSize: 15 }}>{a.name}</div>
-                  <div className="muted" style={{ fontSize: 12 }}>
-                    {t("home.agencyTours", { n: plural("pl.tours", a.count) })}
-                  </div>
-                  <div className="row" style={{ gap: 14, marginTop: 8 }}>
-                    <button className="route-link" onClick={() => onSeeAll("all")}>{t("home.agencyOpen")}</button>
-                    {a.site && (
-                      <a className="route-link" href={a.site} target="_blank" rel="noopener noreferrer">
-                        {a.site.replace(/^https?:\/\//, "")} ↗
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-function HomeView({ onGoToRoute, onGoTo, onOpenExp, cards, onSeeAll }) {
-  const { travelMode } = useSettings();
-  return (
-    <div className="gyg-scroll">
-      <div className="home-mode-bar">
-        <ModeSwitch />
-      </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={travelMode}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-        >
-          {travelMode === "guided" ? (
-            <GuidedHome cards={cards} onSeeAll={onSeeAll} />
-          ) : (
-            <SelfHome onGoToRoute={onGoToRoute} onGoTo={onGoTo} onOpenExp={onOpenExp} />
-          )}
-        </motion.div>
-      </AnimatePresence>
     </div>
   );
 }
@@ -751,7 +625,96 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
   );
 }
 
-// 3. ТУРЫ: ПОЛНЫЙ КАТАЛОГ С ПОИСКОМ И КНОПКАМИ «В МАРШРУТ»
+// 3. ТУРЫ: два режима. «Сам» — места для своего маршрута и карта,
+// «с гидом» — туры агентств и сами агентства. Каталог, поиск и фильтры общие.
+function siteOf(url) {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+function SelfHero({ onGoToRoute, onGoTo }) {
+  const { t } = useSettings();
+  return (
+    <section className="home-hero home-hero-sm">
+      <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85" alt={t("home.heroAlt")} />
+      <div className="home-hero-fade" />
+      <div className="home-hero-text">
+        <span className="fact-tag">{t("tours.selfTag")}</span>
+        <h1>{t("tours.selfTitle")}</h1>
+        <p>{t("tours.selfText")}</p>
+        <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+          <button className="cta home-route-cta" onClick={onGoToRoute}>{t("home.cta")}</button>
+          <button className="cta ghost home-route-cta" onClick={() => onGoTo("map")}>
+            <MapIcon size={16} /> {t("home.mapCta")}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function GuidedHero() {
+  const { t } = useSettings();
+  const { tours } = useContent();
+  const hero = tours.find((x) => x.id === "pamir") || tours[0];
+  return (
+    <section className="home-hero home-hero-sm">
+      {hero && <img src={hero.image} alt="" />}
+      <div className="home-hero-fade" />
+      <div className="home-hero-text">
+        <span className="fact-tag">{t("home.guidedTag")}</span>
+        <h1>{t("home.guidedTitle")}</h1>
+        <p>{t("home.guidedText")}</p>
+      </div>
+    </section>
+  );
+}
+
+function AgencyBlock({ onPick }) {
+  const { t, plural } = useSettings();
+  const { tours } = useContent();
+  const agencies = useMemo(() => {
+    const map = new Map();
+    for (const x of tours) {
+      if (!x.agencyName) continue;
+      const a = map.get(x.agencyName) || { name: x.agencyName, count: 0, site: siteOf(x.url) };
+      a.count += 1;
+      map.set(x.agencyName, a);
+    }
+    return [...map.values()];
+  }, [tours]);
+  if (agencies.length === 0) return null;
+  return (
+    <div style={{ padding: "4px 16px 24px" }}>
+      <b style={{ fontSize: 17, display: "block", marginBottom: 12 }}>{t("home.agencies")}</b>
+      <div style={{ display: "grid", gap: 10 }}>
+        {agencies.map((a, i) => (
+          <motion.div key={a.name} className="card agency-card" {...inView(i)}>
+            <div className="agency-logo">{a.name.slice(0, 1)}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>{a.name}</div>
+              <div className="muted" style={{ fontSize: 12 }}>
+                {t("home.agencyTours", { n: plural("pl.tours", a.count) })}
+              </div>
+              <div className="row" style={{ gap: 14, marginTop: 8 }}>
+                <button className="route-link" onClick={() => onPick(a.name)}>{t("home.agencyOpen")}</button>
+                {a.site && (
+                  <a className="route-link" href={a.site} target="_blank" rel="noopener noreferrer">
+                    {a.site.replace(/^https?:\/\//, "")} ↗
+                  </a>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ToursView({
   query,
   setQuery,
@@ -762,8 +725,10 @@ function ToursView({
   onOpen,
   onToggleSave,
   onToggleRoute,
+  onGoToRoute,
+  onGoTo,
 }) {
-  const { t, loc } = useSettings();
+  const { t, loc, travelMode } = useSettings();
   const q = query.trim().toLowerCase();
   const { tours } = useContent();
   const filtered = tours.filter((raw) => {
@@ -771,22 +736,38 @@ function ToursView({
     if (!byCat) return false;
     if (!q) return true;
     const e = loc(raw);
-    // ищем и по переводу, и по русскому тексту
-    return `${e.title} ${e.place} ${e.type} ${raw.title} ${raw.place} ${raw.type}`.toLowerCase().includes(q);
+    // ищем и по переводу, и по русскому тексту, и по агентству
+    return `${e.title} ${e.place} ${e.type} ${raw.title} ${raw.place} ${raw.type} ${raw.agencyName || ""}`
+      .toLowerCase()
+      .includes(q);
   });
 
   return (
     <div className="gyg-scroll">
-      <div style={{ background: "#fff", padding: "18px 16px 12px", borderBottom: "1px solid var(--line)" }}>
-        <div className="muted" style={{ fontWeight: 700, fontSize: 11 }}>{t("tours.kicker")}</div>
-        <h1 style={{ fontSize: 24, fontWeight: 900, margin: "2px 0 10px" }}>{t("tours.title")}</h1>
+      <div className="home-mode-bar">
+        <ModeSwitch />
+      </div>
+
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={travelMode}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          {travelMode === "guided" ? <GuidedHero /> : <SelfHero onGoToRoute={onGoToRoute} onGoTo={onGoTo} />}
+        </motion.div>
+      </AnimatePresence>
+
+      <div style={{ padding: "14px 16px 0" }}>
         <div className="search">
           <Search size={18} color="var(--muted-2)" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("tours.search")} />
         </div>
       </div>
 
-      <div style={{ paddingTop: 14 }}>
+      <div style={{ paddingTop: 12 }}>
         <ChipRow items={CATEGORIES} value={category} onChange={setCategory} layoutId="cat-pill" />
       </div>
 
@@ -797,7 +778,7 @@ function ToursView({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          style={{ padding: "0 16px 20px", display: "grid", gap: 14, marginTop: 10 }}
+          style={{ padding: "0 16px 20px", display: "grid", gap: 14, marginTop: 4 }}
         >
           {filtered.length === 0 && (
             <div className="card ornament-accent empty">
@@ -820,6 +801,16 @@ function ToursView({
           ))}
         </motion.div>
       </AnimatePresence>
+
+      {travelMode === "guided" && (
+        <AgencyBlock
+          onPick={(name) => {
+            setCategory("all");
+            setQuery(name);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1521,19 +1512,7 @@ export default function App() {
 
   return (
     <div className="gyg-app ornament-bg">
-      {tab === "home" && (
-        <HomeView
-          onGoToRoute={() => setTab("route")}
-          onGoTo={setTab}
-          onOpenExp={setSelected}
-          cards={{ saved, routeItems, onOpen: setSelected, onToggleSave: toggleSave, onToggleRoute: toggleRoute }}
-          onSeeAll={(cat) => {
-            setCategory(cat);
-            setQuery("");
-            setTab("tours");
-          }}
-        />
-      )}
+      {tab === "home" && <HomeView onGoToRoute={() => setTab("route")} onGoTo={setTab} onOpenExp={setSelected} />}
 
       {tab === "map" && <ExploreMap items={tours} onOpen={setSelected} />}
 
@@ -1552,6 +1531,8 @@ export default function App() {
           onOpen={setSelected}
           onToggleSave={toggleSave}
           onToggleRoute={toggleRoute}
+          onGoToRoute={() => setTab("route")}
+          onGoTo={setTab}
         />
       )}
 
