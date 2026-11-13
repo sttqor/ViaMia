@@ -17,9 +17,11 @@ export function tourFromRow(r) {
     title: r.title,
     place: r.place,
     duration: /^\d+$/.test(r.duration) ? Number(r.duration) : r.duration,
-    price: Number(r.price),
-    rating: Number(r.rating ?? 0),
+    price: r.price == null ? null : Number(r.price), // null — цена по запросу
+    rating: r.rating == null ? null : Number(r.rating),
     reviews: r.reviews ?? 0,
+    agencyName: r.agency_name,
+    url: r.source_url,
     badge: r.badge,
     lang: r.langs,
     image: r.images?.[0] || "",

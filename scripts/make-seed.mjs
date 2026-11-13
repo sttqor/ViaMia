@@ -19,7 +19,7 @@ const i18nOf = (item) =>
 const tourRows = EXPERIENCES.map((e, i) =>
   `(${[
     q(e.id), q(e.category), q(e.type), q(e.title), q(e.place), q(e.duration), num(e.price), num(e.rating),
-    num(e.reviews ?? 0), q(e.badge), q(e.lang), arr([e.image, ...(e.images || [])].filter(Boolean)),
+    num(e.reviews ?? 0), q(e.badge), q(e.lang), q(e.agencyName), q(e.url), arr([e.image, ...(e.images || [])].filter(Boolean)),
     num(e.lat), num(e.lng), e.freeCancel ? "true" : "false", q(e.group), q(e.meeting), q(e.description),
     arr(e.highlights), arr(e.includes), json(i18nOf(e)), "true", (i + 1) * 10,
   ].join(", ")})`
@@ -34,19 +34,25 @@ const factRows = FACTS.map((f, i) =>
 
 const sql = `-- СГЕНЕРИРОВАНО scripts/make-seed.mjs из src/data.js — руками не править.
 -- Запуск: Supabase → SQL Editor → вставить → Run (после schema.sql).
+-- Туров, которых больше нет в data.js, скрываются (published = false), а не удаляются,
+-- чтобы не сломать старые заявки, которые на них ссылаются.
 
 insert into public.tours
-  (id, category, type, title, place, duration, price, rating, reviews, badge, langs, images,
+  (id, category, type, title, place, duration, price, rating, reviews, badge, langs, agency_name, source_url, images,
    lat, lng, free_cancel, group_size, meeting, description, highlights, includes, i18n, published, sort)
 values
   ${tourRows.join(",\n  ")}
 on conflict (id) do update set
   category = excluded.category, type = excluded.type, title = excluded.title, place = excluded.place,
   duration = excluded.duration, price = excluded.price, rating = excluded.rating, reviews = excluded.reviews,
-  badge = excluded.badge, langs = excluded.langs, images = excluded.images, lat = excluded.lat, lng = excluded.lng,
+  badge = excluded.badge, langs = excluded.langs, agency_name = excluded.agency_name, source_url = excluded.source_url,
+  images = excluded.images, lat = excluded.lat, lng = excluded.lng,
   free_cancel = excluded.free_cancel, group_size = excluded.group_size, meeting = excluded.meeting,
   description = excluded.description, highlights = excluded.highlights, includes = excluded.includes,
   i18n = excluded.i18n, published = excluded.published, sort = excluded.sort;
+
+update public.tours set published = false
+where agency_id is null and id not in (${EXPERIENCES.map((e) => q(e.id)).join(", ")});
 
 insert into public.facts
   (id, title, emoji, short, image, tag, body, points, link_label, link_tab, exp_id, i18n, published, sort)
