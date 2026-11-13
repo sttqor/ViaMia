@@ -35,6 +35,7 @@ import { FactsSection } from "./Facts";
 import { TabBar } from "./TabBar";
 import { Segmented } from "./Segmented";
 import { useMinimizeOnScroll } from "./useMinimizeOnScroll";
+import { Onboarding } from "./Onboarding";
 import splashVideo from "./splash.mp4";
 
 // Заставка при запуске: ролик с иконкой-дорогой. Пропускается тапом,
@@ -73,13 +74,65 @@ const TABS = [
   { id: "profile", key: "nav.profile", Icon: User },
 ];
 
+// Движение: пружина для перемещений, easeOut для появления. Только transform и opacity.
+const SPRING = { type: "spring", stiffness: 400, damping: 32 };
+const EASE_OUT = [0.22, 1, 0.36, 1];
+// Появление карточки при прокрутке: один раз, лёгкий подъём; задержка по кругу из 6,
+// чтобы длинный список не «ехал» секундами
+const inView = (index) => ({
+  initial: { opacity: 0, y: 12 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.2 },
+  transition: { duration: 0.3, delay: (index % 6) * 0.05, ease: EASE_OUT },
+});
+
+// Переключатель режима «сам | с гидом» — один и тот же на главной, в маршруте и в профиле
+function ModeSwitch() {
+  const { t, travelMode, setTravelMode } = useSettings();
+  return (
+    <Segmented
+      label={t("mode.label")}
+      value={travelMode}
+      onChange={setTravelMode}
+      options={[
+        { value: "self", label: t("mode.self") },
+        { value: "guided", label: t("mode.guided") },
+      ]}
+    />
+  );
+}
+
+// Чипы категорий: тёмная подложка переезжает к выбранному чипу
+function ChipRow({ items, value, onChange, layoutId }) {
+  const { loc } = useSettings();
+  return (
+    <div className="h-scroll">
+      {items.map((c) => {
+        const on = value === c.id;
+        return (
+          <button key={c.id} type="button" className={`pill chip ${on ? "is-on" : ""}`} aria-pressed={on} onClick={() => onChange(c.id)}>
+            {on && <motion.span layoutId={layoutId} className="chip-thumb" transition={SPRING} />}
+            <span className="chip-label"><c.Icon size={14} /> {loc(c).label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function StarRow({ rating }) {
+  if (rating == null) return null; // своих отзывов пока нет
   return (
     <span className="row" style={{ gap: 4 }}>
       <Star size={14} fill="var(--gold)" color="var(--gold)" />
       <b style={{ fontSize: 13 }}>{rating.toFixed(1)}</b>
     </span>
   );
+}
+
+// «от $17» или «цена по запросу»
+function priceText(exp, t, money) {
+  return exp.price == null ? t("price.request") : t("price.from", { price: money(exp.price) });
 }
 
 function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave, onToggleRoute }) {
@@ -106,8 +159,12 @@ function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave, onTogg
           {exp.title}
         </button>
         <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
-          <StarRow rating={exp.rating} />
-          <div className="price">{t("price.from", { price: money(exp.price) })}</div>
+          {exp.agencyName ? (
+            <span className="mode-label guided">{t("label.guided", { agency: exp.agencyName })}</span>
+          ) : (
+            <StarRow rating={exp.rating} />
+          )}
+          <div className="price">{priceText(exp, t, money)}</div>
         </div>
         <div className="row" style={{ gap: 8 }}>
           <button
@@ -307,31 +364,157 @@ function ExploreMap({ items, onOpen }) {
   );
 }
 
-// 1. ГЛАВНАЯ: ИСТОРИЧЕСКИЙ ГИД И СОВЕТЫ
-function HomeView({ onGoToRoute, onGoTo, onOpenExp }) {
+// 1. ГЛАВНАЯ: два режима. «Сам» — маршрут, карта и факты; «с гидом» — туры и агентства.
+// Логика общая, меняется только порядок и акцент блоков.
+function SelfHome({ onGoToRoute, onGoTo, onOpenExp }) {
   const { t } = useSettings();
   return (
-    <div className="gyg-scroll">
-      <section style={{ position: "relative", height: 290, overflow: "hidden", color: "#fff" }}>
-        <img
-          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85"
-          alt={t("home.heroAlt")}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(30,38,56,.15) 0%, rgba(30,38,56,.88) 100%)" }} />
-        <div style={{ position: "absolute", left: 18, right: 18, bottom: 22 }}>
+    <>
+      <section className="home-hero">
+        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85" alt={t("home.heroAlt")} />
+        <div className="home-hero-fade" />
+        <div className="home-hero-text">
           <span className="fact-tag">{t("home.tag")}</span>
-          <h1 style={{ fontSize: 32, lineHeight: 1.08, margin: "8px 0 8px", fontWeight: 900, letterSpacing: -0.5 }}>
-            {t("home.title")}
-          </h1>
-          <p style={{ margin: "0 0 16px", fontSize: 14, lineHeight: 1.45, maxWidth: 330, opacity: 0.95 }}>
-            {t("home.text")}
-          </p>
-          <button className="cta home-route-cta" onClick={onGoToRoute}>{t("home.cta")}</button>
+          <h1>{t("home.title")}</h1>
+          <p>{t("home.text")}</p>
+          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+            <button className="cta home-route-cta" onClick={onGoToRoute}>{t("home.cta")}</button>
+            <button className="cta ghost home-route-cta" onClick={() => onGoTo("map")}>
+              <MapIcon size={16} /> {t("home.mapCta")}
+            </button>
+          </div>
         </div>
       </section>
 
       <FactsSection MiniMap={MiniMap} onGoTo={onGoTo} onOpenExp={onOpenExp} />
+    </>
+  );
+}
+
+const GUIDED_CATS = ["all", "tours", "trips", "trekking"];
+
+function siteOf(url) {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+function GuidedHome({ cards, onSeeAll }) {
+  const { t, plural } = useSettings();
+  const { tours } = useContent();
+  const [cat, setCat] = useState("all");
+  const cats = CATEGORIES.filter((c) => GUIDED_CATS.includes(c.id));
+  const picks = tours.filter((x) => cat === "all" || x.category === cat).slice(0, 4);
+  const hero = tours.find((x) => x.id === "pamir") || tours[0];
+
+  const agencies = useMemo(() => {
+    const map = new Map();
+    for (const x of tours) {
+      if (!x.agencyName) continue;
+      const a = map.get(x.agencyName) || { name: x.agencyName, count: 0, site: siteOf(x.url) };
+      a.count += 1;
+      map.set(x.agencyName, a);
+    }
+    return [...map.values()];
+  }, [tours]);
+
+  return (
+    <>
+      <section className="home-hero">
+        {hero && <img src={hero.image} alt="" />}
+        <div className="home-hero-fade" />
+        <div className="home-hero-text">
+          <span className="fact-tag">{t("home.guidedTag")}</span>
+          <h1>{t("home.guidedTitle")}</h1>
+          <p>{t("home.guidedText")}</p>
+          <button className="cta home-route-cta" onClick={() => onSeeAll("all")}>{t("home.guidedCta")}</button>
+        </div>
+      </section>
+
+      <div className="row" style={{ justifyContent: "space-between", padding: "18px 16px 4px" }}>
+        <b style={{ fontSize: 17 }}>{t("home.picks")}</b>
+        <button className="route-link" onClick={() => onSeeAll(cat)}>{t("home.seeAll")} →</button>
+      </div>
+      <ChipRow items={cats} value={cat} onChange={setCat} layoutId="cat-pill-home" />
+
+      <div style={{ padding: "0 16px", display: "grid", gap: 14 }}>
+        <AnimatePresence initial={false} mode="popLayout">
+          {picks.map((exp) => (
+            <motion.div
+              key={exp.id}
+              layout
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ ...SPRING, opacity: { duration: 0.2, ease: "easeOut" } }}
+            >
+              <ExperienceCard
+                exp={exp}
+                saved={cards.saved.has(exp.id)}
+                inRoute={cards.routeItems.some((r) => r.id === exp.id)}
+                onOpen={cards.onOpen}
+                onToggleSave={cards.onToggleSave}
+                onToggleRoute={cards.onToggleRoute}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {agencies.length > 0 && (
+        <div style={{ padding: "22px 16px 24px" }}>
+          <b style={{ fontSize: 17, display: "block", marginBottom: 12 }}>{t("home.agencies")}</b>
+          <div style={{ display: "grid", gap: 10 }}>
+            {agencies.map((a, i) => (
+              <motion.div key={a.name} className="card agency-card" {...inView(i)}>
+                <div className="agency-logo">{a.name.slice(0, 1)}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 800, fontSize: 15 }}>{a.name}</div>
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    {t("home.agencyTours", { n: plural("pl.tours", a.count) })}
+                  </div>
+                  <div className="row" style={{ gap: 14, marginTop: 8 }}>
+                    <button className="route-link" onClick={() => onSeeAll("all")}>{t("home.agencyOpen")}</button>
+                    {a.site && (
+                      <a className="route-link" href={a.site} target="_blank" rel="noopener noreferrer">
+                        {a.site.replace(/^https?:\/\//, "")} ↗
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function HomeView({ onGoToRoute, onGoTo, onOpenExp, cards, onSeeAll }) {
+  const { travelMode } = useSettings();
+  return (
+    <div className="gyg-scroll">
+      <div className="home-mode-bar">
+        <ModeSwitch />
+      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={travelMode}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          {travelMode === "guided" ? (
+            <GuidedHome cards={cards} onSeeAll={onSeeAll} />
+          ) : (
+            <SelfHome onGoToRoute={onGoToRoute} onGoTo={onGoTo} onOpenExp={onOpenExp} />
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -368,9 +551,8 @@ function openNavigation(items) {
   window.open(url, "_blank", "noopener");
 }
 
-function RouteView({ items, setItems, onGoToTours }) {
-  const { t, plural, loc, money, fmtDuration, locale } = useSettings();
-  const [mode, setMode] = useState("self");
+function RouteView({ items, setItems, onGoToTours, onOpen }) {
+  const { t, plural, loc, money, fmtDuration, locale, travelMode: mode } = useSettings();
   const [expandedId, setExpandedId] = useState(null);
 
   const legs = useMemo(
@@ -397,7 +579,7 @@ function RouteView({ items, setItems, onGoToTours }) {
     return result;
   }, [items, legs]);
 
-  const guideTotal = items.reduce((a, it) => a + it.price, 0);
+  const guideTotal = items.reduce((a, it) => a + (it.price || 0), 0);
 
   const moveItem = (index, dir) => {
     const target = index + dir;
@@ -419,17 +601,9 @@ function RouteView({ items, setItems, onGoToTours }) {
         <h1 style={{ fontSize: 24, fontWeight: 900, margin: "2px 0 10px" }}>{t("route.title")}</h1>
         <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t("route.subtitle")}</p>
         <div style={{ marginTop: 12 }}>
-          <Segmented
-            label={t("route.modeLabel")}
-            value={mode}
-            onChange={setMode}
-            options={[
-              { value: "self", label: t("route.self") },
-              { value: "guide", label: t("route.guide") },
-            ]}
-          />
+          <ModeSwitch />
         </div>
-        {mode === "guide" && items.length > 0 && (
+        {mode === "guided" && items.length > 0 && (
           <div className="route-guide-note">
             {t("route.guideNote", { n: items.length, price: money(guideTotal) })}
           </div>
@@ -485,13 +659,22 @@ function RouteView({ items, setItems, onGoToTours }) {
         ) : (
           <>
             <div className="route-timeline">
+              <AnimatePresence initial={false} mode="popLayout">
               {items.map((raw, idx) => {
                 const item = loc(raw);
                 const isOpen = expandedId === item.id;
                 const leg = legs[idx];
                 const legText = leg < 1 ? t("unit.m", { n: Math.round(leg * 1000) }) : fmtKm(leg);
                 return (
-                  <div key={item.id} className="route-timeline-row">
+                  <motion.div
+                    key={item.id}
+                    layout
+                    className="route-timeline-row"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={SPRING}
+                  >
                     <div className="route-timeline-rail">
                       <span className="route-timeline-time">{times[idx]}</span>
                       <span className="route-timeline-dot" />
@@ -506,6 +689,11 @@ function RouteView({ items, setItems, onGoToTours }) {
                           <div style={{ fontWeight: 800, fontSize: 14, lineHeight: 1.25 }}>{item.title}</div>
                           <div className="muted" style={{ fontSize: 11, margin: "3px 0 6px" }}>
                             {item.type} · {item.place}
+                          </div>
+                          <div className={`mode-label ${mode === "guided" && item.agencyName ? "guided" : "self"}`} style={{ marginBottom: 6 }}>
+                            {mode === "guided" && item.agencyName
+                              ? t("label.guided", { agency: item.agencyName })
+                              : t("label.self")}
                           </div>
                           {isOpen && (
                             <p style={{ margin: "0 0 8px", fontSize: 12, lineHeight: 1.5, color: "var(--ink-soft)" }}>
@@ -530,17 +718,31 @@ function RouteView({ items, setItems, onGoToTours }) {
                           </button>
                         </div>
                       </div>
+                      {mode === "self" && raw.agencyName && (
+                        <motion.button
+                          type="button"
+                          className="route-bridge"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.25, ease: "easeOut" }}
+                          onClick={() => onOpen(raw)}
+                        >
+                          <span>{t("route.bridge")}</span>
+                          <b>{item.agencyName} · {priceText(item, t, money)} →</b>
+                        </motion.button>
+                      )}
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
+              </AnimatePresence>
             </div>
             <button
               className="cta"
               style={{ marginTop: 16 }}
-              onClick={() => (mode === "guide" ? onGoToTours() : openNavigation(items))}
+              onClick={() => (mode === "guided" ? onGoToTours() : openNavigation(items))}
             >
-              {mode === "guide" ? t("route.pickGuide") : t("route.navigate", { stops: plural("pl.stops", items.length) })}
+              {mode === "guided" ? t("route.pickGuide") : t("route.navigate", { stops: plural("pl.stops", items.length) })}
             </button>
           </>
         )}
@@ -584,21 +786,17 @@ function ToursView({
         </div>
       </div>
 
-      <div className="h-scroll" style={{ paddingTop: 14 }}>
-        {CATEGORIES.map((c) => (
-          <button key={c.id} className={`pill ${category === c.id ? "on" : ""}`} onClick={() => setCategory(c.id)}>
-            <c.Icon size={14} /> {loc(c).label}
-          </button>
-        ))}
+      <div style={{ paddingTop: 14 }}>
+        <ChipRow items={CATEGORIES} value={category} onChange={setCategory} layoutId="cat-pill" />
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div
           key={`${category}-${query.trim()}`}
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
           style={{ padding: "0 16px 20px", display: "grid", gap: 14, marginTop: 10 }}
         >
           {filtered.length === 0 && (
@@ -609,16 +807,7 @@ function ToursView({
             </div>
           )}
           {filtered.map((exp, index) => (
-            <motion.div
-              key={exp.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.3,
-                delay: Math.min(index * 0.03, 0.18),
-                ease: [0.22, 1, 0.36, 1],
-              }}
-            >
+            <motion.div key={exp.id} {...inView(index)}>
               <ExperienceCard
                 exp={exp}
                 saved={saved.has(exp.id)}
@@ -699,7 +888,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
 }
 
 function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }) {
-  const { t, loc, money, fmtDate, plural, lang, setLang, currency, setCurrency, notifs, setNotifs } = useSettings();
+  const { t, loc, money, fmtDate, plural, lang, setLang, currency, setCurrency, notifs, setNotifs, setTravelMode } = useSettings();
   const [screen, setScreen] = useState(null); // null | "lang" | "currency"
   const [helpToast, setHelpToast] = useState(false);
   useEffect(() => {
@@ -839,13 +1028,24 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
                 <img src={exp.image} alt="" style={{ width: "100%", height: 72, objectFit: "cover" }} />
                 <div style={{ padding: 8 }}>
                   <div style={{ fontWeight: 800, fontSize: 12, lineHeight: 1.25 }}>{exp.title}</div>
-                  <div className="muted" style={{ fontSize: 10.5, marginTop: 2 }}>{t("price.from", { price: money(exp.price) })}</div>
+                  <div className="muted" style={{ fontSize: 10.5, marginTop: 2 }}>{priceText(exp, t, money)}</div>
                 </div>
               </button>
               );
             })}
           </div>
         )}
+      </div>
+
+      <div className="card" style={{ padding: 16, marginBottom: 14 }}>
+        <div className="row" style={{ gap: 8, marginBottom: 12 }}>
+          <Compass size={16} color="var(--terracotta)" />
+          <b>{t("profile.mode")}</b>
+        </div>
+        <ModeSwitch />
+        <button className="route-link" style={{ marginTop: 12 }} onClick={() => setTravelMode(null)}>
+          {t("profile.modeAgain")}
+        </button>
       </div>
 
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
@@ -931,7 +1131,8 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
         <h2 style={{ fontSize: 22, fontWeight: 900, margin: "6px 0 10px", lineHeight: 1.25 }}>{exp.title}</h2>
         <div className="row" style={{ gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
           <StarRow rating={exp.rating} />
-          <span className="muted">{plural("pl.reviews", exp.reviews)}</span>
+          {exp.reviews > 0 && <span className="muted">{plural("pl.reviews", exp.reviews)}</span>}
+          {exp.agencyName && <span className="muted" style={{ fontWeight: 700 }}>{exp.agencyName}</span>}
           <span className="row muted"><Clock size={14} /> {fmtDuration(durationMinutes(exp.duration))}</span>
         </div>
         <div className="detail-chips">
@@ -959,11 +1160,22 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
         <div className="row" style={{ marginBottom: 8 }}><MapPin size={16} /> <b>{t("detail.meeting")}</b></div>
         <div className="muted" style={{ marginBottom: 10 }}>{exp.meeting}</div>
         <MiniMap lat={exp.lat} lng={exp.lng} label={exp.place} />
+        {exp.url && (
+          <a className="route-link" style={{ display: "inline-block", marginTop: 14 }} href={exp.url} target="_blank" rel="noopener noreferrer">
+            {t("detail.agencySite", { name: exp.agencyName || "" })} →
+          </a>
+        )}
       </div>
       <div className="sticky-buy">
         <div>
-          <div className="muted" style={{ fontSize: 11 }}>{t("common.from")}</div>
-          <div className="price" style={{ fontSize: 20 }}>{money(exp.price)}</div>
+          {exp.price == null ? (
+            <div className="price" style={{ fontSize: 15 }}>{t("price.request")}</div>
+          ) : (
+            <>
+              <div className="muted" style={{ fontSize: 11 }}>{t("common.from")}</div>
+              <div className="price" style={{ fontSize: 20 }}>{money(exp.price)}</div>
+            </>
+          )}
         </div>
         <button className="cta" onClick={() => onBook(raw)}>{t("detail.pickDate")}</button>
       </div>
@@ -979,7 +1191,7 @@ function Booking({ exp: raw, onBack, onConfirm }) {
   const [guests, setGuests] = useState(2);
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
-  const total = exp.price * guests; // в USD
+  const total = exp.price == null ? null : exp.price * guests; // в USD; null — цена по запросу
   const canSubmit = name.trim().length >= 2 && contact.trim().length >= 5;
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
@@ -1042,8 +1254,17 @@ function Booking({ exp: raw, onBack, onConfirm }) {
         </div>
 
         <div className="row" style={{ justifyContent: "space-between", marginBottom: 16 }}>
-          <span className="muted">{money(exp.price)} × {plural("pl.guests", guests)}</span>
-          <b style={{ fontSize: 18 }}>{money(total)}</b>
+          {total == null ? (
+            <>
+              <span className="muted">{plural("pl.guests", guests)}</span>
+              <b style={{ fontSize: 15 }}>{t("price.request")}</b>
+            </>
+          ) : (
+            <>
+              <span className="muted">{money(exp.price)} × {plural("pl.guests", guests)}</span>
+              <b style={{ fontSize: 18 }}>{money(total)}</b>
+            </>
+          )}
         </div>
 
         <b>{t("booking.contacts")}</b>
@@ -1069,7 +1290,11 @@ function Booking({ exp: raw, onBack, onConfirm }) {
         )}
 
         <button className="cta" disabled={!canSubmit || sending} onClick={submit}>
-          {sending ? t("booking.sending") : t("booking.submit", { total: money(total) })}
+          {sending
+            ? t("booking.sending")
+            : total == null
+              ? t("booking.submitRequest")
+              : t("booking.submit", { total: money(total) })}
         </button>
       </div>
     </div>
@@ -1120,7 +1345,7 @@ function TicketView({ booking, onClose, onCancel }) {
             {booking.name && (
               <div className="row muted" style={{ marginBottom: 8 }}><User size={14} /> {booking.name} · {booking.contact}</div>
             )}
-            <div className="row muted"><Ticket size={14} /> {t("ticket.payOnSite")} <b style={{ color: "var(--ink)" }}>{money(booking.total)}</b></div>
+            <div className="row muted"><Ticket size={14} /> {t("ticket.payOnSite")} <b style={{ color: "var(--ink)" }}>{booking.total == null ? t("price.request") : money(booking.total)}</b></div>
           </div>
           <div className="ticket-cut" />
           <div className="ticket-code">
@@ -1180,11 +1405,11 @@ function loadStore() {
 }
 
 const initialStore = loadStore();
-const DEFAULT_ROUTE = ["sulaiman", "bazaar", "pottery"];
+const DEFAULT_ROUTE = ["sulaiman", "walking", "food-tour"];
 
 // ГЛАВНЫЙ ЭКСПОРТ
 export default function App() {
-  const { t, lang } = useSettings();
+  const { t, lang, travelMode, setTravelMode } = useSettings();
   const { tours, byId } = useContent();
   const [tab, setTab] = useState("home");
   const [query, setQuery] = useState("");
@@ -1270,6 +1495,16 @@ export default function App() {
   }
 
   if (splash) return <Splash onDone={() => setSplash(false)} />;
+  if (travelMode === null) {
+    return (
+      <Onboarding
+        onPick={(mode) => {
+          setTravelMode(mode);
+          setTab("home");
+        }}
+      />
+    );
+  }
   if (ticket) return <TicketView booking={ticket} onClose={closeScreen} onCancel={cancelBooking} />;
   if (bookingExp) return <Booking exp={bookingExp} onBack={closeScreen} onConfirm={confirmBooking} />;
   if (selected) {
@@ -1286,12 +1521,24 @@ export default function App() {
 
   return (
     <div className="gyg-app ornament-bg">
-      {tab === "home" && <HomeView onGoToRoute={() => setTab("route")} onGoTo={setTab} onOpenExp={setSelected} />}
+      {tab === "home" && (
+        <HomeView
+          onGoToRoute={() => setTab("route")}
+          onGoTo={setTab}
+          onOpenExp={setSelected}
+          cards={{ saved, routeItems, onOpen: setSelected, onToggleSave: toggleSave, onToggleRoute: toggleRoute }}
+          onSeeAll={(cat) => {
+            setCategory(cat);
+            setQuery("");
+            setTab("tours");
+          }}
+        />
+      )}
 
       {tab === "map" && <ExploreMap items={tours} onOpen={setSelected} />}
 
       {tab === "route" && (
-        <RouteView items={routeItems} setItems={setRouteItems} onGoToTours={() => setTab("tours")} />
+        <RouteView items={routeItems} setItems={setRouteItems} onGoToTours={() => setTab("tours")} onOpen={setSelected} />
       )}
 
       {tab === "tours" && (

@@ -66,6 +66,8 @@ export const DICT = {
     "common.details": "Подробнее",
     "common.from": "от",
     "price.from": "от {price}",
+    "price.request": "цена по запросу",
+    "detail.agencySite": "Подробнее на сайте {name}",
 
     "card.inRoute": "✓ В маршруте",
     "card.addRoute": "+ В маршрут",
@@ -82,6 +84,33 @@ export const DICT = {
     "home.title": "Ош: сердце Шёлкового пути",
     "home.text": "Священная гора Сулайман-Тоо, древнейшие базары Востока, аромат тандырной самсы и живые ремёсла.",
     "home.cta": "Собрать маршрут →",
+    "mode.label": "Как путешествуете",
+    "mode.self": "Сам",
+    "mode.guided": "С гидом",
+    "onb.kicker": "ДОБРО ПОЖАЛОВАТЬ В ОШ",
+    "onb.title": "Как путешествуешь?",
+    "onb.text": "От этого зависит, что мы покажем первым. Поменять можно в любой момент.",
+    "onb.selfTitle": "Сам",
+    "onb.selfText": "Карта, свой маршрут на день, места и факты о городе.",
+    "onb.selfTag": "Бесплатно",
+    "onb.guidedTitle": "С гидом",
+    "onb.guidedText": "Туры местных агентств: город, поездки и треккинг. Всё организуют за вас.",
+    "onb.guidedTag": "Бронь в приложении",
+    "home.mapCta": "Открыть карту",
+    "home.guidedTag": "МЕСТНЫЕ ГИДЫ · ОШ",
+    "home.guidedTitle": "Ош с теми, кто здесь живёт",
+    "home.guidedText": "Экскурсии по городу, поездки на Памир и Иссык-Куль, треккинг в Алайских горах.",
+    "home.guidedCta": "Все туры →",
+    "home.picks": "Подборка туров",
+    "home.seeAll": "Все туры",
+    "home.agencies": "Агентства",
+    "home.agencyTours": "{n} в каталоге",
+    "home.agencyOpen": "Туры агентства",
+    "label.self": "Самостоятельно · бесплатно",
+    "label.guided": "С гидом · {agency}",
+    "route.bridge": "Хотите с гидом?",
+    "profile.mode": "Режим путешествия",
+    "profile.modeAgain": "Показать выбор заново",
 
     "facts.title": "Интересные факты",
     "facts.summary": "Коротко о главном",
@@ -118,6 +147,8 @@ export const DICT = {
     "dur.m": "{m} мин",
     "dur.h": "{h} ч",
     "dur.hm": "{h} ч {m} мин",
+    "pl.days": { one: "{n} день", few: "{n} дня", many: "{n} дней", other: "{n} дня" },
+    "pl.tours": { one: "{n} тур", few: "{n} тура", many: "{n} туров", other: "{n} тура" },
 
     "tours.kicker": "КАТАЛОГ ВПЕЧАТЛЕНИЙ",
     "tours.title": "Практики и туры",
@@ -159,6 +190,7 @@ export const DICT = {
     "booking.contact": "Телефон или @telegram",
     "booking.note": "Гид свяжется с вами для подтверждения. Оплата на месте.",
     "booking.submit": "Отправить заявку · {total}",
+    "booking.submitRequest": "Отправить заявку",
     "booking.sending": "Отправляем…",
     "booking.error": "Не удалось отправить заявку. Проверьте интернет и попробуйте ещё раз.",
     "ticket.cancelError": "Не удалось отменить бронь. Проверьте интернет и попробуйте ещё раз.",
@@ -194,6 +226,8 @@ export const DICT = {
     "common.details": "Details",
     "common.from": "from",
     "price.from": "from {price}",
+    "price.request": "price on request",
+    "detail.agencySite": "More on the {name} website",
 
     "card.inRoute": "✓ In route",
     "card.addRoute": "+ Add to route",
@@ -210,6 +244,33 @@ export const DICT = {
     "home.title": "Osh: heart of the Silk Road",
     "home.text": "The sacred Sulaiman-Too mountain, ancient bazaars of the East, tandoor samsa and living crafts.",
     "home.cta": "Plan a route →",
+    "mode.label": "How you travel",
+    "mode.self": "On my own",
+    "mode.guided": "With a guide",
+    "onb.kicker": "WELCOME TO OSH",
+    "onb.title": "How do you travel?",
+    "onb.text": "This decides what we show you first. You can switch any time.",
+    "onb.selfTitle": "On my own",
+    "onb.selfText": "A map, your own day route, places and facts about the city.",
+    "onb.selfTag": "Free",
+    "onb.guidedTitle": "With a guide",
+    "onb.guidedText": "Tours by local agencies: city, trips and trekking. Everything is arranged for you.",
+    "onb.guidedTag": "Book in the app",
+    "home.mapCta": "Open map",
+    "home.guidedTag": "LOCAL GUIDES · OSH",
+    "home.guidedTitle": "Osh with people who live here",
+    "home.guidedText": "City tours, trips to the Pamirs and Issyk-Kul, trekking in the Alay Mountains.",
+    "home.guidedCta": "All tours →",
+    "home.picks": "Tour picks",
+    "home.seeAll": "All tours",
+    "home.agencies": "Agencies",
+    "home.agencyTours": "{n} in the catalogue",
+    "home.agencyOpen": "Agency tours",
+    "label.self": "On your own · free",
+    "label.guided": "With a guide · {agency}",
+    "route.bridge": "Want a guide?",
+    "profile.mode": "Travel mode",
+    "profile.modeAgain": "Show the choice again",
 
     "facts.title": "Interesting facts",
     "facts.summary": "Key points",
@@ -246,6 +307,8 @@ export const DICT = {
     "dur.m": "{m} min",
     "dur.h": "{h} h",
     "dur.hm": "{h} h {m} min",
+    "pl.days": { one: "{n} day", other: "{n} days" },
+    "pl.tours": { one: "{n} tour", other: "{n} tours" },
 
     "tours.kicker": "EXPERIENCES",
     "tours.title": "Workshops & tours",
@@ -287,6 +350,7 @@ export const DICT = {
     "booking.contact": "Phone or @telegram",
     "booking.note": "The guide will contact you to confirm. Pay on site.",
     "booking.submit": "Send request · {total}",
+    "booking.submitRequest": "Send request",
     "booking.sending": "Sending…",
     "booking.error": "Couldn't send the request. Check your connection and try again.",
     "ticket.cancelError": "Couldn't cancel the booking. Check your connection and try again.",
@@ -415,12 +479,14 @@ export function weekdayShort(date, lang) {
 }
 
 // Длительность в минутах. В карточке можно писать число минут (120)
-// или строку: "2 часа", "1.5 часа", "45 мин", "2 h".
+// или строку: "2 часа", "1.5 часа", "45 мин", "2 h", "3 дня".
 export function durationMinutes(duration) {
   if (typeof duration === "number") return duration;
   if (!duration) return 90;
   const hourMatch = String(duration).match(/(\d+(?:[.,]\d+)?)\s*(?:ч|час|h|hour)/i);
   const minMatch = String(duration).match(/(\d+)\s*(?:мин|min)/i);
+  const dayMatch = String(duration).match(/(\d+)\s*(?:дн|ден|day)/i);
+  if (dayMatch) return parseInt(dayMatch[1], 10) * 24 * 60;
   let minutes = 0;
   if (hourMatch) minutes += parseFloat(hourMatch[1].replace(",", ".")) * 60;
   if (minMatch) minutes += parseInt(minMatch[1], 10);
@@ -429,6 +495,7 @@ export function durationMinutes(duration) {
 }
 
 export function formatDuration(mins, lang) {
+  if (mins >= 24 * 60 && mins % (24 * 60) === 0) return pluralize(lang, "pl.days", mins / (24 * 60));
   const h = Math.floor(mins / 60);
   const m = Math.round(mins % 60);
   if (h === 0) return translate(lang, "dur.m", { m });

@@ -24,16 +24,18 @@ create index if not exists agencies_owner_idx on public.agencies (owner_user_id)
 create table if not exists public.tours (
   id           text primary key default gen_random_uuid()::text,
   agency_id    uuid references public.agencies (id) on delete cascade,
-  category     text not null check (category in ('practices','tours','food','culture','nature')),
+  category     text not null check (category in ('practices','tours','food','culture','nature','trips','trekking')),
   type         text not null,
   title        text not null,
   place        text not null,
   duration     text not null,                         -- "2 часа", "45 мин" или число минут "120"
-  price        numeric(10,2) not null check (price >= 0),
+  price        numeric(10,2) check (price >= 0),        -- null — цена по запросу
   rating       numeric(2,1) check (rating between 0 and 5),
   reviews      integer not null default 0,
   badge        text,
   langs        text,                                  -- "RU · EN"
+  agency_name  text,                                  -- агентство, пока у него нет аккаунта (agency_id)
+  source_url   text,                                  -- страница тура на сайте агентства
   images       text[] not null default '{}',
   lat          double precision not null,
   lng          double precision not null,
@@ -195,3 +197,11 @@ create policy booking_update_agency on public.booking_requests for update to aut
 
 revoke update on public.booking_requests from anon, authenticated;
 grant update (status) on public.booking_requests to authenticated;
+
+-- ── обновление существующей базы (можно запускать повторно) ─────────────────
+alter table public.tours drop constraint if exists tours_category_check;
+alter table public.tours add constraint tours_category_check
+  check (category in ('practices','tours','food','culture','nature','trips','trekking'));
+alter table public.tours alter column price drop not null;
+alter table public.tours add column if not exists agency_name text;
+alter table public.tours add column if not exists source_url text;
