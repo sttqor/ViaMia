@@ -1,0 +1,26 @@
+{
+  "v": 3,
+  "layout": "files",
+  "createdOnFiles": { "v": 1, "at": "2026-11-12T14:38:14Z" },
+  "title": "Osh Guide",
+  "namespace": "OshGuide",
+  "libraries": [],
+  "sections": {},
+  "groups": ["Ornament"],
+  "assetGroups": {
+    "Ornament": {
+      "name": "Ornament",
+      "tile": "m",
+      "order": ["ornament-tile.webp", "ornament-bottom.webp", "ornament-side-left.webp", "ornament-side-right.webp"],
+      "files": {
+        "ornament-tile.webp": { "name": "ornament-tile.webp", "blob": "849e5122d793429cc5498aa161094ef1", "size": 15908, "type": "image/webp" },
+        "ornament-bottom.webp": { "name": "ornament-bottom.webp", "blob": "08e0c24fc7218c3e1c6fc0f2208fef95", "size": 12320, "type": "image/webp" },
+        "ornament-side-left.webp": { "name": "ornament-side-left.webp", "blob": "ad58374efde273ceafb8636901fff38a", "size": 13342, "type": "image/webp" },
+        "ornament-side-right.webp": { "name": "ornament-side-right.webp", "blob": "aca24a2f0131c1304d325295b7079ab6", "size": 13234, "type": "image/webp" }
+      }
+    }
+  },
+  "blobs": {},
+  "docs": { "sections": [] },
+  "lastChange": { "by": "Claude", "at": "2026-11-12T14:38:14Z", "via": "Claude Code · osh-explorer", "note": "Extracted from design/ and src/ styles: 16 colours, 11 type styles, 12 components, ornament art." }
+}

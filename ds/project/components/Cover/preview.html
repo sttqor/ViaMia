@@ -1,0 +1,41 @@
+<!-- @dsCard height=300 -->
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+  html, body { margin: 0; background: var(--bg); }
+  .cv { position: relative; width: 960px; height: 300px; overflow: hidden; background: var(--bg); }
+  .cv svg { position: absolute; left: 0; top: 0; }
+  .acc { fill: var(--accent); }
+  .ink { fill: var(--ink); }
+  .gold { fill: var(--gold); }
+  .sand { fill: var(--bg-2); }
+  .ground { fill: var(--bg); }
+  .card { fill: var(--card); }
+  .txt { position: absolute; left: 28px; bottom: 26px; max-width: 440px; }
+  .txt h1 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 96px; line-height: .95; color: var(--ink); }
+  .txt p { margin: 14px 0 0; font-family: var(--font-ui); font-size: 14px; font-weight: 500; color: var(--muted); }
+</style></head>
+<body>
+<div class="cv">
+<svg width="960" height="300" viewBox="0 0 960 300" aria-hidden="true">
+  <!--
+    blocks: accent 200x300 slab, ink 280x168, gold 120x132, bg-2 160x132, card disc; corners radius-card (20) on the outer block edges
+    arrangement: one tall terracotta slab with satellites, flush modular grid right of x=480, bleeding off top/right/bottom
+    pattern: quarter-circles, the ram's-horn curl of the Kyrgyz ornament behind the app, cut as ground/card out of the blocks
+    scales: block gaps space-10, arc radii 44 (size-icon-btn) and 62 (nav-h), discs radius-chip
+  -->
+  <rect class="acc" x="480" y="0" width="200" height="300" rx="20"/>
+  <rect class="ink" x="690" y="-20" width="290" height="178" rx="20"/>
+  <rect class="gold" x="690" y="168" width="120" height="152" rx="20"/>
+  <rect class="sand" x="820" y="168" width="160" height="152" rx="20"/>
+  <!-- ram's-horn quarter circles -->
+  <path class="ground" d="M480 300 v-62 a62 62 0 0 1 62 62 z"/>
+  <path class="ground" d="M680 0 v62 a62 62 0 0 1 -62 -62 z"/>
+  <path class="gold" d="M690 158 v-44 a44 44 0 0 1 44 44 z"/>
+  <path class="gold" d="M960 0 v44 a44 44 0 0 1 -44 -44 z"/>
+  <path class="ink" d="M820 320 v-62 a62 62 0 0 1 62 62 z"/>
+  <circle class="card" cx="580" cy="150" r="22"/>
+</svg>
+<div class="txt"><h1>Osh<br>Guide</h1><p>Тёплый песок, один терракотовый акцент, один индиго.</p></div>
+</div>
+</body></html>
