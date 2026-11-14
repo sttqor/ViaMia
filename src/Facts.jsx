@@ -9,8 +9,6 @@ import "./Facts.css";
 // Тур для кнопки и мини-карты берётся из поля `expId` факта (см. data.js).
 // Если его нет, кнопка ведёт на вкладку из fact.linkTab.
 
-const small = (url) => (url || "").replace("w=1200", "w=320");
-
 function FactHero({ fact, onClose }) {
     const { t } = useSettings();
     const [loaded, setLoaded] = useState(false);
@@ -169,39 +167,82 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
     );
 }
 
+// Факты как сторис: одна большая карточка, свайп или тап по краям листает,
+// полоски сверху показывают, где вы сейчас
 export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
     const { t, loc } = useSettings();
     const { facts } = useContent();
     const [index, setIndex] = useState(null);
+    const [slide, setSlide] = useState(0);
+    const [dir, setDir] = useState(1);
+    const dragged = useRef(false);
+
+    const current = Math.min(slide, Math.max(facts.length - 1, 0));
+    const move = (step) => {
+        const next = current + step;
+        if (next < 0 || next >= facts.length) return;
+        setDir(step);
+        setSlide(next);
+    };
+    const tap = (step) => {
+        if (dragged.current) return;
+        move(step);
+    };
+    const f = facts[current] ? loc(facts[current]) : null;
 
     return (
         <section className="fact2-section">
-            <h2>{t("facts.title")}</h2>
-            <div className="fact2-list">
-                {facts.map((raw, i) => {
-                    const f = loc(raw);
-                    return (
-                        <article
+            {f && (
+                <div className="story" aria-roledescription="carousel" aria-label={t("facts.title")}>
+                    <AnimatePresence initial={false}>
+                        <motion.div
                             key={f.id}
-                            className="card fact2-card"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setIndex(i)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") setIndex(i);
+                            className="story-slide"
+                            initial={{ opacity: 0, x: 32 * dir }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 36 }}
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={0.18}
+                            onDragStart={() => {
+                                dragged.current = true;
+                            }}
+                            onDragEnd={(_, info) => {
+                                setTimeout(() => {
+                                    dragged.current = false;
+                                }, 0);
+                                if (info.offset.x < -50 || info.velocity.x < -500) move(1);
+                                else if (info.offset.x > 50 || info.velocity.x > 500) move(-1);
                             }}
                         >
-                            <img className="fact2-thumb" src={small(f.image)} alt="" loading="lazy" />
-                            <div className="fact2-text">
-                                <span className="fact2-tag">{f.tag}</span>
-                                <b>{f.emoji} {f.title}</b>
+                            <img src={f.image} alt="" draggable={false} />
+                            <div className="story-fade" />
+                            <button className="story-zone left" onClick={() => tap(-1)} aria-label={t("facts.prev")} disabled={current === 0} />
+                            <button
+                                className="story-zone right"
+                                onClick={() => tap(1)}
+                                aria-label={t("facts.next")}
+                                disabled={current === facts.length - 1}
+                            />
+                            <div className="story-text">
+                                <span className="fact-tag">{f.tag}</span>
+                                <h2>{f.emoji} {f.title}</h2>
                                 <p>{f.short}</p>
+                                <button className="cta story-read" onClick={() => setIndex(current)}>
+                                    {t("facts.read")} →
+                                </button>
                             </div>
-                            <ChevronRight size={16} color="var(--terracotta)" style={{ flexShrink: 0 }} />
-                        </article>
-                    );
-                })}
-            </div>
+                        </motion.div>
+                    </AnimatePresence>
+                    <div className="story-bars">
+                        {facts.map((x, i) => (
+                            <span key={x.id} className={i <= current ? "on" : ""} />
+                        ))}
+                    </div>
+                    <span className="story-kicker">{t("facts.kicker")} · {current + 1}/{facts.length}</span>
+                </div>
+            )}
 
             {createPortal(
             <AnimatePresence>

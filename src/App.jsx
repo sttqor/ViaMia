@@ -32,6 +32,7 @@ import { cancelBookingRequest, submitBookingRequest } from "./api";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName, durationMinutes, weekdayShort } from "./i18n";
 import { useSettings } from "./settings-context";
 import { FactsSection } from "./Facts";
+import { PhraseCard, QuickActions } from "./HomeBlocks";
 import { TabBar } from "./TabBar";
 import { Segmented } from "./Segmented";
 import { useMinimizeOnScroll } from "./useMinimizeOnScroll";
@@ -364,31 +365,25 @@ function ExploreMap({ items, onOpen }) {
   );
 }
 
-// 1. ГЛАВНАЯ: ИСТОРИЧЕСКИЙ ГИД И СОВЕТЫ
+// 1. ГЛАВНАЯ: «Ош сегодня» — факты-сторис, быстрые кнопки, фраза дня
 function HomeView({ onGoToRoute, onGoTo, onOpenExp }) {
   const { t } = useSettings();
   return (
     <div className="gyg-scroll">
-      <section style={{ position: "relative", height: 290, overflow: "hidden", color: "#fff" }}>
-        <img
-          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85"
-          alt={t("home.heroAlt")}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(30,38,56,.15) 0%, rgba(30,38,56,.88) 100%)" }} />
-        <div style={{ position: "absolute", left: 18, right: 18, bottom: 22 }}>
-          <span className="fact-tag">{t("home.tag")}</span>
-          <h1 style={{ fontSize: 32, lineHeight: 1.08, margin: "8px 0 8px", fontWeight: 900, letterSpacing: -0.5 }}>
-            {t("home.title")}
-          </h1>
-          <p style={{ margin: "0 0 16px", fontSize: 14, lineHeight: 1.45, maxWidth: 330, opacity: 0.95 }}>
-            {t("home.text")}
-          </p>
-          <button className="cta home-route-cta" onClick={onGoToRoute}>{t("home.cta")}</button>
-        </div>
-      </section>
+      <header className="home2-head">
+        <span>{t("home.tag")}</span>
+        <h1>{t("home.title")}</h1>
+      </header>
 
       <FactsSection MiniMap={MiniMap} onGoTo={onGoTo} onOpenExp={onOpenExp} />
+      <QuickActions onGoTo={onGoTo} />
+      <PhraseCard />
+
+      <section className="home2-route">
+        <b>{t("home.routeTitle")}</b>
+        <p>{t("home.routeText")}</p>
+        <button className="cta home-route-cta" onClick={onGoToRoute}>{t("home.cta")}</button>
+      </section>
     </div>
   );
 }

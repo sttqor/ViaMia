@@ -1,80 +1,123 @@
 .fact2-section {
-    padding: 18px 16px 0;
+    padding: 0 16px;
 }
 
-.fact2-section>h2 {
-    font-size: 20px;
-    font-weight: 900;
-    margin: 0 0 12px;
+/* сторис */
+.story {
+    position: relative;
+    height: 400px;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--indigo);
+    color: #fff;
 }
 
-.fact2-list {
-    display: grid;
-    gap: 10px;
+.story-slide {
+    position: absolute;
+    inset: 0;
+    touch-action: pan-y;
 }
 
-.fact2-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    cursor: pointer;
-    transition: transform .15s ease;
-}
-
-.fact2-card:hover {
-    box-shadow: 0 10px 30px rgba(30, 38, 56, 0.12);
-}
-
-.fact2-card:focus-visible {
-    outline: 2px solid var(--terracotta);
-    outline-offset: 2px;
-}
-
-.fact2-card:active {
-    transform: scale(.985);
-}
-
-.fact2-thumb {
-    width: 76px;
-    height: 76px;
-    border-radius: 12px;
+.story-slide img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    flex-shrink: 0;
-    background: var(--sand-100);
+    pointer-events: none;
+    user-select: none;
 }
 
-.fact2-text {
-    flex: 1;
-    min-width: 0;
+.story-fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(30, 38, 56, .45) 0%, rgba(30, 38, 56, 0) 28%, rgba(30, 38, 56, .92) 100%);
 }
 
-.fact2-tag {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: .6px;
-    text-transform: uppercase;
-    color: var(--terracotta);
-    margin-bottom: 3px;
+.story-zone {
+    position: absolute;
+    top: 0;
+    bottom: 150px;
+    width: 38%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.fact2-text b {
-    display: block;
-    font-size: 14px;
-    line-height: 1.25;
+.story-zone.left {
+    left: 0;
 }
 
-.fact2-text p {
-    margin: 3px 0 0;
-    font-size: 12px;
-    line-height: 1.4;
-    color: var(--muted);
+.story-zone.right {
+    right: 0;
+}
+
+.story-zone:disabled {
+    cursor: default;
+}
+
+.story-text {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+}
+
+.story-text h2 {
+    margin: 8px 0 6px;
+    font-family: var(--display);
+    font-size: 26px;
+    line-height: 1.12;
+    color: #fff;
+}
+
+.story-text p {
+    margin: 0 0 14px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    opacity: .95;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+.story .story-read {
+    width: auto;
+    padding: 0 18px;
+}
+
+.story-bars {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    gap: 5px;
+    pointer-events: none;
+}
+
+.story-bars span {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, .35);
+    transition: background .2s ease;
+}
+
+.story-bars span.on {
+    background: #fff;
+}
+
+.story-kicker {
+    position: absolute;
+    top: 24px;
+    left: 14px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    pointer-events: none;
 }
 
 .fact2-overlay {
