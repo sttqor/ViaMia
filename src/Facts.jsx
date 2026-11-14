@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useDragControls } from "framer-motion";
+import { AnimatePresence, motion, useDragControls } from "motion/react";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useContent } from "./content-context";
 import { useSettings } from "./settings-context";
@@ -150,7 +150,21 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
                     </button>
                     <div className="fact2-dots">
                         {facts.map((f, i) => (
-                            <button key={f.id} className={i === index ? "on" : ""} onClick={() => go(i)} aria-label={t("facts.dot", { n: i + 1 })} />
+                            <button
+                                key={f.id}
+                                className={i === index ? "on" : ""}
+                                aria-current={i === index}
+                                onClick={() => go(i)}
+                                aria-label={t("facts.dot", { n: i + 1 })}
+                            >
+                                {i === index && (
+                                    <motion.span
+                                        layoutId="fact-dot"
+                                        className="fact2-dot-thumb"
+                                        transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                                    />
+                                )}
+                            </button>
                         ))}
                     </div>
                     <button
@@ -216,7 +230,14 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
                                 else if (info.offset.x > 50 || info.velocity.x > 500) move(-1);
                             }}
                         >
-                            <img src={f.image} alt="" draggable={false} />
+                            <motion.img
+                                src={f.image}
+                                alt=""
+                                draggable={false}
+                                initial={{ scale: 1.08 }}
+                                animate={{ scale: 1 }}
+                                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                            />
                             <div className="story-fade" />
                             <button className="story-zone left" onClick={() => tap(-1)} aria-label={t("facts.prev")} disabled={current === 0} />
                             <button
@@ -229,9 +250,9 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
                                 <span className="fact-tag">{f.tag}</span>
                                 <h2>{f.emoji} {f.title}</h2>
                                 <p>{f.short}</p>
-                                <button className="cta story-read" onClick={() => setIndex(current)}>
+                                <motion.button className="cta story-read" whileTap={{ scale: 0.97 }} onClick={() => setIndex(current)}>
                                     {t("facts.read")} →
-                                </button>
+                                </motion.button>
                             </div>
                         </motion.div>
                     </AnimatePresence>

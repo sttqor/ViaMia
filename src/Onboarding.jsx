@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Compass, Users } from "lucide-react";
 import { useSettings } from "./settings-context";
 

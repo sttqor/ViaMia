@@ -8,7 +8,7 @@ import {
   useSpring,
   useTransform,
   useVelocity,
-} from "framer-motion";
+} from "motion/react";
 import "./TabBar.css";
 
 // Нижняя панель в стиле iOS 26 (Liquid Glass):

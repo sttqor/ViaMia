@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Bell,
   Calendar,
@@ -86,6 +86,80 @@ const inView = (index) => ({
   viewport: { once: true, amount: 0.2 },
   transition: { duration: 0.3, delay: (index % 6) * 0.05, ease: EASE_OUT },
 });
+// Экран поверх вкладок (тур, бронь, билет, выбор языка) въезжает справа
+const SCREEN_IN = {
+  initial: { opacity: 0, x: 32 },
+  animate: { opacity: 1, x: 0 },
+  transition: SPRING,
+};
+// Текст на обложке появляется по очереди
+const STAGGER = { hidden: {}, show: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } } };
+const RISE = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: EASE_OUT } } };
+// Фото обложки чуть «оседает» при открытии
+const HERO_IMG = { initial: { scale: 1.08 }, animate: { scale: 1 }, transition: { duration: 1.1, ease: EASE_OUT } };
+const TAP = { scale: 0.97 };
+// Плашка-подсказка: всплывает снизу и уходит
+const TOAST = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 8 },
+  transition: { duration: 0.2, ease: EASE_OUT },
+};
+
+// Сердечко: при добавлении в избранное — короткий «прыжок»
+function SaveHeart({ saved }) {
+  return (
+    <motion.span
+      key={saved ? "on" : "off"}
+      style={{ display: "inline-flex" }}
+      initial={saved ? { scale: 0.5 } : false}
+      animate={{ scale: 1 }}
+      transition={{ type: "spring", stiffness: 520, damping: 14 }}
+    >
+      <Heart size={18} fill={saved ? "var(--terracotta)" : "none"} color={saved ? "var(--terracotta)" : "var(--ink)"} />
+    </motion.span>
+  );
+}
+
+// Плавное раскрытие по высоте (короткие блоки)
+function Reveal({ show, children, ...rest }) {
+  return (
+    <AnimatePresence initial={false}>
+      {show && (
+        <motion.div
+          key="reveal"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.25, ease: EASE_OUT }}
+          style={{ overflow: "hidden" }}
+          {...rest}
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// Число, которое меняется: старое уходит вверх, новое приходит снизу
+function Ticker({ value }) {
+  return (
+    <span style={{ display: "inline-grid", overflow: "hidden", position: "relative" }}>
+      <AnimatePresence initial={false} mode="popLayout">
+        <motion.span
+          key={value}
+          initial={{ y: "100%", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: "-100%", opacity: 0 }}
+          transition={{ duration: 0.22, ease: EASE_OUT }}
+        >
+          {value}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
 
 // Переключатель режима «сам | с гидом» — один и тот же на главной, в маршруте и в профиле
 function ModeSwitch() {
@@ -149,7 +223,7 @@ function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave, onTogg
           aria-label={saved ? t("common.unsave") : t("common.save")}
           onClick={() => onToggleSave(exp.id)}
         >
-          <Heart size={18} fill={saved ? "var(--terracotta)" : "none"} color={saved ? "var(--terracotta)" : "var(--ink)"} />
+          <SaveHeart saved={saved} />
         </button>
       </div>
       <div style={{ padding: 14 }}>
@@ -168,16 +242,17 @@ function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave, onTogg
           <div className="price">{priceText(exp, t, money)}</div>
         </div>
         <div className="row" style={{ gap: 8 }}>
-          <button
+          <motion.button
             className={`pill ${inRoute ? "on" : ""}`}
             style={{ flex: 1, padding: "10px 0", textAlign: "center", fontSize: 12 }}
+            whileTap={TAP}
             onClick={() => onToggleRoute(raw)}
           >
-            {inRoute ? t("card.inRoute") : t("card.addRoute")}
-          </button>
-          <button className="cta" style={{ flex: 1.2, padding: "10px 0", fontSize: 12 }} onClick={() => onOpen(raw)}>
+            <Ticker value={inRoute ? t("card.inRoute") : t("card.addRoute")} />
+          </motion.button>
+          <motion.button className="cta" style={{ flex: 1.2, padding: "10px 0", fontSize: 12 }} whileTap={TAP} onClick={() => onOpen(raw)}>
             {t("common.details")}
-          </button>
+          </motion.button>
         </div>
       </div>
     </article>
@@ -348,18 +423,25 @@ function ExploreMap({ items, onOpen }) {
         <Navigation size={18} color={locating ? "var(--muted-2)" : "var(--terracotta)"} />
       </button>
 
-      {locateError && <div className="map-locate-toast">{t("map.locateError")}</div>}
-
-      {!failed && filtered.length === 0 && (
-        <div className="map-locate-toast" style={{ bottom: "auto", top: 76 }}>{t("common.nothing")}</div>
-      )}
+      <AnimatePresence>
+        {locateError && (
+          <motion.div key="locate" className="map-locate-toast" {...TOAST}>
+            {t("map.locateError")}
+          </motion.div>
+        )}
+        {!failed && filtered.length === 0 && (
+          <motion.div key="nothing" className="map-locate-toast" style={{ bottom: "auto", top: 76 }} {...TOAST}>
+            {t("common.nothing")}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {failed && (
-        <div className="map-failed">
+        <motion.div className="map-failed" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={SPRING}>
           <MapIcon size={32} color="var(--indigo)" />
           <b>{t("map.failedTitle")}</b>
           <span className="muted">{t("map.failedText")}</span>
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -370,20 +452,28 @@ function HomeView({ onGoToRoute, onGoTo, onOpenExp }) {
   const { t } = useSettings();
   return (
     <div className="gyg-scroll">
-      <header className="home2-head">
-        <span>{t("home.tag")}</span>
-        <h1>{t("home.title")}</h1>
-      </header>
+      <motion.header className="home2-head" variants={STAGGER} initial="hidden" animate="show">
+        <motion.span variants={RISE}>{t("home.tag")}</motion.span>
+        <motion.h1 variants={RISE}>{t("home.title")}</motion.h1>
+      </motion.header>
 
       <FactsSection MiniMap={MiniMap} onGoTo={onGoTo} onOpenExp={onOpenExp} />
       <QuickActions onGoTo={onGoTo} />
       <PhraseCard />
 
-      <section className="home2-route">
-        <b>{t("home.routeTitle")}</b>
-        <p>{t("home.routeText")}</p>
-        <button className="cta home-route-cta" onClick={onGoToRoute}>{t("home.cta")}</button>
-      </section>
+      <motion.section
+        className="home2-route"
+        variants={STAGGER}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <motion.b variants={RISE}>{t("home.routeTitle")}</motion.b>
+        <motion.p variants={RISE}>{t("home.routeText")}</motion.p>
+        <motion.button className="cta home-route-cta" variants={RISE} whileTap={TAP} onClick={onGoToRoute}>
+          {t("home.cta")}
+        </motion.button>
+      </motion.section>
     </div>
   );
 }
@@ -472,11 +562,11 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
         <div style={{ marginTop: 12 }}>
           <ModeSwitch />
         </div>
-        {mode === "guided" && items.length > 0 && (
+        <Reveal show={mode === "guided" && items.length > 0}>
           <div className="route-guide-note">
             {t("route.guideNote", { n: items.length, price: money(guideTotal) })}
           </div>
-        )}
+        </Reveal>
       </div>
 
       <div style={{ padding: "12px 16px" }}>
@@ -484,7 +574,7 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
           <div className="route-stat">
             <div className="route-stat-value">
               <MapPin size={16} color="var(--terracotta)" />
-              {items.length === 0 ? t("unit.km", { n: 0 }) : fmtKm(totalKm)}
+              <Ticker value={items.length === 0 ? t("unit.km", { n: 0 }) : fmtKm(totalKm)} />
             </div>
             <span className="route-stat-label">{t("route.walk")}</span>
           </div>
@@ -492,7 +582,7 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
           <div className="route-stat">
             <div className="route-stat-value">
               <Clock size={16} color="var(--terracotta)" />
-              {fmtDuration(items.length === 0 ? 0 : totalMin)}
+              <Ticker value={fmtDuration(items.length === 0 ? 0 : totalMin)} />
             </div>
             <span className="route-stat-label">{t("route.time")}</span>
           </div>
@@ -500,7 +590,7 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
           <div className="route-stat">
             <div className="route-stat-value">
               <RouteIcon size={16} color="var(--terracotta)" />
-              {items.length}
+              <Ticker value={items.length} />
             </div>
             <span className="route-stat-label">{t("route.points")}</span>
           </div>
@@ -519,12 +609,25 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
         </div>
 
         {items.length === 0 ? (
-          <div className="card ornament-accent" style={{ padding: "36px 20px", textAlign: "center" }}>
-            <Compass size={40} color="var(--terracotta)" />
+          <motion.div
+            className="card ornament-accent"
+            style={{ padding: "36px 20px", textAlign: "center" }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: EASE_OUT }}
+          >
+            <motion.span
+              style={{ display: "inline-flex" }}
+              initial={{ rotate: -90, scale: 0.6 }}
+              animate={{ rotate: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.1 }}
+            >
+              <Compass size={40} color="var(--terracotta)" />
+            </motion.span>
             <h3 style={{ margin: "12px 0 6px" }}>{t("route.emptyTitle")}</h3>
             <p className="muted" style={{ margin: "0 0 16px", fontSize: 13 }}>{t("route.emptyText")}</p>
-            <button className="cta" onClick={onGoToTours}>{t("route.goTours")}</button>
-          </div>
+            <motion.button className="cta" whileTap={TAP} onClick={onGoToTours}>{t("route.goTours")}</motion.button>
+          </motion.div>
         ) : (
           <>
             <div className="route-timeline">
@@ -564,11 +667,11 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
                               ? t("label.guided", { agency: item.agencyName })
                               : t("label.self")}
                           </div>
-                          {isOpen && (
+                          <Reveal show={isOpen}>
                             <p style={{ margin: "0 0 8px", fontSize: 12, lineHeight: 1.5, color: "var(--ink-soft)" }}>
                               {item.description}
                             </p>
-                          )}
+                          </Reveal>
                           <div className="row" style={{ gap: 14 }}>
                             <button className="route-link" onClick={() => setExpandedId(isOpen ? null : item.id)}>
                               {isOpen ? t("route.hide") : t("common.details")}
@@ -606,13 +709,15 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
               })}
               </AnimatePresence>
             </div>
-            <button
+            <motion.button
+              layout="position"
               className="cta"
               style={{ marginTop: 16 }}
+              whileTap={TAP}
               onClick={() => (mode === "guided" ? onGoToTours() : openNavigation(items))}
             >
               {mode === "guided" ? t("route.pickGuide") : t("route.navigate", { stops: plural("pl.stops", items.length) })}
-            </button>
+            </motion.button>
           </>
         )}
       </div>
@@ -634,19 +739,19 @@ function SelfHero({ onGoToRoute, onGoTo }) {
   const { t } = useSettings();
   return (
     <section className="home-hero home-hero-sm">
-      <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85" alt={t("home.heroAlt")} />
+      <motion.img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85" alt={t("home.heroAlt")} {...HERO_IMG} />
       <div className="home-hero-fade" />
-      <div className="home-hero-text">
-        <span className="fact-tag">{t("tours.selfTag")}</span>
-        <h1>{t("tours.selfTitle")}</h1>
-        <p>{t("tours.selfText")}</p>
-        <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-          <button className="cta home-route-cta" onClick={onGoToRoute}>{t("home.cta")}</button>
-          <button className="cta ghost home-route-cta" onClick={() => onGoTo("map")}>
+      <motion.div className="home-hero-text" variants={STAGGER} initial="hidden" animate="show">
+        <motion.span className="fact-tag" variants={RISE}>{t("tours.selfTag")}</motion.span>
+        <motion.h1 variants={RISE}>{t("tours.selfTitle")}</motion.h1>
+        <motion.p variants={RISE}>{t("tours.selfText")}</motion.p>
+        <motion.div className="row" style={{ gap: 8, flexWrap: "wrap" }} variants={RISE}>
+          <motion.button className="cta home-route-cta" whileTap={TAP} onClick={onGoToRoute}>{t("home.cta")}</motion.button>
+          <motion.button className="cta ghost home-route-cta" whileTap={TAP} onClick={() => onGoTo("map")}>
             <MapIcon size={16} /> {t("home.mapCta")}
-          </button>
-        </div>
-      </div>
+          </motion.button>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
@@ -657,13 +762,13 @@ function GuidedHero() {
   const hero = tours.find((x) => x.id === "pamir") || tours[0];
   return (
     <section className="home-hero home-hero-sm">
-      {hero && <img src={hero.image} alt="" />}
+      {hero && <motion.img src={hero.image} alt="" {...HERO_IMG} />}
       <div className="home-hero-fade" />
-      <div className="home-hero-text">
-        <span className="fact-tag">{t("home.guidedTag")}</span>
-        <h1>{t("home.guidedTitle")}</h1>
-        <p>{t("home.guidedText")}</p>
-      </div>
+      <motion.div className="home-hero-text" variants={STAGGER} initial="hidden" animate="show">
+        <motion.span className="fact-tag" variants={RISE}>{t("home.guidedTag")}</motion.span>
+        <motion.h1 variants={RISE}>{t("home.guidedTitle")}</motion.h1>
+        <motion.p variants={RISE}>{t("home.guidedText")}</motion.p>
+      </motion.div>
     </section>
   );
 }
@@ -776,11 +881,16 @@ function ToursView({
           style={{ padding: "0 16px 20px", display: "grid", gap: 14, marginTop: 4 }}
         >
           {filtered.length === 0 && (
-            <div className="card ornament-accent empty">
+            <motion.div
+              className="card ornament-accent empty"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={SPRING}
+            >
               <Search size={32} color="var(--indigo)" />
               <b>{t("tours.emptyTitle")}</b>
               <span>{t("tours.emptyText")}</span>
-            </div>
+            </motion.div>
           )}
           {filtered.map((exp, index) => (
             <motion.div key={exp.id} {...inView(index)}>
@@ -821,7 +931,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   });
 
   return (
-    <div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }}>
+    <motion.div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }} {...SCREEN_IN}>
       <div className="screen-head">
         <button className="icon-btn" onClick={onBack} aria-label={t("common.back")}>
           <ChevronLeft size={20} />
@@ -860,7 +970,11 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
               <div className="row" style={{ gap: 10 }}>
                 {it.symbol && it.symbol !== it.code && <span className="muted" style={{ fontSize: 12 }}>{it.symbol}</span>}
                 <span className="muted" style={{ fontSize: 12, fontWeight: 700 }}>{it.code.toUpperCase()}</span>
-                {activeCode === it.code && <Check size={18} color="var(--terracotta)" />}
+                {activeCode === it.code && (
+                  <motion.span style={{ display: "inline-flex" }} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={SPRING}>
+                    <Check size={18} color="var(--terracotta)" />
+                  </motion.span>
+                )}
               </div>
             </div>
           ))}
@@ -869,7 +983,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -922,10 +1036,10 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
   }
 
   return (
-    <div className="gyg-scroll" style={{ padding: 16 }}>
+    <motion.div className="gyg-scroll" style={{ padding: 16 }} variants={STAGGER} initial="hidden" animate="show">
       <h2 style={{ margin: "8px 0 14px", fontWeight: 900 }}>{t("profile.title")}</h2>
 
-      <div className="card" style={{ padding: 16, marginBottom: 14 }}>
+      <motion.div className="card" variants={RISE} style={{ padding: 16, marginBottom: 14 }}>
         <div className="row" style={{ gap: 12 }}>
           <div
             style={{
@@ -948,9 +1062,9 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
             {t("profile.soon")}
           </button>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="card" style={{ padding: 16, marginBottom: 14 }}>
+      <motion.div className="card" variants={RISE} style={{ padding: 16, marginBottom: 14 }}>
         <div className="row" style={{ gap: 8, marginBottom: 10 }}>
           <Ticket size={16} color="var(--terracotta)" />
           <b>{t("profile.tickets", { n: bookings.length })}</b>
@@ -965,7 +1079,7 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
             {bookings.map((b) => {
               const exp = loc(b.exp);
               return (
-                <button key={b.code} className="booking-row" onClick={() => onOpenTicket(b)}>
+                <motion.button key={b.code} layout className="booking-row" whileTap={TAP} onClick={() => onOpenTicket(b)}>
                   <img src={exp.image} alt="" />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 800, fontSize: 13 }}>{exp.title}</div>
@@ -974,14 +1088,14 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
                     </div>
                   </div>
                   <ChevronRight size={16} color="var(--muted-2)" />
-                </button>
+                </motion.button>
               );
             })}
           </div>
         )}
-      </div>
+      </motion.div>
 
-      <div className="card" style={{ padding: 16, marginBottom: 14 }}>
+      <motion.div className="card" variants={RISE} style={{ padding: 16, marginBottom: 14 }}>
         <div className="row" style={{ gap: 8, marginBottom: 10 }}>
           <Heart size={16} color="var(--terracotta)" />
           <b>{t("profile.saved", { n: savedRaw.length })}</b>
@@ -1021,9 +1135,9 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
             })}
           </div>
         )}
-      </div>
+      </motion.div>
 
-      <div className="card" style={{ padding: 16, marginBottom: 14 }}>
+      <motion.div className="card" variants={RISE} style={{ padding: 16, marginBottom: 14 }}>
         <div className="row" style={{ gap: 8, marginBottom: 12 }}>
           <Compass size={16} color="var(--terracotta)" />
           <b>{t("profile.mode")}</b>
@@ -1032,9 +1146,9 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
         <button className="route-link" style={{ marginTop: 12 }} onClick={() => setTravelMode(null)}>
           {t("profile.modeAgain")}
         </button>
-      </div>
+      </motion.div>
 
-      <div className="card" style={{ padding: 16, marginBottom: 14 }}>
+      <motion.div className="card" variants={RISE} style={{ padding: 16, marginBottom: 14 }}>
         <button className="row row-btn" style={{ justifyContent: "space-between" }} onClick={() => setScreen("lang")}>
           <div className="row" style={{ gap: 8 }}>
             <Globe size={16} color="var(--terracotta)" />
@@ -1045,9 +1159,9 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
             <ChevronRight size={18} color="var(--muted-2)" />
           </div>
         </button>
-      </div>
+      </motion.div>
 
-      <div className="card" style={{ padding: 16, marginBottom: 14 }}>
+      <motion.div className="card" variants={RISE} style={{ padding: 16, marginBottom: 14 }}>
         <button className="row row-btn" style={{ justifyContent: "space-between" }} onClick={() => setScreen("currency")}>
           <div className="row" style={{ gap: 8 }}>
             <DollarSign size={16} color="var(--terracotta)" />
@@ -1063,9 +1177,9 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
         {currency !== "USD" && (
           <div className="muted" style={{ fontSize: 11, marginTop: 8 }}>{t("profile.ratesNote")}</div>
         )}
-      </div>
+      </motion.div>
 
-      <div className="card" style={{ padding: 16 }}>
+      <motion.div className="card" variants={RISE} style={{ padding: 16 }}>
         <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
           <div className="row" style={{ gap: 8 }}>
             <Bell size={16} color="var(--terracotta)" />
@@ -1090,10 +1204,16 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
           </div>
           <ChevronRight size={16} color="var(--muted-2)" />
         </button>
-      </div>
+      </motion.div>
 
-      {helpToast && <div className="toast-note" role="status">{t("profile.helpSoon")}</div>}
-    </div>
+      <AnimatePresence>
+        {helpToast && (
+          <motion.div key="help" className="toast-note" role="status" style={{ x: "-50%" }} {...TOAST}>
+            {t("profile.helpSoon")}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -1102,31 +1222,31 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
   const { t, loc, money, plural, fmtDuration } = useSettings();
   const exp = loc(raw);
   return (
-    <div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }}>
-      <div style={{ position: "relative" }}>
-        <img src={exp.image} alt="" style={{ height: 240, width: "100%", objectFit: "cover" }} />
+    <motion.div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }} {...SCREEN_IN}>
+      <div style={{ position: "relative", height: 240, overflow: "hidden" }}>
+        <motion.img src={exp.image} alt="" style={{ height: 240, width: "100%", objectFit: "cover" }} {...HERO_IMG} />
         <button className="icon-btn" style={{ position: "absolute", top: 12, left: 12 }} onClick={onBack} aria-label={t("common.back")}>
           <ChevronLeft size={20} />
         </button>
         <button className="save-btn" style={{ position: "absolute", top: 12, right: 12 }} onClick={() => onToggleSave(exp.id)} aria-label={saved ? t("common.unsave") : t("common.save")}>
-          <Heart size={18} fill={saved ? "var(--terracotta)" : "none"} color={saved ? "var(--terracotta)" : "var(--ink)"} />
+          <SaveHeart saved={saved} />
         </button>
       </div>
-      <div style={{ padding: 16 }}>
-        <div className="muted" style={{ fontWeight: 700 }}>{exp.type} · {exp.place}</div>
-        <h2 style={{ fontSize: 22, fontWeight: 900, margin: "6px 0 10px", lineHeight: 1.25 }}>{exp.title}</h2>
-        <div className="row" style={{ gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
+      <motion.div style={{ padding: 16 }} variants={STAGGER} initial="hidden" animate="show">
+        <motion.div variants={RISE} className="muted" style={{ fontWeight: 700 }}>{exp.type} · {exp.place}</motion.div>
+        <motion.h2 variants={RISE} style={{ fontSize: 22, fontWeight: 900, margin: "6px 0 10px", lineHeight: 1.25 }}>{exp.title}</motion.h2>
+        <motion.div variants={RISE} className="row" style={{ gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
           <StarRow rating={exp.rating} />
           {exp.reviews > 0 && <span className="muted">{plural("pl.reviews", exp.reviews)}</span>}
           {exp.agencyName && <span className="muted" style={{ fontWeight: 700 }}>{exp.agencyName}</span>}
           <span className="row muted"><Clock size={14} /> {fmtDuration(durationMinutes(exp.duration))}</span>
-        </div>
-        <div className="detail-chips">
+        </motion.div>
+        <motion.div variants={RISE} className="detail-chips">
           {exp.freeCancel && <span className="detail-chip green">{t("detail.freeCancel")}</span>}
           {exp.group && <span className="detail-chip"><Users size={13} /> {exp.group}</span>}
           {exp.lang && <span className="detail-chip"><Globe size={13} /> {exp.lang}</span>}
-        </div>
-        <p style={{ margin: "0 0 16px", color: "var(--ink-soft)", lineHeight: 1.5 }}>{exp.description}</p>
+        </motion.div>
+        <motion.p variants={RISE} style={{ margin: "0 0 16px", color: "var(--ink-soft)", lineHeight: 1.5 }}>{exp.description}</motion.p>
         {exp.highlights?.length > 0 && (
           <>
             <b>{t("detail.whatsOn")}</b>
@@ -1151,8 +1271,13 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
             {t("detail.agencySite", { name: exp.agencyName || "" })} →
           </a>
         )}
-      </div>
-      <div className="sticky-buy">
+      </motion.div>
+      <motion.div
+        className="sticky-buy"
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        transition={{ ...SPRING, delay: 0.15 }}
+      >
         <div>
           {exp.price == null ? (
             <div className="price" style={{ fontSize: 15 }}>{t("price.request")}</div>
@@ -1163,9 +1288,9 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
             </>
           )}
         </div>
-        <button className="cta" onClick={() => onBook(raw)}>{t("detail.pickDate")}</button>
-      </div>
-    </div>
+        <motion.button className="cta" whileTap={TAP} onClick={() => onBook(raw)}>{t("detail.pickDate")}</motion.button>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -1207,7 +1332,7 @@ function Booking({ exp: raw, onBack, onConfirm }) {
   const dayLabel = (d, i) => (i === 0 ? t("booking.today") : i === 1 ? t("booking.tomorrow") : weekdayShort(d.date, lang));
 
   return (
-    <div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }}>
+    <motion.div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }} {...SCREEN_IN}>
       <div className="screen-head">
         <button className="icon-btn" onClick={onBack} aria-label={t("common.back")}><ChevronLeft size={20} /></button>
         <b>{t("booking.title")}</b>
@@ -1223,16 +1348,23 @@ function Booking({ exp: raw, onBack, onConfirm }) {
         <b>{t("booking.when")}</b>
         <div className="h-scroll" style={{ padding: "12px 0" }}>
           {dates.map((d, i) => (
-            <button key={d.key} className={`date-chip ${date === d.key ? "on" : ""}`} onClick={() => setDate(d.key)}>
-              <div style={{ fontSize: 11, color: "var(--muted)" }}>{dayLabel(d, i)}</div>
-              <div style={{ fontWeight: 800 }}>{d.date.getDate()}</div>
-            </button>
+            <motion.button
+              key={d.key}
+              className={`date-chip ${date === d.key ? "on" : ""}`}
+              aria-pressed={date === d.key}
+              whileTap={TAP}
+              onClick={() => setDate(d.key)}
+            >
+              {date === d.key && <motion.span layoutId="date-thumb" className="date-thumb" transition={SPRING} />}
+              <div className="date-label" style={{ fontSize: 11, color: "var(--muted)" }}>{dayLabel(d, i)}</div>
+              <div className="date-label" style={{ fontWeight: 800 }}>{d.date.getDate()}</div>
+            </motion.button>
           ))}
         </div>
 
         <b>{t("booking.guests")}</b>
         <div className="row" style={{ justifyContent: "space-between", margin: "12px 0 20px", background: "var(--sand-100)", borderRadius: 14, padding: 12 }}>
-          <span className="row"><Users size={16} /> {plural("pl.guests", guests)}</span>
+          <span className="row"><Users size={16} /> <Ticker value={plural("pl.guests", guests)} /></span>
           <div className="row">
             <button className="icon-btn" aria-label={t("booking.fewer")} disabled={guests <= 1} onClick={() => setGuests((g) => Math.max(1, g - 1))}>−</button>
             <button className="icon-btn" aria-label={t("booking.more")} disabled={guests >= 10} onClick={() => setGuests((g) => Math.min(10, g + 1))}>+</button>
@@ -1248,7 +1380,7 @@ function Booking({ exp: raw, onBack, onConfirm }) {
           ) : (
             <>
               <span className="muted">{money(exp.price)} × {plural("pl.guests", guests)}</span>
-              <b style={{ fontSize: 18 }}>{money(total)}</b>
+              <b style={{ fontSize: 18 }}><Ticker value={money(total)} /></b>
             </>
           )}
         </div>
@@ -1271,19 +1403,19 @@ function Booking({ exp: raw, onBack, onConfirm }) {
         </div>
         <div className="muted" style={{ fontSize: 12, marginBottom: 16 }}>{t("booking.note")}</div>
 
-        {sendError && (
+        <Reveal show={sendError}>
           <div className="form-error" role="alert">{t("booking.error")}</div>
-        )}
+        </Reveal>
 
-        <button className="cta" disabled={!canSubmit || sending} onClick={submit}>
+        <motion.button className="cta" disabled={!canSubmit || sending} whileTap={canSubmit && !sending ? TAP : undefined} onClick={submit}>
           {sending
             ? t("booking.sending")
             : total == null
               ? t("booking.submitRequest")
               : t("booking.submit", { total: money(total) })}
-        </button>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -1307,18 +1439,31 @@ function TicketView({ booking, onClose, onCancel }) {
   }
 
   return (
-    <div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }}>
+    <motion.div className="gyg-scroll" style={{ background: "#fff", minHeight: "100svh" }} {...SCREEN_IN}>
       <div className="screen-head">
         <button className="icon-btn" onClick={onClose} aria-label={t("common.back")}><ChevronLeft size={20} /></button>
         <b>{t("ticket.title")}</b>
       </div>
       <div style={{ padding: 16 }}>
-        <div className="ticket">
+        <motion.div
+          className="ticket"
+          initial={{ opacity: 0, y: 28, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.1 }}
+        >
           <img className="ticket-cover" src={exp.image} alt="" />
           <div className="ticket-body">
             {booking.status === "confirmed" ? (
               <div className="row" style={{ color: "var(--green)", fontWeight: 800, marginBottom: 8 }}>
-                <Check size={16} /> {t("ticket.confirmed")}
+                <motion.span
+                  style={{ display: "inline-flex" }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 14, delay: 0.35 }}
+                >
+                  <Check size={16} />
+                </motion.span>
+                {t("ticket.confirmed")}
               </div>
             ) : (
               <div className="row" style={{ color: "var(--terracotta)", fontWeight: 800, marginBottom: 8 }}>
@@ -1338,33 +1483,48 @@ function TicketView({ booking, onClose, onCancel }) {
             <span className="muted" style={{ fontSize: 11 }}>{t("ticket.code")}</span>
             <div>{booking.code}</div>
           </div>
-        </div>
+        </motion.div>
 
-        {cancelError && (
+        <Reveal show={cancelError}>
           <div className="form-error" role="alert" style={{ marginTop: 16 }}>{t("ticket.cancelError")}</div>
-        )}
+        </Reveal>
 
         {onCancel && (
-          confirmCancel ? (
-            <div className="row" style={{ gap: 8, marginTop: 16 }}>
-              <button className="pill" style={{ flex: 1, textAlign: "center" }} disabled={cancelling} onClick={() => setConfirmCancel(false)}>
-                {t("ticket.keep")}
-              </button>
-              <button className="cta" style={{ flex: 1 }} disabled={cancelling} onClick={doCancel}>
-                {t("ticket.confirmCancel")}
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setConfirmCancel(true)}
-              style={{ marginTop: 16, width: "100%", border: "none", background: "none", color: "var(--muted)", fontWeight: 700, cursor: "pointer", padding: 12 }}
-            >
-              {t("ticket.cancel")}
-            </button>
-          )
+          <AnimatePresence mode="wait" initial={false}>
+            {confirmCancel ? (
+              <motion.div
+                key="confirm"
+                className="row"
+                style={{ gap: 8, marginTop: 16 }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18, ease: EASE_OUT }}
+              >
+                <motion.button className="pill" style={{ flex: 1, textAlign: "center" }} whileTap={TAP} disabled={cancelling} onClick={() => setConfirmCancel(false)}>
+                  {t("ticket.keep")}
+                </motion.button>
+                <motion.button className="cta" style={{ flex: 1 }} whileTap={TAP} disabled={cancelling} onClick={doCancel}>
+                  {t("ticket.confirmCancel")}
+                </motion.button>
+              </motion.div>
+            ) : (
+              <motion.button
+                key="ask"
+                onClick={() => setConfirmCancel(true)}
+                style={{ marginTop: 16, width: "100%", border: "none", background: "none", color: "var(--muted)", fontWeight: 700, cursor: "pointer", padding: 12 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                {t("ticket.cancel")}
+              </motion.button>
+            )}
+          </AnimatePresence>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 

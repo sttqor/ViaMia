@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { Languages, Lightbulb, Map as MapIcon, Phone, RefreshCw, X } from "lucide-react";
 import { useSettings } from "./settings-context";
 import "./HomeBlocks.css";

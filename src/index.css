@@ -299,9 +299,21 @@ img {
   cursor: pointer;
 }
 
-.date-chip.on {
-  border-color: var(--terracotta);
+/* выбранный день подсвечивает подложка .date-thumb, она переезжает между днями */
+.date-chip {
+  position: relative;
+}
+
+.date-thumb {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid var(--terracotta);
   background: var(--terracotta-glow);
+}
+
+.date-label {
+  position: relative;
 }
 
 .map-wrap {
