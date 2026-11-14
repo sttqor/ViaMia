@@ -484,14 +484,7 @@ export function PhraseStack() {
                 animate={{ scale: 1 - pos * 0.05, y: pos * 12, opacity: 1 - pos * 0.25 }}
                 transition={SPRING}
                 aria-hidden
-              >
-                <span className="phrase-face">
-                  <span className="phrase-kicker">{t("phrase.kicker")}</span>
-                  <span className="phrase-inner">
-                    <span className="phrase-text">{PHRASES[idx].ky}</span>
-                  </span>
-                </span>
-              </motion.div>
+              />
             ),
           )
           .reverse()}
