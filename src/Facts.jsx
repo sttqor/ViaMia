@@ -129,7 +129,7 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
 
                                 {exp && MiniMap && (
                                     <div className="fact2-map">
-                                        <div className="fact2-map-title">📍 {exp.place}</div>
+                                        <div className="fact2-map-title">{exp.place}</div>
                                         <MiniMap lat={exp.lat} lng={exp.lng} label={exp.place} />
                                     </div>
                                 )}

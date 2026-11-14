@@ -143,7 +143,7 @@ export function TabBar({ tabs, activeId, onSelect, onReselect, minimized, onExpa
         layout
         transition={LAYOUT_SPRING}
         className="tabbar"
-        style={{ borderRadius: 999 }}
+        style={{ borderRadius: 999 }} /* через style: так Motion не искажает скругление при layout-анимации */
         aria-label={label}
       >
         <AnimatePresence initial={false} mode="popLayout">

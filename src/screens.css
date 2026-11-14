@@ -1,0 +1,463 @@
+/* Классы экранов вместо инлайн-стилей в App.jsx.
+   Только токены из index.css: --fs-*, --radius-*, цвета. Новых значений не придумывать. */
+
+/* ── типографика ─────────────────────────────────────────── */
+.t-xs { font-size: var(--fs-xs); }
+.t-sm { font-size: var(--fs-sm); }
+.t-md { font-size: var(--fs-md); }
+.t-lg { font-size: var(--fs-lg); }
+.b { font-weight: 800; }
+.ink { color: var(--ink); }
+
+/* надстрочник: тип, длительность, раздел */
+.kicker {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.page-title {
+  margin: 2px 0 8px;
+  font-family: var(--display);
+  font-size: var(--fs-xl);
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.section-title {
+  margin: 0 0 12px;
+  font-family: var(--display);
+  font-size: var(--fs-lg);
+  color: var(--ink);
+}
+
+.body-text {
+  margin: 0 0 16px;
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ── раскладка ───────────────────────────────────────────── */
+.row.between { justify-content: space-between; }
+.row.wrap { flex-wrap: wrap; }
+.row.top { align-items: flex-start; }
+.gap-4 { gap: 4px; }
+.gap-6 { gap: 6px; }
+.gap-10 { gap: 10px; }
+.gap-12 { gap: 12px; }
+.gap-14 { gap: 14px; }
+.grow { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.stack-8 { display: grid; gap: 8px; }
+.stack-10 { display: grid; gap: 10px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+
+.section-pad { padding: 12px 16px; }
+.section-pad-bottom { padding: 0 16px 20px; }
+
+/* значок, который анимируется (motion.span вокруг иконки) */
+.ico { display: inline-flex; }
+.ico-top { flex-shrink: 0; margin-top: 2px; }
+
+/* раскрытие по высоте и сменяющееся число */
+.reveal { overflow: hidden; }
+.ticker { display: inline-grid; overflow: hidden; position: relative; }
+
+/* ── кнопки ──────────────────────────────────────────────── */
+/* текстовая кнопка: видна мелкой, но зона нажатия 44px */
+.text-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit);
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--terracotta-dark);
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.text-btn-muted { color: var(--muted); font-weight: 700; }
+
+.grow-btn { flex: 1; justify-content: center; text-align: center; }
+
+.pill-sm {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: var(--fs-sm);
+}
+
+.icon-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+/* строка-кнопка в карточках профиля и списках */
+.row-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--hit);
+}
+
+.row-btn-divided {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+/* ── шапки и экраны ──────────────────────────────────────── */
+.page-head {
+  padding: 18px 16px 12px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+
+.page-head .muted { margin: 0; }
+
+/* экран поверх вкладок: тур, бронь, билет, выбор языка */
+.screen {
+  min-height: 100svh;
+  background: var(--card);
+}
+
+.screen-body { padding: 16px; }
+
+/* ── карточка тура ───────────────────────────────────────── */
+.exp-media { position: relative; }
+.exp-body { padding: 14px; }
+
+.exp-btn {
+  flex: 1;
+  min-height: var(--hit);
+  padding: 0;
+  font-size: var(--fs-sm);
+  text-align: center;
+  justify-content: center;
+}
+
+.exp-btn-main { flex: 1.2; }
+
+/* ── туры ────────────────────────────────────────────────── */
+.tours-search { padding: 14px 16px 0; }
+
+.tours-list {
+  display: grid;
+  gap: 14px;
+  padding: 0 16px 20px;
+  margin-top: 4px;
+}
+
+.agency-block { padding: 4px 16px 24px; }
+
+/* ── маршрут ─────────────────────────────────────────────── */
+.empty-state {
+  padding: 36px 20px;
+  text-align: center;
+}
+
+.empty-state h3 {
+  margin: 12px 0 6px;
+  font-size: var(--fs-lg);
+}
+
+.empty-state p { margin: 0 0 16px; }
+
+/* меню «…» выпадает за край карточки — карточке нельзя обрезать содержимое */
+.route-place-card { overflow: visible; }
+
+.route-timeline-row.is-menu-open {
+  position: relative;
+  z-index: 5;
+}
+
+.route-place-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.route-place-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.route-place-title {
+  font-size: var(--fs-md);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.route-place-meta {
+  margin: 2px 0 4px;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.route-place-desc {
+  margin: 0 0 4px;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.place-menu {
+  position: relative;
+  flex-shrink: 0;
+  margin: -6px -6px 0 0;
+}
+
+.place-menu-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  min-width: 176px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-btn);
+  box-shadow: var(--shadow-float);
+  transform-origin: top right;
+}
+
+.place-menu-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--hit);
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-thumb);
+  background: none;
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.place-menu-list button:hover:not(:disabled) { background: var(--sand-100); }
+.place-menu-list button:disabled { opacity: 0.35; cursor: default; }
+.place-menu-list button.is-danger { color: var(--terracotta-dark); }
+
+/* ── экран выбора языка / валюты ─────────────────────────── */
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 16px;
+  border: none;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.list-row:first-child { border-top: none; }
+
+.list-row-title {
+  display: block;
+  font-size: var(--fs-md);
+  font-weight: 700;
+}
+
+.list-row-sub {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.list-empty { padding: 16px; text-align: center; }
+
+/* ── профиль ─────────────────────────────────────────────── */
+.profile { padding: 16px; }
+.profile .page-title { margin: 8px 0 14px; }
+
+.panel {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.panel:last-of-type { margin-bottom: 0; }
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.avatar {
+  width: var(--hit);
+  height: var(--hit);
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--terracotta-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.booking-row-title {
+  font-size: var(--fs-sm);
+  font-weight: 800;
+}
+
+.saved-scroll {
+  margin: 0 -16px;
+  padding: 2px 16px 0;
+}
+
+.saved-card {
+  flex-shrink: 0;
+  min-width: 132px;
+  max-width: 160px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-btn);
+  background: var(--card);
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.saved-card img {
+  width: 100%;
+  height: 72px;
+  object-fit: cover;
+}
+
+.saved-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+}
+
+.saved-card-title {
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+/* ── экран тура ──────────────────────────────────────────── */
+.detail-media {
+  position: relative;
+  height: 240px;
+  overflow: hidden;
+}
+
+.detail-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-back,
+.detail-save {
+  position: absolute;
+  top: 12px;
+}
+
+.detail-back { left: 12px; }
+.detail-save { right: 12px; left: auto; }
+
+.detail-title {
+  margin: 4px 0 10px;
+  font-family: var(--display);
+  font-size: var(--fs-xl);
+  line-height: 1.25;
+}
+
+.price-lg { font-size: var(--fs-xl); }
+
+/* ── бронирование ────────────────────────────────────────── */
+.booking-summary-title {
+  font-size: var(--fs-md);
+  font-weight: 800;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.date-row { padding: 12px 0; }
+
+.date-day {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.date-num {
+  display: block;
+  font-size: var(--fs-md);
+  font-weight: 800;
+}
+
+.guests-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 0 20px;
+  padding: 12px;
+  border-radius: var(--radius-btn);
+  background: var(--sand-100);
+}
+
+.form-fields { margin: 12px 0 8px; }
+
+.form-hint {
+  margin-bottom: 12px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.form-hint.is-error { color: var(--terracotta-dark); }
+
+/* ── билет ───────────────────────────────────────────────── */
+.ticket-status {
+  margin-bottom: 8px;
+  color: var(--terracotta);
+  font-weight: 800;
+}
+
+.ticket-status.is-ok { color: var(--green); }
+
+.ticket-title {
+  margin-bottom: 10px;
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.ticket-lines { display: grid; gap: 8px; }
+
+.ticket-cancel {
+  width: 100%;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* ── карта ───────────────────────────────────────────────── */
+.map-locate-toast.is-top {
+  top: 76px;
+  bottom: auto;
+}

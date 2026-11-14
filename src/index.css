@@ -35,9 +35,24 @@
   --green-bg: #e8f3ec;
   /* только для SOS и экстренного */
   --danger: #c8102e;
+  --on-dark: #ffffff; /* текст и значки на тёмном и терракоте */
   --nav-h: 62px;
   --sans: "Manrope", system-ui, sans-serif;
   --display: "Playfair Display", Georgia, serif;
+
+  /* шкала текста: только эти шесть ступеней */
+  --fs-xs: 11px;  /* метки, подписи, время */
+  --fs-sm: 13px;  /* вторичный текст, мелкие кнопки */
+  --fs-md: 15px;  /* основной текст, кнопки, заголовки карточек */
+  --fs-lg: 17px;  /* заголовки блоков */
+  --fs-xl: 22px;  /* заголовки экранов */
+  --fs-2xl: 28px; /* крупные заголовки Playfair */
+
+  /* скругления: кнопки, карточки, миниатюры и круг (999px) */
+  --radius-pill: 999px;
+
+  /* минимальная зона нажатия (Apple HIG) */
+  --hit: 44px;
 }
 
 h1,
@@ -120,10 +135,10 @@ img {
 .pill {
   min-height: var(--h-chip);
   border: 1.5px solid var(--line);
-  background: #fff;
-  border-radius: 999px;
+  background: var(--card);
+  border-radius: var(--radius-pill);
   padding: 0 14px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--ink);
   cursor: pointer;
@@ -133,7 +148,7 @@ img {
 .pill.on {
   background: var(--ink);
   border-color: var(--ink);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .exp-card {
@@ -151,12 +166,12 @@ img {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: #fff;
+  background: var(--card);
   color: var(--ink);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 /* иконки-кнопки: белый круг с тонкой рамкой, без «стекла» */
@@ -171,7 +186,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--line);
   transition: transform 0.15s ease;
 }
@@ -182,21 +197,21 @@ img {
 
 .price {
   font-weight: 800;
-  font-size: 15px;
+  font-size: var(--fs-md);
 }
 
 .muted {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 
 .cta {
   background: var(--orange);
-  color: #fff;
+  color: var(--on-dark);
   border: none;
   border-radius: var(--radius-btn);
   font-weight: 800;
-  font-size: 15px;
+  font-size: var(--fs-md);
   min-height: var(--h-btn);
   padding: 0 18px;
   width: 100%;
@@ -213,7 +228,7 @@ img {
 }
 
 .cta.ghost {
-  background: #fff;
+  background: var(--card);
   color: var(--ink);
   border: 1.5px solid var(--line);
   box-shadow: none;
@@ -253,7 +268,7 @@ img {
   border: none;
   outline: none;
   flex: 1;
-  font-size: 14px;
+  font-size: var(--fs-md);
   color: var(--ink);
   background: transparent;
 }
@@ -263,7 +278,7 @@ img {
   align-items: center;
   gap: 10px;
   padding: 12px 12px;
-  background: #fff;
+  background: var(--card);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -281,7 +296,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--line);
   color: var(--ink);
   transition: transform 0.15s ease;
@@ -293,7 +308,7 @@ img {
 
 .date-chip {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--card);
   border-radius: var(--radius-thumb);
   padding: 10px 0;
   min-width: 64px;
@@ -364,7 +379,7 @@ img {
   right: 14px;
   bottom: calc(var(--nav-h) + 30px);
   z-index: 1250;
-  background: #fff;
+  background: var(--card);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
@@ -375,16 +390,16 @@ img {
   bottom: calc(var(--nav-h) + 84px);
   z-index: 1250;
   background: rgba(20, 15, 12, 0.86);
-  color: #fff;
-  font-size: 12px;
+  color: var(--on-dark);
+  font-size: var(--fs-sm);
   font-weight: 700;
   text-align: center;
   padding: 9px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-thumb);
 }
 
 .ticket {
-  background: #fff;
+  background: var(--card);
   border-radius: var(--radius-card);
   overflow: hidden;
   box-shadow: var(--shadow-float);
@@ -407,7 +422,7 @@ img {
 
 .fact-card b {
   display: block;
-  font-size: 15px;
+  font-size: var(--fs-md);
   color: var(--ink);
   margin-bottom: 6px;
 }
@@ -415,7 +430,7 @@ img {
 .fact-card p {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1.45;
 }
 
@@ -430,6 +445,7 @@ img {
   isolation: isolate;
 }
 
+/* орнамент — едва заметная фактура: плитка в натуральных пропорциях, с повтором */
 .ornament-bg::before {
   content: "";
   position: fixed;
@@ -440,10 +456,10 @@ img {
   pointer-events: none;
   z-index: 0;
   background-image: url("/ornament-tile.webp");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-  opacity: 0.34;
+  background-repeat: repeat;
+  background-position: top center;
+  background-size: 320px auto;
+  opacity: 0.07;
 }
 
 .ornament-bg::after {
@@ -460,10 +476,6 @@ img {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 430 240' preserveAspectRatio='none'%3E%3Cpath d='M0 240 V120 L40 90 L85 115 L140 60 L190 105 L240 75 L300 120 L350 85 L430 125 V240 Z' fill='%231e2638' fill-opacity='.10'/%3E%3Cpath d='M122 80 L140 60 L158 82 L148 76 L140 84 L131 76 Z' fill='%23ffffff' fill-opacity='.7'/%3E%3Cpath d='M0 240 V150 L60 115 L110 140 L175 95 L230 135 L290 110 L350 145 L430 120 V240 Z' fill='%231e2638' fill-opacity='.12'/%3E%3Cpath d='M0 240 V185 L70 150 L130 175 L200 140 L270 172 L340 150 L430 180 V240 Z' fill='%23d4532b' fill-opacity='.14'/%3E%3C/svg%3E") bottom center / 100% 100% no-repeat;
 }
 
-/* карточки чуть прозрачные, чтобы фон просвечивал */
-.card {
-  background: rgba(255, 255, 255, 0.92);
-}
 
 /* Кликабельные карточки фактов */
 .fact-card {
@@ -490,7 +502,7 @@ img {
 .fact-more {
   display: inline-block;
   margin-top: 8px;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   color: var(--terracotta-dark);
 }
@@ -512,8 +524,8 @@ img {
   max-width: 430px;
   max-height: 88svh;
   overflow-y: auto;
-  background: #fff;
-  border-radius: 22px 22px 0 0;
+  background: var(--card);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
   animation: fact-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -528,11 +540,11 @@ img {
   display: inline-block;
   background: var(--gold);
   color: var(--indigo-dark);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 0.04em;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 @keyframes fact-fade {
@@ -558,7 +570,7 @@ img {
 .route-stats-pill {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: var(--card);
   border-radius: var(--radius-card);
   padding: 14px 6px;
   border: 1px solid var(--line);
@@ -577,11 +589,11 @@ img {
   align-items: center;
   gap: 5px;
   font-weight: 900;
-  font-size: 15px;
+  font-size: var(--fs-md);
 }
 
 .route-stat-label {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--muted);
@@ -615,7 +627,7 @@ img {
 }
 
 .route-timeline-time {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: var(--ink-soft);
   margin-bottom: 6px;
@@ -625,7 +637,7 @@ img {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--card);
   border: 3px solid var(--terracotta);
   flex-shrink: 0;
 }
@@ -658,7 +670,7 @@ img {
   padding: 0;
   color: var(--terracotta-dark);
   font-weight: 800;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   cursor: pointer;
 }
 
@@ -684,7 +696,7 @@ img {
   padding: 0;
   text-align: left;
   font-weight: 800;
-  font-size: 15px;
+  font-size: var(--fs-md);
   line-height: 1.3;
   margin-bottom: 8px;
   color: var(--ink);
@@ -701,7 +713,7 @@ img {
 
 .ornament-accent {
   position: relative;
-  background: #fff;
+  background: var(--card);
 }
 
 .empty {
@@ -712,11 +724,11 @@ img {
 
 .empty b {
   color: var(--ink);
-  font-size: 15px;
+  font-size: var(--fs-md);
 }
 
 .empty span {
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 
 .icon-btn:disabled,
@@ -730,11 +742,26 @@ img {
   height: 32px;
 }
 
-button:focus-visible,
-[role="button"]:focus-visible,
-input:focus-visible {
+/* одно кольцо фокуса для всего, что нажимается с клавиатуры */
+:where(a, button, [role="button"], [role="menuitem"], input, select, textarea, label, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--terracotta);
   outline-offset: 2px;
+}
+
+/* поле ввода: кольцо на всю обёртку, а не на голый input */
+.search:focus-within {
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px var(--terracotta-glow);
+}
+
+/* поле, которое забыли заполнить */
+.search.is-invalid {
+  border-color: var(--terracotta);
+  background: var(--terracotta-glow);
+}
+
+.search input:focus-visible {
+  outline: none;
 }
 
 .cta {
@@ -757,12 +784,12 @@ input:focus-visible {
   border-radius: var(--radius-thumb);
   background: var(--terracotta-glow);
   color: var(--terracotta-dark);
-  font-size: 12.5px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
 .route-leg {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--terracotta-dark);
   margin: -2px 0 8px;
@@ -781,9 +808,9 @@ input:focus-visible {
   align-items: center;
   gap: 5px;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--sand-100);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--ink-soft);
 }
@@ -833,7 +860,7 @@ input:focus-visible {
   align-items: center;
   padding: 10px;
   margin-bottom: 18px;
-  border-radius: 14px;
+  border-radius: var(--radius-btn);
   background: var(--sand-50);
   border: 1px solid var(--sand-200);
 }
@@ -841,7 +868,7 @@ input:focus-visible {
 .booking-summary img {
   width: 56px;
   height: 56px;
-  border-radius: 10px;
+  border-radius: var(--radius-thumb);
   object-fit: cover;
   flex-shrink: 0;
 }
@@ -868,7 +895,7 @@ input:focus-visible {
 .booking-row img {
   width: 44px;
   height: 44px;
-  border-radius: 10px;
+  border-radius: var(--radius-thumb);
   object-fit: cover;
   flex-shrink: 0;
 }
@@ -918,12 +945,12 @@ input:focus-visible {
 .ticket-code div {
   margin-top: 6px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-thumb);
   background: var(--indigo-dark);
-  color: #fff;
+  color: var(--on-dark);
   font-weight: 900;
   letter-spacing: 3px;
-  font-size: 18px;
+  font-size: var(--fs-lg);
 }
 
 /* переключатель уведомлений */
@@ -933,7 +960,7 @@ input:focus-visible {
   width: 44px;
   height: 26px;
   margin: 0;
-  border-radius: 13px;
+  border-radius: var(--radius-pill);
   background: var(--sand-200);
   position: relative;
   cursor: pointer;
@@ -949,7 +976,7 @@ input:focus-visible {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--card);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   transition: transform 0.2s ease;
 }
@@ -971,9 +998,9 @@ input:focus-visible {
   }
 }
 
-.cta-sm { width: auto; min-height: 44px; padding: 0 18px; font-size: 13px; }
+.cta-sm { width: auto; min-height: 44px; padding: 0 18px; font-size: var(--fs-sm); }
 .empty-cta { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
-.form-error { margin-bottom: 12px; padding: 10px 12px; border-radius: var(--radius-thumb); background: var(--terracotta-glow); color: var(--terracotta-dark); font-size: 13px; font-weight: 700; }
+.form-error { margin-bottom: 12px; padding: 10px 12px; border-radius: var(--radius-thumb); background: var(--terracotta-glow); color: var(--terracotta-dark); font-size: var(--fs-sm); font-weight: 700; }
 
 /* тост вместо alert() */
 .toast-note {
@@ -984,12 +1011,12 @@ input:focus-visible {
   z-index: 1500;
   width: calc(min(100%, 430px) - 28px);
   background: rgba(20, 15, 12, 0.86);
-  color: #fff;
-  font-size: 12px;
+  color: var(--on-dark);
+  font-size: var(--fs-sm);
   font-weight: 700;
   text-align: center;
   padding: 9px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-thumb);
 }
 
 /* заставка при запуске */
@@ -1043,7 +1070,7 @@ input:focus-visible {
   position: relative;
   height: 290px;
   overflow: hidden;
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .home-hero img {
@@ -1067,7 +1094,7 @@ input:focus-visible {
 }
 
 .home-hero-text h1 {
-  font-size: 32px;
+  font-size: var(--fs-2xl);
   line-height: 1.08;
   margin: 8px 0;
   font-weight: 900;
@@ -1076,7 +1103,7 @@ input:focus-visible {
 
 .home-hero-text p {
   margin: 0 0 16px;
-  font-size: 14px;
+  font-size: var(--fs-md);
   line-height: 1.45;
   max-width: 330px;
   opacity: 0.95;
@@ -1088,8 +1115,8 @@ input:focus-visible {
   align-items: center;
   min-height: 22px;
   padding: 0 9px;
-  border-radius: 999px;
-  font-size: 11px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -1117,7 +1144,7 @@ input:focus-visible {
   border-radius: var(--radius-thumb);
   background: var(--sand-50);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--muted);
   text-align: left;
   cursor: pointer;
@@ -1125,7 +1152,7 @@ input:focus-visible {
 
 .route-bridge b {
   color: var(--terracotta-dark);
-  font-size: 12px;
+  font-size: var(--fs-sm);
 }
 
 /* агентства на главной в режиме «с гидом» */
@@ -1142,13 +1169,13 @@ input:focus-visible {
   flex-shrink: 0;
   border-radius: var(--radius-thumb);
   background: var(--ink);
-  color: #fff;
+  color: var(--on-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--display);
   font-weight: 900;
-  font-size: 20px;
+  font-size: var(--fs-xl);
 }
 
 /* чипы категорий: подложка переезжает (layoutId) */
@@ -1160,14 +1187,14 @@ input:focus-visible {
 }
 
 .chip.is-on {
-  color: #fff;
+  color: var(--on-dark);
   border-color: var(--ink);
 }
 
 .chip-thumb {
   position: absolute;
   inset: -1.5px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--ink);
 }
 
@@ -1205,7 +1232,7 @@ input:focus-visible {
 }
 
 .onb-kicker {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--terracotta-dark);
@@ -1213,7 +1240,7 @@ input:focus-visible {
 
 .onb-head h1 {
   font-family: var(--display);
-  font-size: 34px;
+  font-size: var(--fs-2xl);
   line-height: 1.08;
   margin: 6px 0 8px;
   color: var(--ink);
@@ -1222,7 +1249,7 @@ input:focus-visible {
 .onb-head p {
   margin: 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-md);
   line-height: 1.45;
 }
 
@@ -1266,12 +1293,12 @@ input:focus-visible {
 }
 
 .onb-card-title {
-  font-size: 18px;
+  font-size: var(--fs-lg);
   font-weight: 900;
 }
 
 .onb-card-text {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1.45;
   color: var(--muted);
 }
@@ -1280,13 +1307,34 @@ input:focus-visible {
   justify-self: start;
   margin-top: 6px;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--sand-100);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: var(--ink-soft);
 }
 
 .home-hero-sm {
   height: 230px;
+}
+
+/* ── зоны нажатия не меньше 44px ─────────────────────────────
+   значок или текст остаются мелкими, растёт только невидимая область */
+.route-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.route-link::after,
+.save-btn::after {
+  content: "";
+  position: absolute;
+  inset: -12px -6px;
+}
+
+.save-btn::after {
+  inset: -3px;
+  border-radius: 50%;
 }

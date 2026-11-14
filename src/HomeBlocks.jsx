@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "motion/react";
 import {
@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { useSettings } from "./settings-context";
+import { Toast } from "./Toast";
 import "./HomeBlocks.css";
 
 const SPRING = { type: "spring", stiffness: 400, damping: 32 };
@@ -214,12 +215,7 @@ export function OshHeader() {
 export function QuickActions({ onGoTo }) {
   const { t } = useSettings();
   const [soon, setSoon] = useState(false);
-
-  useEffect(() => {
-    if (!soon) return;
-    const id = setTimeout(() => setSoon(false), 2200);
-    return () => clearTimeout(id);
-  }, [soon]);
+  const hideSoon = useCallback(() => setSoon(false), []);
 
   const items = [
     { id: "translator", Icon: Languages, label: t("quick.translator"), soon: true, onClick: () => setSoon(true) },
@@ -249,22 +245,9 @@ export function QuickActions({ onGoTo }) {
         </motion.button>
       ))}
 
-      <AnimatePresence>
-        {soon && (
-          <motion.div
-            key="soon"
-            className="toast-note"
-            role="status"
-            style={{ x: "-50%" }}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            {t("quick.soon")}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Toast show={soon} onHide={hideSoon} ms={2200}>
+        {t("quick.soon")}
+      </Toast>
     </section>
   );
 }

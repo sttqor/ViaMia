@@ -165,6 +165,7 @@ export const DICT = {
     "route.up": "Выше",
     "route.down": "Ниже",
     "route.remove": "Удалить",
+    "route.more": "Действия с местом",
     "route.pickGuide": "Выбрать тур с гидом",
     "route.navigate": "🧭 Открыть навигацию ({stops})",
 
@@ -218,6 +219,7 @@ export const DICT = {
     "booking.name": "Ваше имя",
     "booking.contact": "Телефон или @telegram",
     "booking.note": "Гид свяжется с вами для подтверждения. Оплата на месте.",
+    "booking.fillHint": "Заполните имя и контакт, чтобы отправить заявку",
     "booking.submit": "Отправить заявку · {total}",
     "booking.submitRequest": "Отправить заявку",
     "booking.sending": "Отправляем…",
@@ -354,6 +356,7 @@ export const DICT = {
     "route.up": "Move up",
     "route.down": "Move down",
     "route.remove": "Remove",
+    "route.more": "Place actions",
     "route.pickGuide": "Choose a guided tour",
     "route.navigate": "🧭 Open navigation ({stops})",
 
@@ -407,6 +410,7 @@ export const DICT = {
     "booking.name": "Your name",
     "booking.contact": "Phone or @telegram",
     "booking.note": "The guide will contact you to confirm. Pay on site.",
+    "booking.fillHint": "Enter your name and contact to send the request",
     "booking.submit": "Send request · {total}",
     "booking.submitRequest": "Send request",
     "booking.sending": "Sending…",
