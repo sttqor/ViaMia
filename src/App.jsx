@@ -32,7 +32,7 @@ import { cancelBookingRequest, submitBookingRequest } from "./api";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName, durationMinutes, weekdayShort } from "./i18n";
 import { useSettings } from "./settings-context";
 import { FactsSection } from "./Facts";
-import { PhraseCard, QuickActions } from "./HomeBlocks";
+import { OshHeader, PhraseStack, QuickActions, SosCard } from "./HomeBlocks";
 import { TabBar } from "./TabBar";
 import { Segmented } from "./Segmented";
 import { useMinimizeOnScroll } from "./useMinimizeOnScroll";
@@ -447,33 +447,15 @@ function ExploreMap({ items, onOpen }) {
   );
 }
 
-// 1. ГЛАВНАЯ: «Ош сегодня» — факты-сторис, быстрые кнопки, фраза дня
-function HomeView({ onGoToRoute, onGoTo, onOpenExp }) {
-  const { t } = useSettings();
+// 1. ГЛАВНАЯ: Ош и погода, факты-сторис, быстрые кнопки, фразы, SOS
+function HomeView({ onGoTo, onOpenExp }) {
   return (
     <div className="gyg-scroll">
-      <motion.header className="home2-head" variants={STAGGER} initial="hidden" animate="show">
-        <motion.span variants={RISE}>{t("home.tag")}</motion.span>
-        <motion.h1 variants={RISE}>{t("home.title")}</motion.h1>
-      </motion.header>
-
+      <OshHeader />
       <FactsSection MiniMap={MiniMap} onGoTo={onGoTo} onOpenExp={onOpenExp} />
       <QuickActions onGoTo={onGoTo} />
-      <PhraseCard />
-
-      <motion.section
-        className="home2-route"
-        variants={STAGGER}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.3 }}
-      >
-        <motion.b variants={RISE}>{t("home.routeTitle")}</motion.b>
-        <motion.p variants={RISE}>{t("home.routeText")}</motion.p>
-        <motion.button className="cta home-route-cta" variants={RISE} whileTap={TAP} onClick={onGoToRoute}>
-          {t("home.cta")}
-        </motion.button>
-      </motion.section>
+      <PhraseStack />
+      <SosCard />
     </div>
   );
 }
@@ -1667,7 +1649,7 @@ export default function App() {
 
   return (
     <div className="gyg-app ornament-bg">
-      {tab === "home" && <HomeView onGoToRoute={() => setTab("route")} onGoTo={setTab} onOpenExp={setSelected} />}
+      {tab === "home" && <HomeView onGoTo={setTab} onOpenExp={setSelected} />}
 
       {tab === "map" && <ExploreMap items={tours} onOpen={setSelected} />}
 

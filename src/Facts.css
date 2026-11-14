@@ -5,11 +5,12 @@
 /* сторис */
 .story {
     position: relative;
-    height: 400px;
+    height: 440px;
     border-radius: var(--radius-card);
     overflow: hidden;
     background: var(--indigo);
     color: #fff;
+    box-shadow: var(--shadow-float);
 }
 
 .story-slide {
@@ -26,16 +27,19 @@
     user-select: none;
 }
 
+/* сверху — под полоски, снизу — длинная тень под текст */
 .story-fade {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(30, 38, 56, .45) 0%, rgba(30, 38, 56, 0) 28%, rgba(30, 38, 56, .92) 100%);
+    background:
+        linear-gradient(180deg, rgba(20, 26, 40, .55) 0%, rgba(20, 26, 40, 0) 22%),
+        linear-gradient(180deg, rgba(20, 26, 40, 0) 38%, rgba(20, 26, 40, .78) 66%, rgba(20, 26, 40, .96) 100%);
 }
 
 .story-zone {
     position: absolute;
     top: 0;
-    bottom: 150px;
+    bottom: 190px;
     width: 38%;
     padding: 0;
     border: 0;
@@ -58,34 +62,54 @@
 
 .story-text {
     position: absolute;
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, .35);
 }
 
 .story-text h2 {
-    margin: 8px 0 6px;
+    margin: 10px 0 8px;
     font-family: var(--display);
-    font-size: 26px;
-    line-height: 1.12;
+    font-size: 28px;
+    line-height: 1.1;
     color: #fff;
-}
-
-.story-text p {
-    margin: 0 0 14px;
-    font-size: 13.5px;
-    line-height: 1.45;
-    opacity: .95;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-.story .story-read {
-    width: auto;
-    padding: 0 18px;
+.story-text p {
+    margin: 0 0 16px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, .88);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.story-read {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 44px;
+    padding: 0 16px 0 20px;
+    border: 1px solid rgba(255, 255, 255, .35);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .16);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    text-shadow: none;
 }
 
 .story-bars {
@@ -102,7 +126,7 @@
     flex: 1;
     height: 3px;
     border-radius: 2px;
-    background: rgba(255, 255, 255, .35);
+    background: rgba(255, 255, 255, .32);
     transition: background .2s ease;
 }
 
@@ -114,9 +138,10 @@
     position: absolute;
     top: 24px;
     left: 14px;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
     letter-spacing: .08em;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, .4);
     pointer-events: none;
 }
 

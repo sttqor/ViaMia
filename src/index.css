@@ -33,6 +33,8 @@
   --card: #ffffff;
   --green: #1f6b45;
   --green-bg: #e8f3ec;
+  /* только для SOS и экстренного */
+  --danger: #c8102e;
   --nav-h: 62px;
   --sans: "Manrope", system-ui, sans-serif;
   --display: "Playfair Display", Georgia, serif;

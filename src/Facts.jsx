@@ -21,7 +21,7 @@ function FactHero({ fact, onClose }) {
             </button>
             <div className="fact2-hero-text">
                 <span className="fact-tag">{fact.tag}</span>
-                <h2>{fact.emoji} {fact.title}</h2>
+                <h2>{fact.title}</h2>
             </div>
         </div>
     );
@@ -263,10 +263,10 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
                             />
                             <div className="story-text">
                                 <span className="fact-tag">{f.tag}</span>
-                                <h2>{f.emoji} {f.title}</h2>
+                                <h2>{f.title}</h2>
                                 <p>{f.short}</p>
-                                <motion.button className="cta story-read" whileTap={{ scale: 0.97 }} onClick={() => setIndex(current)}>
-                                    {t("facts.read")} →
+                                <motion.button className="story-read" whileTap={{ scale: 0.96 }} onClick={() => setIndex(current)}>
+                                    {t("facts.read")} <ChevronRight size={16} />
                                 </motion.button>
                             </div>
                         </StorySlide>
