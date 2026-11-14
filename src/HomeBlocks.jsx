@@ -27,6 +27,20 @@ export function QuickActions({ onGoTo }) {
     return () => clearTimeout(id);
   }, [soon]);
 
+  // Лист SOS: Esc закрывает, страница под ним не крутится
+  useEffect(() => {
+    if (!sos) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setSos(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [sos]);
+
   const items = [
     { id: "translator", Icon: Languages, label: t("quick.translator"), soon: true, onClick: () => setSoon(true) },
     { id: "tips", Icon: Lightbulb, label: t("quick.tips"), soon: true, onClick: () => setSoon(true) },
@@ -56,7 +70,22 @@ export function QuickActions({ onGoTo }) {
         </motion.button>
       ))}
 
-      {soon && <div className="toast-note" role="status">{t("quick.soon")}</div>}
+      <AnimatePresence>
+        {soon && (
+          <motion.div
+            key="soon"
+            className="toast-note"
+            role="status"
+            style={{ x: "-50%" }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            {t("quick.soon")}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {createPortal(
         <AnimatePresence>
@@ -132,7 +161,7 @@ export function PhraseCard() {
 
   return (
     <section className="phrase-wrap">
-      <div className="phrase" style={{ perspective: 800 }}>
+      <div className="phrase">
         <div className="phrase-top">
           <span className="phrase-kicker">{t("phrase.kicker")}</span>
           <button
@@ -147,7 +176,13 @@ export function PhraseCard() {
             <RefreshCw size={14} /> {t("phrase.next")}
           </button>
         </div>
-        <button type="button" className="phrase-face" aria-live="polite" onClick={() => setFlipped(!flipped)}>
+        <button
+          type="button"
+          className="phrase-face"
+          style={{ perspective: 800 }}
+          aria-live="polite"
+          onClick={() => setFlipped(!flipped)}
+        >
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
               key={`${i}-${flipped}`}

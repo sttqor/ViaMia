@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useDragControls } from "motion/react";
+import { AnimatePresence, motion, useDragControls, useIsPresent } from "motion/react";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useContent } from "./content-context";
 import { useSettings } from "./settings-context";
@@ -181,6 +181,28 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
     );
 }
 
+// Слайд сторис. Уходящий слайд ещё виден, пока гаснет, но тапы и свайпы
+// уже не ловит — иначе он перехватывает нажатия у нового
+function StorySlide({ dir, children, ...drag }) {
+    const isPresent = useIsPresent();
+    return (
+        <motion.div
+            className="story-slide"
+            style={{ pointerEvents: isPresent ? "auto" : "none", zIndex: isPresent ? 1 : 0 }}
+            initial={{ opacity: 0, x: 32 * dir }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 36 }}
+            drag={isPresent ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.18}
+            {...drag}
+        >
+            {children}
+        </motion.div>
+    );
+}
+
 // Факты как сторис: одна большая карточка, свайп или тап по краям листает,
 // полоски сверху показывают, где вы сейчас
 export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
@@ -209,16 +231,9 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
             {f && (
                 <div className="story" aria-roledescription="carousel" aria-label={t("facts.title")}>
                     <AnimatePresence initial={false}>
-                        <motion.div
+                        <StorySlide
                             key={f.id}
-                            className="story-slide"
-                            initial={{ opacity: 0, x: 32 * dir }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 36 }}
-                            drag="x"
-                            dragConstraints={{ left: 0, right: 0 }}
-                            dragElastic={0.18}
+                            dir={dir}
                             onDragStart={() => {
                                 dragged.current = true;
                             }}
@@ -254,7 +269,7 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
                                     {t("facts.read")} →
                                 </motion.button>
                             </div>
-                        </motion.div>
+                        </StorySlide>
                     </AnimatePresence>
                     <div className="story-bars">
                         {facts.map((x, i) => (

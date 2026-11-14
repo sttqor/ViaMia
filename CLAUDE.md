@@ -10,7 +10,7 @@
 
 ## Стек
 - Vite + React 19, JS/JSX (не TypeScript)
-- framer-motion, lucide-react
+- motion (импорт из `motion/react`, бывший framer-motion), lucide-react
 - Leaflet грузится с unpkg в `loadLeaflet()` (`src/data.js`) — план: перейти на `npm i leaflet`
 - Стили — обычный CSS (`src/index.css`, `src/Facts.css`), без Tailwind в коде
 
