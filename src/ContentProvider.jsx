@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ContentContext } from "./content-context";
 import { EXPERIENCES, FACTS } from "./data";
 import { fetchContent } from "./api";
+import { SELF_TOURS } from "./selfTours";
 
 // Откуда берутся туры и факты:
 // 1) сразу — из кэша прошлой загрузки (или из data.js при первом запуске);
@@ -42,8 +43,10 @@ export function ContentProvider({ children }) {
   }, []);
 
   const value = useMemo(() => {
-    const map = new Map(content.tours.map((t) => [t.id, t]));
-    return { ...content, byId: (id) => map.get(id) };
+    // самостоятельные туры всегда из кода, туры агентств — из базы/кэша
+    const allTours = [...content.tours, ...SELF_TOURS];
+    const map = new Map(allTours.map((t) => [t.id, t]));
+    return { ...content, selfTours: SELF_TOURS, allTours, byId: (id) => map.get(id) };
   }, [content]);
 
   return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>;

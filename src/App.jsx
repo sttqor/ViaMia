@@ -163,7 +163,7 @@ function Ticker({ value }) {
   );
 }
 
-// Переключатель режима «сам | с гидом» — один и тот же на главной, в маршруте и в профиле
+// Переключатель режима «сам | с гидом» — только во вкладке «Туры»
 function ModeSwitch() {
   const { t, travelMode, setTravelMode } = useSettings();
   return (
@@ -209,6 +209,7 @@ function StarRow({ rating }) {
 
 // «от $17» или «цена по запросу»
 function priceText(exp, t, money) {
+  if (exp.selfGuided) return t("price.free");
   return exp.price == null ? t("price.request") : t("price.from", { price: money(exp.price) });
 }
 
@@ -236,7 +237,9 @@ function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave, onTogg
           {exp.title}
         </button>
         <div className="row between mb-12">
-          {exp.agencyName ? (
+          {exp.selfGuided ? (
+            <span className="mode-label self">{t("label.self")}</span>
+          ) : exp.agencyName ? (
             <span className="mode-label guided">{t("label.guided", { agency: exp.agencyName })}</span>
           ) : (
             <StarRow rating={exp.rating} />
@@ -547,8 +550,8 @@ function PlaceMenu({ open, onToggle, onClose, canUp, canDown, onUp, onDown, onRe
   );
 }
 
-function RouteView({ items, setItems, onGoToTours, onOpen }) {
-  const { t, plural, loc, money, fmtDuration, locale, travelMode: mode } = useSettings();
+function RouteView({ items, setItems, onGoToTours }) {
+  const { t, plural, loc, fmtDuration, locale } = useSettings();
   const [expandedId, setExpandedId] = useState(null);
   const [menuId, setMenuId] = useState(null);
 
@@ -576,8 +579,6 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
     return result;
   }, [items, legs]);
 
-  const guideTotal = items.reduce((a, it) => a + (it.price || 0), 0);
-
   const moveItem = (index, dir) => {
     const target = index + dir;
     if (target < 0 || target >= items.length) return;
@@ -597,14 +598,6 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
         <div className="kicker">{t("route.kicker")}</div>
         <h1 className="page-title">{t("route.title")}</h1>
         <p className="muted">{t("route.subtitle")}</p>
-        <div className="mt-12">
-          <ModeSwitch />
-        </div>
-        <Reveal show={mode === "guided" && items.length > 0}>
-          <div className="route-guide-note">
-            {t("route.guideNote", { n: items.length, price: money(guideTotal) })}
-          </div>
-        </Reveal>
       </div>
 
       <div className="section-pad">
@@ -695,7 +688,6 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
                           <div className="route-place-title">{item.title}</div>
                           <div className="route-place-meta">
                             {item.type} · {item.place}
-                            {mode === "guided" && item.agencyName && ` · ${item.agencyName}`}
                           </div>
                           <Reveal show={isOpen}>
                             <p className="route-place-desc">{item.description}</p>
@@ -715,19 +707,6 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
                           onRemove={() => removeItem(item.id)}
                         />
                       </div>
-                      {mode === "self" && raw.agencyName && (
-                        <motion.button
-                          type="button"
-                          className="route-bridge"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.25, ease: "easeOut" }}
-                          onClick={() => onOpen(raw)}
-                        >
-                          <span>{t("route.bridge")}</span>
-                          <b>{item.agencyName} · {priceText(item, t, money)} →</b>
-                        </motion.button>
-                      )}
                     </div>
                   </motion.div>
                 );
@@ -738,9 +717,9 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
               layout="position"
               className="cta mt-16"
               whileTap={TAP}
-              onClick={() => (mode === "guided" ? onGoToTours() : openNavigation(items))}
+              onClick={() => openNavigation(items)}
             >
-              {mode === "guided" ? t("route.pickGuide") : t("route.navigate", { stops: plural("pl.stops", items.length) })}
+              {t("route.navigate", { stops: plural("pl.stops", items.length) })}
             </motion.button>
           </>
         )}
@@ -749,52 +728,14 @@ function RouteView({ items, setItems, onGoToTours, onOpen }) {
   );
 }
 
-// 3. ТУРЫ: два режима. «Сам» — места для своего маршрута и карта,
-// «с гидом» — туры агентств и сами агентства. Каталог, поиск и фильтры общие.
+// 3. ТУРЫ: два списка. «Сам» — бесплатные самостоятельные туры (в маршрут),
+// «с гидом» — туры агентств с бронью и сами агентства. Поиск и фильтры общие.
 function siteOf(url) {
   try {
     return new URL(url).origin;
   } catch {
     return null;
   }
-}
-
-function SelfHero({ onGoToRoute, onGoTo }) {
-  const { t } = useSettings();
-  return (
-    <section className="home-hero home-hero-sm">
-      <motion.img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85" alt={t("home.heroAlt")} {...HERO_IMG} />
-      <div className="home-hero-fade" />
-      <motion.div className="home-hero-text" variants={STAGGER} initial="hidden" animate="show">
-        <motion.span className="fact-tag" variants={RISE}>{t("tours.selfTag")}</motion.span>
-        <motion.h1 variants={RISE}>{t("tours.selfTitle")}</motion.h1>
-        <motion.p variants={RISE}>{t("tours.selfText")}</motion.p>
-        <motion.div className="row wrap" variants={RISE}>
-          <motion.button className="cta home-route-cta" whileTap={TAP} onClick={onGoToRoute}>{t("home.cta")}</motion.button>
-          <motion.button className="cta ghost home-route-cta" whileTap={TAP} onClick={() => onGoTo("map")}>
-            <MapIcon size={16} /> {t("home.mapCta")}
-          </motion.button>
-        </motion.div>
-      </motion.div>
-    </section>
-  );
-}
-
-function GuidedHero() {
-  const { t } = useSettings();
-  const { tours } = useContent();
-  const hero = tours.find((x) => x.id === "pamir") || tours[0];
-  return (
-    <section className="home-hero home-hero-sm">
-      {hero && <motion.img src={hero.image} alt="" {...HERO_IMG} />}
-      <div className="home-hero-fade" />
-      <motion.div className="home-hero-text" variants={STAGGER} initial="hidden" animate="show">
-        <motion.span className="fact-tag" variants={RISE}>{t("home.guidedTag")}</motion.span>
-        <motion.h1 variants={RISE}>{t("home.guidedTitle")}</motion.h1>
-        <motion.p variants={RISE}>{t("home.guidedText")}</motion.p>
-      </motion.div>
-    </section>
-  );
 }
 
 function AgencyBlock({ onPick }) {
@@ -849,14 +790,17 @@ function ToursView({
   onOpen,
   onToggleSave,
   onToggleRoute,
-  onGoToRoute,
-  onGoTo,
 }) {
   const { t, loc, travelMode } = useSettings();
   const q = query.trim().toLowerCase();
-  const { tours } = useContent();
-  const filtered = tours.filter((raw) => {
-    const byCat = category === "all" || raw.category === category;
+  const { tours, selfTours } = useContent();
+  // «с гидом» — туры агентств, «сам» — бесплатные самостоятельные
+  const pool = travelMode === "guided" ? tours : selfTours;
+  // чипы — только категории, которые есть в текущем списке
+  const cats = CATEGORIES.filter((c) => c.id === "all" || pool.some((x) => x.category === c.id));
+  const activeCat = cats.some((c) => c.id === category) ? category : "all";
+  const filtered = pool.filter((raw) => {
+    const byCat = activeCat === "all" || raw.category === activeCat;
     if (!byCat) return false;
     if (!q) return true;
     const e = loc(raw);
@@ -868,22 +812,6 @@ function ToursView({
 
   return (
     <div className="gyg-scroll">
-      <div className="home-mode-bar">
-        <ModeSwitch />
-      </div>
-
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={travelMode}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-        >
-          {travelMode === "guided" ? <GuidedHero /> : <SelfHero onGoToRoute={onGoToRoute} onGoTo={onGoTo} />}
-        </motion.div>
-      </AnimatePresence>
-
       <div className="tours-search">
         <div className="search">
           <Search size={18} color="var(--muted-2)" />
@@ -891,13 +819,17 @@ function ToursView({
         </div>
       </div>
 
+      <div className="home-mode-bar">
+        <ModeSwitch />
+      </div>
+
       <div className="mt-12">
-        <ChipRow items={CATEGORIES} value={category} onChange={setCategory} layoutId="cat-pill" />
+        <ChipRow items={cats} value={activeCat} onChange={setCategory} layoutId="cat-pill" />
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={`${category}-${query.trim()}`}
+          key={`${travelMode}-${activeCat}-${query.trim()}`}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
@@ -993,7 +925,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
 }
 
 function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }) {
-  const { t, loc, money, fmtDate, plural, lang, setLang, currency, setCurrency, notifs, setNotifs, setTravelMode } = useSettings();
+  const { t, loc, money, fmtDate, plural, lang, setLang, currency, setCurrency, notifs, setNotifs } = useSettings();
   const [screen, setScreen] = useState(null); // null | "lang" | "currency"
   const [helpToast, setHelpToast] = useState(false);
   const hideHelp = useCallback(() => setHelpToast(false), []);
@@ -1112,17 +1044,6 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
       </motion.div>
 
       <motion.div className="card panel" variants={RISE}>
-        <div className="panel-head">
-          <Compass size={16} color="var(--terracotta)" />
-          <b>{t("profile.mode")}</b>
-        </div>
-        <ModeSwitch />
-        <button className="route-link mt-12" onClick={() => setTravelMode(null)}>
-          {t("profile.modeAgain")}
-        </button>
-      </motion.div>
-
-      <motion.div className="card panel" variants={RISE}>
         <button className="row-btn" onClick={() => setScreen("lang")}>
           <span className="row">
             <Globe size={16} color="var(--terracotta)" />
@@ -1179,9 +1100,10 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
 }
 
 // 5. ДЕТАЛЬНЫЙ ЭКРАН И БРОНИРОВАНИЕ
-function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
+function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggleRoute, onBook }) {
   const { t, loc, money, plural, fmtDuration } = useSettings();
   const exp = loc(raw);
+  const self = !!raw.selfGuided;
   return (
     <motion.div className="gyg-scroll screen" {...SCREEN_IN}>
       <div className="detail-media">
@@ -1224,10 +1146,10 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
             </div>
           </>
         )}
-        <div className="row mb-8"><MapPin size={16} /> <b>{t("detail.meeting")}</b></div>
+        <div className="row mb-8"><MapPin size={16} /> <b>{t(self ? "detail.start" : "detail.meeting")}</b></div>
         <div className="muted mb-12">{exp.meeting}</div>
         <MiniMap lat={exp.lat} lng={exp.lng} label={exp.place} />
-        {exp.url && (
+        {!self && exp.url && (
           <a className="route-link mt-12" href={exp.url} target="_blank" rel="noopener noreferrer">
             {t("detail.agencySite", { name: exp.agencyName || "" })} →
           </a>
@@ -1240,7 +1162,9 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
         transition={{ ...SPRING, delay: 0.15 }}
       >
         <div>
-          {exp.price == null ? (
+          {self ? (
+            <div className="price price-lg">{t("price.free")}</div>
+          ) : exp.price == null ? (
             <div className="price">{t("price.request")}</div>
           ) : (
             <>
@@ -1249,7 +1173,13 @@ function Detail({ exp: raw, saved, onBack, onToggleSave, onBook }) {
             </>
           )}
         </div>
-        <motion.button className="cta" whileTap={TAP} onClick={() => onBook(raw)}>{t("detail.pickDate")}</motion.button>
+        {self ? (
+          <motion.button className="cta" whileTap={TAP} onClick={() => onToggleRoute(raw)}>
+            <Ticker value={inRoute ? t("card.inRoute") : t("card.addRoute")} />
+          </motion.button>
+        ) : (
+          <motion.button className="cta" whileTap={TAP} onClick={() => onBook(raw)}>{t("detail.pickDate")}</motion.button>
+        )}
       </motion.div>
     </motion.div>
   );
@@ -1539,12 +1469,12 @@ function loadStore() {
 }
 
 const initialStore = loadStore();
-const DEFAULT_ROUTE = ["sulaiman", "walking", "food-tour"];
+const DEFAULT_ROUTE = ["self-sulaiman", "self-center", "self-jayma"];
 
 // ГЛАВНЫЙ ЭКСПОРТ
 export default function App() {
   const { t, lang, travelMode, setTravelMode } = useSettings();
-  const { tours, byId } = useContent();
+  const { allTours, byId } = useContent();
   const [tab, setTab] = useState("home");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -1649,6 +1579,8 @@ export default function App() {
         onBack={closeScreen}
         onToggleSave={toggleSave}
         onBook={setBookingExp}
+        inRoute={routeIds.includes(selected.id)}
+        onToggleRoute={toggleRoute}
       />
     );
   }
@@ -1657,10 +1589,10 @@ export default function App() {
     <div className="gyg-app ornament-bg">
       {tab === "home" && <HomeView onGoTo={setTab} onOpenExp={setSelected} />}
 
-      {tab === "map" && <ExploreMap items={tours} onOpen={setSelected} />}
+      {tab === "map" && <ExploreMap items={allTours} onOpen={setSelected} />}
 
       {tab === "route" && (
-        <RouteView items={routeItems} setItems={setRouteItems} onGoToTours={() => setTab("tours")} onOpen={setSelected} />
+        <RouteView items={routeItems} setItems={setRouteItems} onGoToTours={() => setTab("tours")} />
       )}
 
       {tab === "tours" && (
@@ -1674,8 +1606,6 @@ export default function App() {
           onOpen={setSelected}
           onToggleSave={toggleSave}
           onToggleRoute={toggleRoute}
-          onGoToRoute={() => setTab("route")}
-          onGoTo={setTab}
         />
       )}
 

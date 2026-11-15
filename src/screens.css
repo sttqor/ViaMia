@@ -149,7 +149,7 @@
 .exp-btn-main { flex: 1.2; }
 
 /* ── туры ────────────────────────────────────────────────── */
-.tours-search { padding: 14px 16px 0; }
+.tours-search { padding: calc(14px + env(safe-area-inset-top)) 16px 0; }
 
 .tours-list {
   display: grid;

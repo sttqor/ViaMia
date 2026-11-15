@@ -67,6 +67,7 @@ export const DICT = {
     "common.from": "от",
     "price.from": "от {price}",
     "price.request": "цена по запросу",
+    "price.free": "бесплатно",
     "detail.agencySite": "Подробнее на сайте {name}",
 
     "card.inRoute": "✓ В маршруте",
@@ -206,6 +207,7 @@ export const DICT = {
     "detail.whatsOn": "Что будет",
     "detail.includes": "Что включено",
     "detail.meeting": "Точка встречи",
+    "detail.start": "Откуда начать",
     "detail.pickDate": "Выбрать дату",
 
     "booking.title": "Бронирование",
@@ -258,6 +260,7 @@ export const DICT = {
     "common.from": "from",
     "price.from": "from {price}",
     "price.request": "price on request",
+    "price.free": "free",
     "detail.agencySite": "More on the {name} website",
 
     "card.inRoute": "✓ In route",
@@ -397,6 +400,7 @@ export const DICT = {
     "detail.whatsOn": "What you'll do",
     "detail.includes": "What's included",
     "detail.meeting": "Meeting point",
+    "detail.start": "Where to start",
     "detail.pickDate": "Choose a date",
 
     "booking.title": "Booking",
