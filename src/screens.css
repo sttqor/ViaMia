@@ -461,3 +461,168 @@
   top: 76px;
   bottom: auto;
 }
+
+/* ── избранное: отдельный экран ──────────────────────────── */
+.saved-screen { background: var(--bg); }
+.saved-screen .screen-head .grow { gap: 1px; }
+.saved-search { padding-top: 14px; }
+.saved-list { margin-top: 8px; position: relative; }
+
+.saved-route-all {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  font-weight: 800;
+  background: var(--card);
+}
+
+.saved-open { width: 100%; margin-bottom: 8px; }
+.saved-open-all {
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  color: var(--terracotta-dark);
+}
+
+.saved-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 72px 28px 24px;
+}
+
+.saved-empty h3 {
+  margin: 18px 0 6px;
+  font-size: var(--fs-xl);
+}
+
+.saved-empty p { margin: 0 0 20px; line-height: 1.5; }
+
+.saved-empty-heart {
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--terracotta-glow);
+  color: var(--terracotta);
+}
+
+/* плашка «убрано · вернуть» */
+.toast-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.toast-undo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--terracotta);
+  color: var(--on-dark);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ── вход по почте ───────────────────────────────────────── */
+.login-screen { background: var(--bg); }
+.login-body { padding-top: 32px; }
+
+.login-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.login-step h2 {
+  margin: 16px 0 6px;
+  font-size: var(--fs-xl);
+}
+
+.login-step > .muted {
+  margin: 0 0 20px;
+  max-width: 300px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.login-step .cta { max-width: 320px; }
+
+.login-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--terracotta-glow);
+  color: var(--terracotta);
+}
+
+.login-icon.is-ok {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.login-field {
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 12px;
+  background: var(--card);
+}
+
+.login-note {
+  margin: 14px 0 0;
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+/* поле кода: шесть цифр в разрядку */
+.code-input {
+  width: 100%;
+  max-width: 250px;
+  min-height: var(--h-btn);
+  margin-bottom: 12px;
+  padding: 6px 0;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-btn);
+  background: var(--card);
+  font-family: var(--sans);
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-align: center;
+  color: var(--ink);
+  outline: none;
+}
+
+.code-input:focus { border-color: var(--terracotta); }
+.code-input.is-error { border-color: var(--danger); }
+.code-input:disabled { opacity: 0.6; }
+
+.login-error {
+  margin: 0 0 12px;
+  max-width: 300px;
+  color: var(--danger);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.login-change { margin-top: 6px; }
+.login-done { padding-top: 44px; }
+.login-email { overflow-wrap: anywhere; }

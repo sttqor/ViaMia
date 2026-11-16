@@ -92,3 +92,48 @@ export async function cancelBookingRequest(code) {
   if (error) throw error;
   return Boolean(data);
 }
+
+// ── Аккаунт: свои брони и профиль ──────────────────────────────
+// В базе у заявки только id тура — сам тур берём из каталога.
+export function bookingFromRow(r, byId) {
+  const exp = byId(r.tour_id);
+  if (!exp) return null; // тур сняли с публикации — останется локальная копия брони
+  return {
+    code: r.code,
+    exp,
+    date: r.date,
+    guests: r.guests,
+    total: r.total_usd == null ? null : Number(r.total_usd),
+    name: r.name,
+    contact: r.contact,
+    status: r.status, // агентство подтвердило — увидим здесь
+    createdAt: r.created_at,
+    synced: true,
+  };
+}
+
+// Только свои заявки. Фильтр по user_id обязателен: у владельца агентства
+// есть право читать ещё и заявки его агентства, они в билеты туриста не нужны.
+export async function fetchMyBookings(userId, byId) {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("booking_requests")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data.map((r) => bookingFromRow(r, byId)).filter(Boolean);
+}
+
+export async function fetchProfile(userId) {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function saveProfile(userId, patch) {
+  if (!supabase) return;
+  const { error } = await supabase.from("profiles").upsert({ id: userId, ...patch });
+  if (error) throw error;
+}

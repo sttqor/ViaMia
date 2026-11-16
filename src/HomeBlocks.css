@@ -28,7 +28,9 @@
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-areas:
+    "live live"
     "main sun"
+    "hours hours"
     "foot foot";
   gap: 12px 10px;
   margin-top: 14px;
@@ -60,6 +62,161 @@
 
 .is-night .wx-icon {
   color: var(--gold);
+}
+
+/* строка «сейчас в Оше · обновлено N мин назад» */
+.wx-live {
+  grid-area: live;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -6px -10px -8px 0;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.wx-live-text {
+  flex: 1;
+  min-width: 0;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wx-live-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--terracotta);
+  flex-shrink: 0;
+}
+
+.wx-live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: wx-pulse 2s ease-out infinite;
+}
+
+.wx-live-dot.is-off {
+  background: var(--muted-2);
+}
+
+.wx-live-dot.is-off::after {
+  animation: none;
+}
+
+@keyframes wx-pulse {
+  from { transform: scale(1); opacity: 0.6; }
+  to { transform: scale(3); opacity: 0; }
+}
+
+.wx-refresh {
+  width: var(--hit);
+  height: var(--hit);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  opacity: 0.75;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wx-refresh:disabled {
+  cursor: default;
+}
+
+.is-spinning {
+  animation: wx-spin 0.8s linear infinite;
+}
+
+@keyframes wx-spin {
+  to { transform: rotate(360deg); }
+}
+
+.wx-temp-wrap {
+  display: inline-grid;
+  overflow: hidden;
+  padding: 2px 0;
+}
+
+/* почасовой прогноз: лента, листается пальцем */
+.wx-hours {
+  grid-area: hours;
+  display: flex;
+  gap: 6px;
+  margin: 0 -16px;
+  padding: 2px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  scroll-padding: 0 16px;
+}
+
+.wx-hours::-webkit-scrollbar {
+  display: none;
+}
+
+.wx-hour {
+  flex: 0 0 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  border-radius: var(--radius-thumb);
+  background: rgba(255, 255, 255, 0.55);
+  scroll-snap-align: start;
+  font-size: var(--fs-sm);
+}
+
+.is-night .wx-hour {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wx-hour svg {
+  color: var(--terracotta);
+}
+
+.is-night .wx-hour svg {
+  color: var(--gold);
+}
+
+.wx-hour-time {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.wx-hour-rain {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--terracotta-dark);
+}
+
+.wx-hour-rain svg,
+.is-night .wx-hour-rain svg {
+  color: inherit;
+}
+
+.is-night .wx-hour-rain {
+  color: var(--gold);
+}
+
+.wx-hour-rain.is-dry {
+  visibility: hidden;
 }
 
 .wx-temp {
@@ -206,7 +363,7 @@
 
 .phrase-stack {
   position: relative;
-  height: 168px;
+  height: 188px;
   margin-bottom: 36px;
 }
 
@@ -245,7 +402,7 @@
   justify-content: space-between;
   width: 100%;
   height: 100%;
-  padding: 16px;
+  padding: 16px 72px 16px 16px;
   border: 0;
   background: none;
   color: inherit;
@@ -276,11 +433,77 @@
   line-height: 1.15;
 }
 
+/* транскрипция: как произносить */
+.phrase-sound {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.88);
+}
+
 .phrase-hint {
   display: block;
   margin-top: 6px;
   font-size: var(--fs-sm);
   color: rgba(255, 255, 255, 0.7);
+}
+
+/* кнопка «послушать» */
+.phrase-speak {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: var(--size-icon-btn);
+  height: var(--size-icon-btn);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.phrase-speak.is-on {
+  background: var(--terracotta);
+  border-color: var(--terracotta);
+  color: var(--on-dark);
+}
+
+.phrase-speak svg {
+  position: relative;
+}
+
+.phrase-speak-ring {
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 2px solid var(--terracotta);
+  animation: speak-ring 1.2s ease-out infinite;
+  pointer-events: none;
+}
+
+.phrase-speak-ring.is-late {
+  animation-delay: 0.6s;
+}
+
+@keyframes speak-ring {
+  from { transform: scale(1); opacity: 0.9; }
+  to { transform: scale(1.7); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phrase-speak-ring,
+  .wx-live-dot::after,
+  .is-spinning {
+    animation: none;
+  }
 }
 
 .phrase-meta {

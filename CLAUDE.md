@@ -18,12 +18,19 @@
 - `src/App.jsx` — всё приложение: вкладки Гид / Карта / Маршрут / Туры / Профиль, экраны тура, бронирования, билета. Большой (~1100 строк) — желательно разбить на `src/views/*` и `src/components/*`.
 - `src/data.js` — `EXPERIENCES` (туры), `CATEGORIES`, `FACTS`, `loadLeaflet`, `upcomingDates`, `makeCode`. Вверху файла — инструкция, как добавлять карточки.
 - `src/Facts.jsx` + `src/Facts.css` — блок «Интересные факты» с нижним листом (портал в body).
+- `src/HomeBlocks.jsx` — шапка с погодой (Open-Meteo, сама обновляется раз в 10 мин и при возврате в приложение, почасовой прогноз), быстрые кнопки, фразы на кыргызском (транскрипция `tr` + озвучка через `speechSynthesis`: ky → kk → ru), SOS.
+- `src/Tips.jsx` + `src/Tips.css` — экран «Советы» (этикет), данные — `src/tips-data.js` (не `tips.js`: на Windows конфликтует с `Tips.jsx`).
+- Экраны поверх вкладок без тура (`page` в `App`: `"saved"` — избранное, `"tips"` — советы) участвуют в истории «назад».
 - Избранное, маршрут и брони сохраняются в `localStorage` (ключ `osh-guide-v1`).
 - `src/i18n.js` — словари интерфейса (`DICT`, сейчас ru/en), валюты с примерными курсами к USD, форматирование цен/дат/длительности. Новый язык = новый словарь в `DICT`, в профиле появится сам.
 - `src/SettingsProvider.jsx` + `src/settings-context.js` — язык/валюта/уведомления (ключ `osh-guide-settings`). В компонентах: `const { t, loc, money, plural, fmtDate, fmtDuration } = useSettings()`. Никаких строк интерфейса в JSX напрямую — только через `t()`.
 - Перевод карточки — блок `en: {...}` внутри тура/факта/категории в `data.js`; `loc(item)` подставляет его. Цены в `data.js` всегда в USD. У факта `expId` — связанный тур.
 - Туры и факты берутся через `useContent()` (`src/ContentProvider.jsx`): сначала кэш/`data.js`, потом свежие из Supabase. Напрямую `EXPERIENCES`/`FACTS` в компонентах не импортировать.
-- Supabase: `src/supabase.js` (клиент, `null` без ключей), `src/api.js` (чтение туров/фактов, заявка, отмена по коду). Схема и RLS — `supabase/schema.sql`; данные — `supabase/seed.sql`, генерируется `node scripts/make-seed.mjs` из `data.js`.
+- Supabase: `src/supabase.js` (клиент, `null` без ключей), `src/api.js` (чтение туров/фактов, заявка, отмена по коду).
+- Аккаунт: `src/AuthProvider.jsx` + `src/auth-context.js` (`useAuth()`: enabled/user/sendCode/verifyCode/signOut), `src/Login.jsx` — вход по почте шестизначным кодом (OTP, без пароля), выход — в профиле.
+- Вход не косметический: при входе гостевые избранное и маршрут **сливаются** с тем, что в аккаунте (таблица `profiles`), брони подтягиваются из базы по `user_id`; при выходе личное стирается с устройства — но только если слияние успело пройти (иначе данные остались бы только здесь). Логика — в `App.jsx`, рефы `pulledFor` / `readyFor`.
+- `booking_requests.user_id` проставляет триггер `booking_fill` из `auth.uid()`, из приложения его подделать нельзя. Свои брони читаем с явным `.eq("user_id", …)`: у владельца агентства есть и второе право на чтение, чужие заявки в билеты туриста попасть не должны.
+- Настройка писем и шаблон — `supabase/auth-setup.md` и `supabase/email-otp.html`. Код в письме даёт `{{ .Token }}`, и вставить его нужно в **два** шаблона: «Confirm signup» (первый вход) и «Magic Link» (остальные). Без своего SMTP встроенная почта Supabase шлёт письма только участникам организации и не больше 2 в час. Схема и RLS — `supabase/schema.sql`; данные — `supabase/seed.sql`, генерируется `node scripts/make-seed.mjs` из `data.js`.
 - Маршрут и избранное в localStorage — id туров; бронь хранит копию тура (`exp`) и флаг `synced` (ушла ли в базу).
 
 ## Дизайн (утверждённый стиль)

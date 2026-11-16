@@ -14,6 +14,7 @@ import {
   Globe,
   Heart,
   HelpCircle,
+  LogOut,
   Map as MapIcon,
   MapPin,
   MoreHorizontal,
@@ -24,12 +25,13 @@ import {
   Star,
   Ticket,
   Trash2,
+  Undo2,
   User,
   Users,
 } from "lucide-react";
 import { CATEGORIES, CITY, EXPERIENCES, loadLeaflet, makeCode, upcomingDates } from "./data";
 import { useContent } from "./content-context";
-import { cancelBookingRequest, submitBookingRequest } from "./api";
+import { cancelBookingRequest, fetchMyBookings, fetchProfile, saveProfile, submitBookingRequest } from "./api";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName, durationMinutes, weekdayShort } from "./i18n";
 import { useSettings } from "./settings-context";
 import { FactsSection } from "./Facts";
@@ -39,6 +41,9 @@ import { Toast } from "./Toast";
 import { Segmented } from "./Segmented";
 import { useMinimizeOnScroll } from "./useMinimizeOnScroll";
 import { Onboarding } from "./Onboarding";
+import { TipsScreen } from "./Tips.jsx";
+import { LoginScreen } from "./Login.jsx";
+import { useAuth } from "./auth-context";
 import splashVideo from "./splash.mp4";
 
 // Заставка при запуске: ролик с иконкой-дорогой. Пропускается тапом,
@@ -448,12 +453,12 @@ function ExploreMap({ items, onOpen }) {
 }
 
 // 1. ГЛАВНАЯ: Ош и погода, факты-сторис, быстрые кнопки, фразы, SOS
-function HomeView({ onGoTo, onOpenExp }) {
+function HomeView({ onGoTo, onOpenExp, onOpenTips }) {
   return (
     <div className="gyg-scroll">
       <OshHeader />
       <FactsSection MiniMap={MiniMap} onGoTo={onGoTo} onOpenExp={onOpenExp} />
-      <QuickActions onGoTo={onGoTo} />
+      <QuickActions onGoTo={onGoTo} onOpenTips={onOpenTips} />
       <PhraseStack />
       <SosCard />
     </div>
@@ -876,6 +881,141 @@ function ToursView({
   );
 }
 
+// ИЗБРАННОЕ: отдельный экран из профиля, устроен как вкладка «Туры»
+function SavedView({ saved, routeItems, onBack, onOpen, onToggleSave, onToggleRoute, onGoToTours }) {
+  const { t, loc, plural } = useSettings();
+  const { allTours } = useContent();
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("all");
+  const [undoId, setUndoId] = useState(null);
+  const hideUndo = useCallback(() => setUndoId(null), []);
+
+  const items = allTours.filter((e) => saved.has(e.id));
+  const cats = CATEGORIES.filter((c) => c.id === "all" || items.some((x) => x.category === c.id));
+  const activeCat = cats.some((c) => c.id === category) ? category : "all";
+  const q = query.trim().toLowerCase();
+  const filtered = items.filter((raw) => {
+    if (activeCat !== "all" && raw.category !== activeCat) return false;
+    if (!q) return true;
+    const e = loc(raw);
+    return `${e.title} ${e.place} ${e.type} ${raw.title} ${raw.place} ${raw.agencyName || ""}`.toLowerCase().includes(q);
+  });
+  const notInRoute = items.filter((e) => !routeItems.some((r) => r.id === e.id));
+
+  const remove = (id) => {
+    onToggleSave(id);
+    setUndoId(id);
+  };
+
+  return (
+    <motion.div className="gyg-scroll screen saved-screen" {...SCREEN_IN}>
+      <div className="screen-head">
+        <button className="icon-btn" onClick={onBack} aria-label={t("common.back")}>
+          <ChevronLeft size={20} />
+        </button>
+        <span className="grow">
+          <b>{t("saved.title")}</b>
+          <span className="muted t-xs">
+            <Ticker value={plural("pl.places", items.length)} />
+          </span>
+        </span>
+        {notInRoute.length > 0 && (
+          <motion.button
+            className="pill pill-sm saved-route-all"
+            whileTap={TAP}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={() => notInRoute.forEach(onToggleRoute)}
+          >
+            <RouteIcon size={14} /> {t("saved.allToRoute")}
+          </motion.button>
+        )}
+      </div>
+
+      {items.length === 0 ? (
+        <motion.div
+          className="saved-empty"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: EASE_OUT }}
+        >
+          <motion.span
+            className="saved-empty-heart"
+            animate={{ scale: [1, 1.12, 1] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Heart size={34} />
+          </motion.span>
+          <h3>{t("saved.emptyTitle")}</h3>
+          <p className="muted">{t("saved.emptyText")}</p>
+          <button className="cta" onClick={onGoToTours}>
+            {t("profile.seeTours")}
+          </button>
+        </motion.div>
+      ) : (
+        <>
+          <div className="tours-search saved-search">
+            <div className="search">
+              <Search size={18} color="var(--muted-2)" />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("saved.search")} />
+            </div>
+          </div>
+          {cats.length > 2 && (
+            <div className="mt-12">
+              <ChipRow items={cats} value={activeCat} onChange={setCategory} layoutId="saved-pill" />
+            </div>
+          )}
+          <motion.div layout className="tours-list saved-list">
+            <AnimatePresence mode="popLayout">
+              {filtered.map((exp, index) => (
+                <motion.div
+                  key={exp.id}
+                  layout
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: 0.35, delay: Math.min(index, 6) * 0.05, ease: EASE_OUT } }}
+                  exit={{ opacity: 0, x: -60, scale: 0.94, transition: { duration: 0.25, ease: "easeIn" } }}
+                  transition={{ layout: SPRING }}
+                >
+                  <ExperienceCard
+                    exp={exp}
+                    saved
+                    inRoute={routeItems.some((r) => r.id === exp.id)}
+                    onOpen={onOpen}
+                    onToggleSave={remove}
+                    onToggleRoute={onToggleRoute}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {filtered.length === 0 && (
+              <div className="card empty">
+                <Search size={32} color="var(--indigo)" />
+                <b>{t("tours.emptyTitle")}</b>
+                <span>{t("tours.emptyText")}</span>
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
+
+      <Toast show={!!undoId} onHide={hideUndo} ms={3500}>
+        <span className="toast-row">
+          {t("saved.removed")}
+          <button
+            className="toast-undo"
+            onClick={() => {
+              onToggleSave(undoId);
+              setUndoId(null);
+            }}
+          >
+            <Undo2 size={14} /> {t("saved.undo")}
+          </button>
+        </span>
+      </Toast>
+    </motion.div>
+  );
+}
+
 // 4. ПРОФИЛЬ: НАСТРОЙКИ, ЯЗЫК, ВАЛЮТА, ПОДДЕРЖКА
 function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   const { t } = useSettings();
@@ -924,15 +1064,16 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   );
 }
 
-function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }) {
+function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours }) {
   const { t, loc, money, fmtDate, plural, lang, setLang, currency, setCurrency, notifs, setNotifs } = useSettings();
   const [screen, setScreen] = useState(null); // null | "lang" | "currency"
   const [helpToast, setHelpToast] = useState(false);
   const hideHelp = useCallback(() => setHelpToast(false), []);
 
+  const { enabled: authOn, user: authUser, signOut } = useAuth();
   const currentLang = LANGUAGES.find((l) => l.code === lang);
-  const { tours } = useContent();
-  const savedRaw = tours.filter((e) => saved.has(e.id));
+  const { allTours } = useContent();
+  const savedRaw = allTours.filter((e) => saved.has(e.id));
 
   if (screen === "lang") {
     return (
@@ -978,13 +1119,29 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
             <User size={22} color="var(--terracotta)" />
           </div>
           <div className="grow">
-            <div className="t-md b">{t("profile.guest")}</div>
-            <div className="muted t-xs">{t("profile.guestNote")}</div>
+            <div className="t-md b">{authUser ? t("login.account") : t("profile.guest")}</div>
+            <div className="muted t-xs login-email">{authUser ? authUser.email : t("profile.guestNote")}</div>
           </div>
-          <button className="pill pill-sm" disabled>
-            {t("profile.soon")}
-          </button>
+          {!authUser &&
+            (authOn ? (
+              <motion.button className="pill pill-sm" whileTap={TAP} onClick={onOpenLogin}>
+                {t("login.cta")}
+              </motion.button>
+            ) : (
+              <button className="pill pill-sm" disabled>
+                {t("profile.soon")}
+              </button>
+            ))}
         </div>
+        {authUser && (
+          <button className="row-btn row-btn-divided" onClick={signOut}>
+            <span className="row">
+              <LogOut size={16} color="var(--terracotta)" />
+              <span>{t("login.out")}</span>
+            </span>
+            <ChevronRight size={16} color="var(--muted-2)" />
+          </button>
+        )}
       </motion.div>
 
       <motion.div className="card panel" variants={RISE}>
@@ -1019,10 +1176,16 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onGoToTours }
       </motion.div>
 
       <motion.div className="card panel" variants={RISE}>
-        <div className="panel-head">
-          <Heart size={16} color="var(--terracotta)" />
-          <b>{t("profile.saved", { n: savedRaw.length })}</b>
-        </div>
+        <motion.button className="row-btn saved-open" whileTap={{ scale: 0.98 }} onClick={onOpenSavedList}>
+          <span className="row">
+            <Heart size={16} color="var(--terracotta)" />
+            <b>{t("profile.saved", { n: savedRaw.length })}</b>
+          </span>
+          <span className="row gap-4 saved-open-all">
+            {t("saved.all")}
+            <ChevronRight size={18} />
+          </span>
+        </motion.button>
         {savedRaw.length === 0 ? (
           <div className="muted">{t("profile.noSaved")}</div>
         ) : (
@@ -1185,14 +1348,14 @@ function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggleRoute,
   );
 }
 
-function Booking({ exp: raw, onBack, onConfirm }) {
+function Booking({ exp: raw, defaults, onBack, onConfirm }) {
   const { t, loc, money, plural, fmtDuration, lang } = useSettings();
   const exp = loc(raw);
   const dates = useMemo(() => upcomingDates(), []);
   const [date, setDate] = useState(dates[1]?.key || dates[0].key);
   const [guests, setGuests] = useState(2);
-  const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
+  const [name, setName] = useState(defaults?.name || "");
+  const [contact, setContact] = useState(defaults?.contact || "");
   const total = exp.price == null ? null : exp.price * guests; // в USD; null — цена по запросу
   const nameOk = name.trim().length >= 2;
   const contactOk = contact.trim().length >= 5;
@@ -1471,6 +1634,24 @@ function loadStore() {
 const initialStore = loadStore();
 const DEFAULT_ROUTE = ["self-sulaiman", "self-center", "self-jayma"];
 
+// При входе гостевые данные не теряются, а сливаются с тем, что лежит в аккаунте.
+function mergeRoute(serverRoute, localRoute) {
+  const local = localRoute || [];
+  const server = serverRoute || [];
+  if (server.length === 0) return local;
+  // маршрут не трогали — просто берём свой из аккаунта
+  const untouched = local.length === DEFAULT_ROUTE.length && local.every((id, i) => id === DEFAULT_ROUTE[i]);
+  if (untouched) return server;
+  return [...local, ...server.filter((id) => !local.includes(id))];
+}
+
+function mergeBookings(local, remote) {
+  const byCode = new Map((local || []).map((b) => [b.code, b]));
+  // с сервера приходит актуальный статус — он главнее сохранённого на устройстве
+  for (const r of remote) byCode.set(r.code, { ...byCode.get(r.code), ...r });
+  return [...byCode.values()].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+}
+
 // ГЛАВНЫЙ ЭКСПОРТ
 export default function App() {
   const { t, lang, travelMode, setTravelMode } = useSettings();
@@ -1485,10 +1666,73 @@ export default function App() {
   const [bookings, setBookings] = useState(() => initialStore?.bookings || []);
   const [navMin, setNavMin] = useMinimizeOnScroll();
   const [splash, setSplash] = useState(true);
+  // экран поверх вкладок без своего тура: "saved" | "tips" | null
+  const [page, setPage] = useState(null);
 
   const [routeIds, setRouteIds] = useState(() => initialStore?.route || DEFAULT_ROUTE);
   const routeItems = useMemo(() => routeIds.map(byId).filter(Boolean), [routeIds, byId]);
   const setRouteItems = (items) => setRouteIds(items.map((x) => x.id));
+
+  // ── Аккаунт ───────────────────────────────────────────────────
+  // Вход — не косметика: избранное, маршрут и брони переезжают в аккаунт и
+  // возвращаются на любом устройстве. Выход убирает личное с этого устройства.
+  const { user: authUser } = useAuth();
+  const [account, setAccount] = useState(null); // имя и контакт для подстановки в бронь
+  const pulledFor = useRef(null); // чьи данные начали тянуть
+  const readyFor = useRef(null);  // чьи данные уже слиты — только после этого можно писать
+
+  useEffect(() => {
+    const uid = authUser?.id ?? null;
+
+    if (!uid) {
+      // чистим устройство только если данные успели уехать в аккаунт:
+      // иначе (вошли без сети и вышли) стёрли бы то, чего больше нигде нет
+      const wasSynced = readyFor.current;
+      pulledFor.current = null;
+      readyFor.current = null;
+      if (wasSynced) {
+        setAccount(null);
+        setSaved(new Set());
+        setRouteIds(DEFAULT_ROUTE);
+        setBookings([]);
+        setTicket(null);
+      }
+      return;
+    }
+    if (pulledFor.current === uid) return;
+    pulledFor.current = uid;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const [profile, remote] = await Promise.all([fetchProfile(uid), fetchMyBookings(uid, byId)]);
+        if (cancelled) return;
+        setAccount({ name: profile?.name || "", contact: profile?.contact || "" });
+        setSaved((prev) => new Set([...(profile?.saved || []), ...prev]));
+        setRouteIds((prev) => mergeRoute(profile?.route, prev));
+        setBookings((prev) => mergeBookings(prev, remote));
+        readyFor.current = uid; // слияние прошло — теперь можно писать в базу
+      } catch (err) {
+        // не смогли прочитать — ничего не пишем, чтобы не затереть аккаунт пустотой
+        console.warn("Не удалось загрузить данные аккаунта", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authUser, byId]);
+
+  // Изменения уходят в аккаунт с задержкой, чтобы не писать на каждый тап
+  useEffect(() => {
+    const uid = authUser?.id;
+    if (!uid || readyFor.current !== uid) return;
+    const id = setTimeout(() => {
+      saveProfile(uid, { saved: [...saved], route: routeIds }).catch((err) =>
+        console.warn("Не удалось сохранить избранное в аккаунт", err),
+      );
+    }, 800);
+    return () => clearTimeout(id);
+  }, [saved, routeIds, authUser]);
 
   useEffect(() => {
     try {
@@ -1504,11 +1748,11 @@ export default function App() {
   // При смене экрана — наверх
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [tab, selected, bookingExp, ticket]);
+  }, [tab, selected, bookingExp, ticket, page]);
 
   // Системная «назад» закрывает верхний экран, а не приложение:
   // каждое открытие кладёт запись в history, popstate снимает её.
-  const depth = (selected ? 1 : 0) + (bookingExp ? 1 : 0) + (ticket ? 1 : 0);
+  const depth = (page ? 1 : 0) + (selected ? 1 : 0) + (bookingExp ? 1 : 0) + (ticket ? 1 : 0);
   const prevDepth = useRef(0);
   useEffect(() => {
     if (depth > prevDepth.current) window.history.pushState({ screen: depth }, "");
@@ -1519,12 +1763,13 @@ export default function App() {
       if (ticket) setTicket(null);
       else if (bookingExp) setBookingExp(null);
       else if (selected) setSelected(null);
+      else if (page) setPage(null);
       // экран уже закрыт кодом (бронь подтверждена/отменена) — запись лишняя, идём дальше назад
       else window.history.back();
     }
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, [ticket, bookingExp, selected]);
+  }, [ticket, bookingExp, selected, page]);
   // Кнопки «назад» в интерфейсе идут через history, чтобы стек не расходился
   const closeScreen = () => window.history.back();
 
@@ -1546,8 +1791,14 @@ export default function App() {
     const { synced } = await submitBookingRequest(entry, lang);
     const record = { ...entry, synced };
     setBookings((b) => [record, ...b]);
+    // контакты запоминаются в аккаунте — в следующий раз не вводить заново
+    if (authUser && readyFor.current === authUser.id) {
+      setAccount({ name: entry.name, contact: entry.contact });
+      saveProfile(authUser.id, { name: entry.name, contact: entry.contact }).catch(() => {});
+    }
     setBookingExp(null);
     setSelected(null);
+    setPage(null);
     setTicket(record);
     setTab("profile");
   }
@@ -1570,7 +1821,8 @@ export default function App() {
     );
   }
   if (ticket) return <TicketView booking={ticket} onClose={closeScreen} onCancel={cancelBooking} />;
-  if (bookingExp) return <Booking exp={bookingExp} onBack={closeScreen} onConfirm={confirmBooking} />;
+  if (bookingExp)
+    return <Booking exp={bookingExp} defaults={account} onBack={closeScreen} onConfirm={confirmBooking} />;
   if (selected) {
     return (
       <Detail
@@ -1584,10 +1836,28 @@ export default function App() {
       />
     );
   }
+  if (page === "saved") {
+    return (
+      <SavedView
+        saved={saved}
+        routeItems={routeItems}
+        onBack={closeScreen}
+        onOpen={setSelected}
+        onToggleSave={toggleSave}
+        onToggleRoute={toggleRoute}
+        onGoToTours={() => {
+          closeScreen();
+          setTab("tours");
+        }}
+      />
+    );
+  }
+  if (page === "tips") return <TipsScreen onBack={closeScreen} />;
+  if (page === "login") return <LoginScreen onBack={closeScreen} />;
 
   return (
     <div className="gyg-app ornament-bg">
-      {tab === "home" && <HomeView onGoTo={setTab} onOpenExp={setSelected} />}
+      {tab === "home" && <HomeView onGoTo={setTab} onOpenExp={setSelected} onOpenTips={() => setPage("tips")} />}
 
       {tab === "map" && <ExploreMap items={allTours} onOpen={setSelected} />}
 
@@ -1615,6 +1885,8 @@ export default function App() {
           onOpenTicket={setTicket}
           saved={saved}
           onOpenSaved={setSelected}
+          onOpenSavedList={() => setPage("saved")}
+          onOpenLogin={() => setPage("login")}
           onGoToTours={() => setTab("tours")}
         />
       )}

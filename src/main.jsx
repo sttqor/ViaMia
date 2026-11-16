@@ -6,16 +6,19 @@ import './screens.css'
 import App from './App.jsx'
 import { SettingsProvider } from './SettingsProvider.jsx'
 import { ContentProvider } from './ContentProvider.jsx'
+import { AuthProvider } from './AuthProvider.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SettingsProvider>
-      <ContentProvider>
-        {/* «уменьшить движение» в ОС: остаётся только прозрачность */}
-        <MotionConfig reducedMotion="user">
-          <App />
-        </MotionConfig>
-      </ContentProvider>
+      <AuthProvider>
+        <ContentProvider>
+          {/* «уменьшить движение» в ОС: остаётся только прозрачность */}
+          <MotionConfig reducedMotion="user">
+            <App />
+          </MotionConfig>
+        </ContentProvider>
+      </AuthProvider>
     </SettingsProvider>
   </StrictMode>,
 )

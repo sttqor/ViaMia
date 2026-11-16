@@ -79,6 +79,7 @@ create table if not exists public.booking_requests (
   code        text not null unique check (char_length(code) between 6 and 32),
   tour_id     text not null references public.tours (id) on delete restrict,
   agency_id   uuid references public.agencies (id) on delete set null,  -- проставляется триггером
+  user_id     uuid references auth.users (id) on delete set null,       -- проставляется триггером; null у гостя
   date        date not null,
   guests      integer not null check (guests between 1 and 20),
   name        text not null check (char_length(name) between 2 and 80),
@@ -89,7 +90,23 @@ create table if not exists public.booking_requests (
               check (status in ('pending','confirmed','declined','cancelled','done')),
   created_at  timestamptz not null default now()
 );
+-- для баз, созданных до появления аккаунтов (колонка должна быть до индекса)
+alter table public.booking_requests
+  add column if not exists user_id uuid references auth.users (id) on delete set null;
 create index if not exists booking_agency_idx on public.booking_requests (agency_id, created_at desc);
+create index if not exists booking_user_idx on public.booking_requests (user_id, created_at desc);
+
+-- ── Профиль туриста ────────────────────────────────────────────
+-- Избранное и маршрут хранятся в аккаунте: вошёл на другом телефоне — всё на месте.
+-- name/contact — чтобы не вводить их заново при каждой брони.
+create table if not exists public.profiles (
+  id          uuid primary key references auth.users (id) on delete cascade,
+  saved       text[] not null default '{}',
+  route       text[] not null default '{}',
+  name        text,
+  contact     text,
+  updated_at  timestamptz not null default now()
+);
 
 -- updated_at для туров
 create or replace function public.touch_updated_at() returns trigger
@@ -116,6 +133,7 @@ begin
   new.total_usd := t.price * new.guests;
   new.status := 'pending';
   new.created_at := now();
+  new.user_id := auth.uid();   -- бронь принадлежит вошедшему; у гостя null
   if new.date < current_date or new.date > current_date + 365 then
     raise exception 'bad date';
   end if;
@@ -148,6 +166,16 @@ alter table public.agencies          enable row level security;
 alter table public.tours             enable row level security;
 alter table public.facts             enable row level security;
 alter table public.booking_requests  enable row level security;
+alter table public.profiles          enable row level security;
+
+-- Профиль: каждый видит и правит только свой.
+drop policy if exists profiles_own on public.profiles;
+create policy profiles_own on public.profiles for all to authenticated
+  using (id = auth.uid()) with check (id = auth.uid());
+
+drop trigger if exists profiles_touch on public.profiles;
+create trigger profiles_touch before update on public.profiles
+  for each row execute function public.touch_updated_at();
 
 -- Агентства: все видят карточку агентства; владелец создаёт и правит своё.
 -- Поле verified владелец менять не может (права на колонки ниже).
@@ -185,6 +213,11 @@ create policy facts_read on public.facts for select using (published);
 drop policy if exists booking_insert on public.booking_requests;
 create policy booking_insert on public.booking_requests for insert to anon, authenticated
   with check (true);
+
+-- Турист видит свои заявки на любом устройстве, где вошёл в аккаунт
+drop policy if exists booking_read_own on public.booking_requests;
+create policy booking_read_own on public.booking_requests for select to authenticated
+  using (user_id = auth.uid());
 
 drop policy if exists booking_read_agency on public.booking_requests;
 create policy booking_read_agency on public.booking_requests for select to authenticated

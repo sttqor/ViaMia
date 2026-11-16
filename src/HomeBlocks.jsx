@@ -9,15 +9,18 @@ import {
   CloudLightning,
   CloudRain,
   CloudSun,
+  Droplets,
   Languages,
   Lightbulb,
   Map as MapIcon,
   Moon,
   Phone,
+  RefreshCw,
   Snowflake,
   Sun,
   Sunrise,
   Sunset,
+  Volume2,
   Wind,
   X,
 } from "lucide-react";
@@ -43,62 +46,102 @@ function weatherKind(code, isDay) {
   return { Icon: Cloud, ru: "Облачно", en: "Cloudy" };
 }
 
-const WX_KEY = "osh-weather-v1";
-const WX_TTL = 20 * 60 * 1000;
+// Open-Meteo обновляет «сейчас» раз в 15 минут — чаще спрашивать нет смысла
+const WX_KEY = "osh-weather-v2";
+const WX_TTL = 10 * 60 * 1000;
 
+function readWxCache() {
+  try {
+    const c = JSON.parse(localStorage.getItem(WX_KEY));
+    return c?.data ? c : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchWeather(signal) {
+  const url =
+    `https://api.open-meteo.com/v1/forecast?latitude=${OSH.lat}&longitude=${OSH.lng}` +
+    "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day" +
+    "&hourly=temperature_2m,weather_code,precipitation_probability,is_day&forecast_hours=13" +
+    "&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min&forecast_days=1" +
+    `&wind_speed_unit=ms&timezone=${encodeURIComponent(OSH.tz)}`;
+  const r = await fetch(url, { signal, cache: "no-store" });
+  if (!r.ok) throw new Error(String(r.status));
+  const j = await r.json();
+  const h = j.hourly;
+  return {
+    temp: j.current.temperature_2m,
+    feels: j.current.apparent_temperature,
+    code: j.current.weather_code,
+    wind: j.current.wind_speed_10m,
+    isDay: j.current.is_day === 1,
+    sunrise: j.daily.sunrise[0],
+    sunset: j.daily.sunset[0],
+    max: j.daily.temperature_2m_max[0],
+    min: j.daily.temperature_2m_min[0],
+    // первый час — текущий, его уже показывает крупная цифра
+    hours: h.time.slice(1).map((time, i) => ({
+      time,
+      temp: h.temperature_2m[i + 1],
+      code: h.weather_code[i + 1],
+      rain: h.precipitation_probability?.[i + 1] ?? 0,
+      isDay: h.is_day[i + 1] === 1,
+    })),
+  };
+}
+
+// Погода держится свежей сама: раз в 10 минут, при возврате в приложение и при появлении сети.
 function useOshWeather() {
-  const [data, setData] = useState(() => {
-    try {
-      const c = JSON.parse(localStorage.getItem(WX_KEY));
-      return c?.data ?? null;
-    } catch {
-      return null;
-    }
+  const [state, setState] = useState(() => {
+    const c = readWxCache();
+    return { data: c?.data ?? null, at: c?.at ?? 0, loading: false, failed: false };
   });
+  const busy = useRef(false);
 
-  useEffect(() => {
-    let fresh = false;
+  const refresh = useCallback(async (force = false) => {
+    const c = readWxCache();
+    if (!force && c && Date.now() - c.at < WX_TTL) return;
+    if (busy.current) return;
+    busy.current = true;
+    setState((s) => ({ ...s, loading: true }));
     try {
-      const c = JSON.parse(localStorage.getItem(WX_KEY));
-      fresh = c && Date.now() - c.at < WX_TTL;
+      const data = await fetchWeather();
+      const at = Date.now();
+      setState({ data, at, loading: false, failed: false });
+      try {
+        localStorage.setItem(WX_KEY, JSON.stringify({ at, data }));
+      } catch {
+        /* хранилище недоступно — просто не кэшируем */
+      }
     } catch {
-      fresh = false;
+      // без сети остаётся последняя погода, но с пометкой
+      setState((s) => ({ ...s, loading: false, failed: true }));
+    } finally {
+      busy.current = false;
     }
-    if (fresh) return;
-    const ctrl = new AbortController();
-    const url =
-      `https://api.open-meteo.com/v1/forecast?latitude=${OSH.lat}&longitude=${OSH.lng}` +
-      "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day" +
-      "&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min&forecast_days=1" +
-      `&wind_speed_unit=ms&timezone=${encodeURIComponent(OSH.tz)}`;
-    fetch(url, { signal: ctrl.signal })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((j) => {
-        const d = {
-          temp: j.current.temperature_2m,
-          feels: j.current.apparent_temperature,
-          code: j.current.weather_code,
-          wind: j.current.wind_speed_10m,
-          isDay: j.current.is_day === 1,
-          sunrise: j.daily.sunrise[0],
-          sunset: j.daily.sunset[0],
-          max: j.daily.temperature_2m_max[0],
-          min: j.daily.temperature_2m_min[0],
-        };
-        setData(d);
-        try {
-          localStorage.setItem(WX_KEY, JSON.stringify({ at: Date.now(), data: d }));
-        } catch {
-          /* хранилище недоступно — просто не кэшируем */
-        }
-      })
-      .catch(() => {
-        /* без сети остаётся кэш или пустая карточка */
-      });
-    return () => ctrl.abort();
   }, []);
 
-  return data;
+  useEffect(() => {
+    const first = setTimeout(refresh, 0);
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") refresh();
+    }, 60 * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    const onOnline = () => refresh(true);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("online", onOnline);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("online", onOnline);
+    };
+  }, [refresh]);
+
+  return { ...state, refresh: () => refresh(true) };
 }
 
 // Текущее время в Оше, обновляется раз в минуту
@@ -119,9 +162,18 @@ const minutesOf = (iso) => {
 
 const deg = (n) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(Math.round(n))}°`;
 
+function updatedText(t, at, nowMs) {
+  if (!at) return "";
+  const min = Math.max(0, Math.round((nowMs - at) / 60000));
+  if (min < 1) return t("wx.justNow");
+  if (min < 60) return t("wx.minAgo", { n: min });
+  return t("wx.hAgo", { n: Math.round(min / 60) });
+}
+
 export function OshHeader() {
   const { t, lang } = useSettings();
-  const wx = useOshWeather();
+  const weather = useOshWeather();
+  const wx = weather.data;
   const now = useOshNow();
   const locale = lang === "ru" ? "ru-RU" : "en-GB";
 
@@ -168,9 +220,52 @@ export function OshHeader() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
       >
+        <div className="wx-live">
+          <span className={`wx-live-dot ${weather.failed ? "is-off" : ""}`} aria-hidden />
+          <span className="wx-live-text">
+            {weather.failed ? t("wx.offline") : t("wx.now")}
+            {weather.at > 0 && ` · ${updatedText(t, weather.at, now.getTime())}`}
+          </span>
+          <button
+            type="button"
+            className="wx-refresh"
+            aria-label={t("wx.refresh")}
+            disabled={weather.loading}
+            onClick={weather.refresh}
+          >
+            <span className={`ico ${weather.loading ? "is-spinning" : ""}`}>
+              <RefreshCw size={15} />
+            </span>
+          </button>
+        </div>
+
         <div className="wx-main">
-          <span className="wx-icon">{kind ? <kind.Icon size={30} strokeWidth={1.8} /> : <Cloud size={30} strokeWidth={1.8} />}</span>
-          <b className="wx-temp">{wx ? deg(wx.temp) : "—°"}</b>
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={kind ? `${wx.code}-${wx.isDay}` : "none"}
+              className="wx-icon"
+              initial={{ opacity: 0, scale: 0.6, rotate: -30 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={SPRING}
+            >
+              {kind ? <kind.Icon size={30} strokeWidth={1.8} /> : <Cloud size={30} strokeWidth={1.8} />}
+            </motion.span>
+          </AnimatePresence>
+          <span className="wx-temp-wrap">
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.b
+                key={wx ? Math.round(wx.temp) : "none"}
+                className="wx-temp"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {wx ? deg(wx.temp) : "—°"}
+              </motion.b>
+            </AnimatePresence>
+          </span>
           <span className="wx-cond">
             {kind ? (lang === "ru" ? kind.ru : kind.en) : t("wx.loading")}
             {wx && <small>{t("wx.feels", { t: deg(wx.feels) })}</small>}
@@ -198,6 +293,31 @@ export function OshHeader() {
           </div>
         </div>
 
+        {wx?.hours?.length > 0 && (
+          <div className="wx-hours" aria-label={t("wx.hourly")}>
+            {wx.hours.map((h, i) => {
+              const k = weatherKind(h.code, h.isDay);
+              return (
+                <motion.div
+                  key={h.time}
+                  className="wx-hour"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.12 + i * 0.03, ease: "easeOut" }}
+                >
+                  <span className="wx-hour-time">{h.time.slice(11, 16)}</span>
+                  <k.Icon size={18} strokeWidth={1.9} />
+                  <b>{deg(h.temp)}</b>
+                  <span className={`wx-hour-rain ${h.rain >= 20 ? "" : "is-dry"}`}>
+                    <Droplets size={10} />
+                    {h.rain}%
+                  </span>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+
         <div className="wx-foot">
           <span>{wx ? t("wx.range", { max: deg(wx.max), min: deg(wx.min) }) : "—"}</span>
           <span>
@@ -211,15 +331,15 @@ export function OshHeader() {
 
 // ── быстрые кнопки ──────────────────────────────────────────────
 
-// Переводчик и советы пока «скоро», карта работает
-export function QuickActions({ onGoTo }) {
+// Переводчик пока «скоро», советы и карта работают
+export function QuickActions({ onGoTo, onOpenTips }) {
   const { t } = useSettings();
   const [soon, setSoon] = useState(false);
   const hideSoon = useCallback(() => setSoon(false), []);
 
   const items = [
     { id: "translator", Icon: Languages, label: t("quick.translator"), soon: true, onClick: () => setSoon(true) },
-    { id: "tips", Icon: Lightbulb, label: t("quick.tips"), soon: true, onClick: () => setSoon(true) },
+    { id: "tips", Icon: Lightbulb, label: t("quick.tips"), onClick: onOpenTips },
     { id: "map", Icon: MapIcon, label: t("quick.map"), onClick: () => onGoTo("map") },
   ];
 
@@ -353,19 +473,101 @@ export function SosCard() {
 
 // ── фразы: стопка карточек ──────────────────────────────────────
 
-// Фразы на кыргызском: задел под быстрый переводчик
+// Фразы на кыргызском: задел под быстрый переводчик.
+// tr — транскрипция для своего языка, ударный слог заглавными (в кыргызском ударение почти всегда на последнем слоге).
 const PHRASES = [
-  { ky: "Салам!", ru: "Привет!", en: "Hello!" },
-  { ky: "Рахмат", ru: "Спасибо", en: "Thank you" },
-  { ky: "Кандайсыз?", ru: "Как дела?", en: "How are you?" },
-  { ky: "Канча турат?", ru: "Сколько стоит?", en: "How much is it?" },
-  { ky: "Кечиресиз", ru: "Извините", en: "Excuse me" },
-  { ky: "Даамдуу!", ru: "Вкусно!", en: "Delicious!" },
-  { ky: "Базар кайда?", ru: "Где базар?", en: "Where is the bazaar?" },
-  { ky: "Жардам бериңизчи", ru: "Помогите, пожалуйста", en: "Please help me" },
-  { ky: "Ооба / Жок", ru: "Да / Нет", en: "Yes / No" },
-  { ky: "Жакшы калыңыз", ru: "До свидания", en: "Goodbye" },
+  { ky: "Салам!", ru: "Привет!", en: "Hello!", tr: { ru: "са-ЛАМ", en: "sa-LAHM" } },
+  { ky: "Рахмат", ru: "Спасибо", en: "Thank you", tr: { ru: "рах-МАТ", en: "rakh-MAHT" } },
+  { ky: "Кандайсыз?", ru: "Как дела?", en: "How are you?", tr: { ru: "кан-дай-СЫЗ", en: "kahn-dai-SUHZ" } },
+  { ky: "Канча турат?", ru: "Сколько стоит?", en: "How much is it?", tr: { ru: "кан-ЧА ту-РАТ", en: "kahn-CHAH too-RAHT" } },
+  { ky: "Кечиресиз", ru: "Извините", en: "Excuse me", tr: { ru: "ке-чи-ре-СИЗ", en: "keh-chee-reh-SEEZ" } },
+  { ky: "Даамдуу!", ru: "Вкусно!", en: "Delicious!", tr: { ru: "даам-ДУУ", en: "dahm-DOO" } },
+  { ky: "Базар кайда?", ru: "Где базар?", en: "Where is the bazaar?", tr: { ru: "ба-ЗАР кай-ДА", en: "bah-ZAHR kai-DAH" } },
+  { ky: "Жардам бериңизчи", ru: "Помогите, пожалуйста", en: "Please help me", tr: { ru: "жар-ДАМ бе-ри-нгиз-ЧИ", en: "jar-DAHM beh-ring-iz-CHEE" } },
+  { ky: "Ооба / Жок", ru: "Да / Нет", en: "Yes / No", tr: { ru: "оо-БА / ЖОК", en: "oh-BAH / JOHK" } },
+  { ky: "Жакшы калыңыз", ru: "До свидания", en: "Goodbye", tr: { ru: "жак-ШЫ ка-лы-НГЫЗ", en: "jahk-SHUH kah-luh-NGUHZ" } },
 ];
+
+// ── озвучка: синтез речи браузера / системы ─────────────────────
+// Кыргызского голоса почти нигде нет. Порядок: кыргызский → казахский (те же буквы ң ө ү)
+// → русский с заменой кыргызских букв на близкие русские.
+const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;
+
+function pickVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  const by = (re) => voices.find((v) => re.test(v.lang));
+  const native = by(/^ky/i) || by(/^kk/i);
+  if (native) return { voice: native, native: true };
+  return { voice: by(/^ru/i) || null, native: false };
+}
+
+const toRussianSounds = (s) =>
+  s.replace(/ң/g, "нг").replace(/Ң/g, "Нг").replace(/ө/g, "о").replace(/Ө/g, "О").replace(/ү/g, "у").replace(/Ү/g, "У");
+
+function useSpeak() {
+  const [speaking, setSpeaking] = useState(null);
+
+  useEffect(() => {
+    if (!canSpeak) return;
+    // голоса в Chrome приходят не сразу — прогреваем список
+    window.speechSynthesis.getVoices();
+    const synth = window.speechSynthesis;
+    const warm = () => synth.getVoices();
+    synth.addEventListener?.("voiceschanged", warm);
+    return () => {
+      synth.removeEventListener?.("voiceschanged", warm);
+      synth.cancel();
+    };
+  }, []);
+
+  const speak = useCallback((id, text) => {
+    if (!canSpeak) return;
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    const { voice, native } = pickVoice();
+    const u = new SpeechSynthesisUtterance(native ? text : toRussianSounds(text));
+    if (voice) u.voice = voice;
+    u.lang = voice?.lang || "ru-RU";
+    u.rate = 0.82;
+    u.onend = () => setSpeaking((s) => (s === id ? null : s));
+    u.onerror = u.onend;
+    setSpeaking(id);
+    synth.speak(u);
+  }, []);
+
+  return { speaking, speak };
+}
+
+// Кнопка «послушать»: нажатие не должно начинать перетаскивание карточки,
+// поэтому pointerdown гасится нативно — раньше, чем его увидит drag у родителя.
+function SpeakButton({ active, label, onSpeak }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const stop = (e) => e.stopPropagation();
+    el.addEventListener("pointerdown", stop);
+    return () => el.removeEventListener("pointerdown", stop);
+  }, []);
+  return (
+    <motion.button
+      ref={ref}
+      type="button"
+      className={`phrase-speak ${active ? "is-on" : ""}`}
+      aria-label={label}
+      whileTap={{ scale: 0.88 }}
+      onClick={onSpeak}
+    >
+      {active && (
+        <>
+          <span className="phrase-speak-ring" />
+          <span className="phrase-speak-ring is-late" />
+        </>
+      )}
+      <Volume2 size={20} />
+    </motion.button>
+  );
+}
 
 function dayIndex() {
   const now = new Date();
@@ -377,7 +579,7 @@ const STACK = 3; // сколько карточек видно в стопке
 
 // Верхняя карточка: тянется пальцем, наклоняется и перетекает из тёмного в оранжевый.
 // Отпустили дальше порога — улетает и уходит в конец стопки.
-function TopPhrase({ phrase, lang, t, onGone }) {
+function TopPhrase({ phrase, lang, t, onGone, speaking, onSpeak }) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-240, 0, 240], [-10, 0, 10]);
   const glow = useTransform(x, [-160, 0, 160], [1, 0, 1]);
@@ -385,6 +587,7 @@ function TopPhrase({ phrase, lang, t, onGone }) {
   const dragged = useRef(false);
   const leaving = useRef(false);
   const translation = lang === "ru" ? phrase.ru : phrase.en;
+  const sound = `[${phrase.tr[lang] || phrase.tr.en}]`;
 
   function fling(dir) {
     if (leaving.current) return;
@@ -434,10 +637,20 @@ function TopPhrase({ phrase, lang, t, onGone }) {
             transition={{ duration: 0.18, ease: "easeOut" }}
           >
             <span className="phrase-text">{flipped ? translation : phrase.ky}</span>
-            <span className="phrase-hint">{flipped ? phrase.ky : t("phrase.tap")}</span>
+            <span className="phrase-sound">{flipped ? `${phrase.ky} ${sound}` : sound}</span>
+            <span className="phrase-hint">{flipped ? t("phrase.tapBack") : t("phrase.tap")}</span>
           </motion.span>
         </AnimatePresence>
       </button>
+      {canSpeak && (
+        <SpeakButton
+          active={speaking}
+          label={t("phrase.listen")}
+          onSpeak={() => {
+            if (!dragged.current) onSpeak();
+          }}
+        />
+      )}
     </motion.div>
   );
 }
@@ -447,6 +660,7 @@ export function PhraseStack() {
   const [start] = useState(() => dayIndex() % PHRASES.length);
   const [order, setOrder] = useState(() => PHRASES.map((_, i) => (start + i) % PHRASES.length));
 
+  const { speaking, speak } = useSpeak();
   const next = () => setOrder((o) => [...o.slice(1), o[0]]);
   const visible = order.slice(0, STACK);
   const number = ((order[0] - start + PHRASES.length) % PHRASES.length) + 1;
@@ -457,7 +671,15 @@ export function PhraseStack() {
         {visible
           .map((idx, pos) =>
             pos === 0 ? (
-              <TopPhrase key={idx} phrase={PHRASES[idx]} lang={lang} t={t} onGone={next} />
+              <TopPhrase
+                key={idx}
+                phrase={PHRASES[idx]}
+                lang={lang}
+                t={t}
+                onGone={next}
+                speaking={speaking === idx}
+                onSpeak={() => speak(idx, PHRASES[idx].ky)}
+              />
             ) : (
               <motion.div
                 key={idx}
