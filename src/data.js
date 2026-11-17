@@ -691,47 +691,6 @@ export const ATTRACTIONS = [
   { id: "a3", name: "Мечеть Равзат", hint: "Главная мечеть города", lat: 40.526, lng: 72.794, image: "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80" },
 ];
 
-let leafletPromise = null;
-
-export function loadLeaflet() {
-  if (typeof window !== "undefined" && window.L) return Promise.resolve(window.L);
-  if (leafletPromise) return leafletPromise;
-  leafletPromise = new Promise((resolve, reject) => {
-    const cssId = "leaflet-css";
-    if (!document.getElementById(cssId)) {
-      const css = document.createElement("link");
-      css.id = cssId;
-      css.rel = "stylesheet";
-      css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-      document.head.appendChild(css);
-    }
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.addEventListener("load", () => {
-      const L = window.L;
-      if (!L) {
-        leafletPromise = null;
-        script.remove();
-        reject(new Error("Leaflet не загрузился"));
-        return;
-      }
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      });
-      resolve(L);
-    }, { once: true });
-    script.addEventListener("error", () => {
-      // сбрасываем, чтобы при следующем открытии карты была новая попытка
-      leafletPromise = null;
-      script.remove();
-      reject(new Error("Leaflet script error"));
-    }, { once: true });
-    document.head.appendChild(script);
-  });
-  return leafletPromise;
-}
 
 // Ключ даты по локальному времени (toISOString даёт UTC и ночью сдвигает день)
 function localKey(d) {

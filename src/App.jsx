@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Bell,
@@ -17,8 +17,8 @@ import {
   LogOut,
   Map as MapIcon,
   MapPin,
+  Moon,
   MoreHorizontal,
-  Navigation,
   Route as RouteIcon,
   Search,
   Sparkles,
@@ -29,7 +29,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { CATEGORIES, CITY, EXPERIENCES, loadLeaflet, makeCode, upcomingDates } from "./data";
+import { CATEGORIES, EXPERIENCES, makeCode, upcomingDates } from "./data";
 import { useContent } from "./content-context";
 import { cancelBookingRequest, fetchMyBookings, fetchProfile, saveProfile, submitBookingRequest } from "./api";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName, durationMinutes, weekdayShort } from "./i18n";
@@ -37,6 +37,8 @@ import { useSettings } from "./settings-context";
 import { FactsSection } from "./Facts";
 import { OshHeader, PhraseStack, QuickActions, SosCard } from "./HomeBlocks";
 import { TabBar } from "./TabBar";
+import { FlyLayer } from "./FlyLayer";
+import { flyToRoute } from "./flyToRoute";
 import { Toast } from "./Toast";
 import { Segmented } from "./Segmented";
 import { useMinimizeOnScroll } from "./useMinimizeOnScroll";
@@ -105,13 +107,24 @@ const RISE = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transiti
 // Фото обложки чуть «оседает» при открытии
 const HERO_IMG = { initial: { scale: 1.08 }, animate: { scale: 1 }, transition: { duration: 1.1, ease: EASE_OUT } };
 const TAP = { scale: 0.97 };
-// Плашка-подсказка: всплывает снизу и уходит
-const TOAST = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 8 },
-  transition: { duration: 0.2, ease: EASE_OUT },
-};
+
+// Карта (maplibre, ~1 МБ) грузится отдельным файлом — только когда её открыли
+const ExploreMapLazy = lazy(() => import("./OshMap").then((m) => ({ default: m.ExploreMap })));
+const MiniMapLazy = lazy(() => import("./OshMap").then((m) => ({ default: m.MiniMap })));
+function ExploreMap(props) {
+  return (
+    <Suspense fallback={<div className="map-wrap" />}>
+      <ExploreMapLazy {...props} />
+    </Suspense>
+  );
+}
+function MiniMap(props) {
+  return (
+    <Suspense fallback={<div className="mini-map" />}>
+      <MiniMapLazy {...props} />
+    </Suspense>
+  );
+}
 
 // Сердечко: при добавлении в избранное — короткий «прыжок»
 function SaveHeart({ saved }) {
@@ -252,7 +265,14 @@ function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave, onTogg
           <div className="price">{priceText(exp, t, money)}</div>
         </div>
         <div className="row">
-          <motion.button className={`pill exp-btn ${inRoute ? "on" : ""}`} whileTap={TAP} onClick={() => onToggleRoute(raw)}>
+          <motion.button
+            className={`pill exp-btn ${inRoute ? "on" : ""}`}
+            whileTap={TAP}
+            onClick={(e) => {
+              if (!inRoute) flyToRoute({ from: e.currentTarget, image: exp.image });
+              onToggleRoute(raw);
+            }}
+          >
             <Ticker value={inRoute ? t("card.inRoute") : t("card.addRoute")} />
           </motion.button>
           <motion.button className="cta exp-btn exp-btn-main" whileTap={TAP} onClick={() => onOpen(raw)}>
@@ -261,194 +281,6 @@ function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave, onTogg
         </div>
       </div>
     </article>
-  );
-}
-
-// Текст подсказки как текст, а не html (защита от xss, если данные придут из api)
-function tipText(text) {
-  const el = document.createElement("span");
-  el.textContent = text;
-  return el;
-}
-
-function MiniMap({ lat, lng, label }) {
-  const ref = useRef(null);
-  const mapRef = useRef(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    let timer;
-    loadLeaflet().then((L) => {
-      if (cancelled || !ref.current) return;
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-      const map = L.map(ref.current, { zoomControl: false, attributionControl: false }).setView([lat, lng], 15);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-      L.marker([lat, lng]).addTo(map).bindTooltip(tipText(label), { permanent: true, direction: "top" });
-      mapRef.current = map;
-      timer = setTimeout(() => map.invalidateSize(), 80);
-    }).catch(() => { });
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  }, [lat, lng, label]);
-
-  return <div ref={ref} className="mini-map" />;
-}
-
-function ExploreMap({ items, onOpen }) {
-  const { t, loc } = useSettings();
-  const ref = useRef(null);
-  const mapRef = useRef(null);
-  const userMarkerRef = useRef(null);
-  const markersRef = useRef([]);
-  const [failed, setFailed] = useState(false);
-  const [query, setQuery] = useState("");
-  const [locating, setLocating] = useState(false);
-  const [locateError, setLocateError] = useState(false);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((raw) => {
-      const e = loc(raw);
-      return `${e.title} ${e.place} ${e.type} ${raw.title} ${raw.place}`.toLowerCase().includes(q);
-    });
-  }, [items, query, loc]);
-
-  // Карта создаётся один раз при монтировании
-  useEffect(() => {
-    let cancelled = false;
-    let timer;
-    loadLeaflet().then((L) => {
-      if (cancelled || !ref.current) return;
-      const map = L.map(ref.current, { zoomControl: false }).setView([CITY.lat, CITY.lng], 14);
-      L.control.zoom({ position: "bottomleft" }).addTo(map);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap",
-      }).addTo(map);
-      mapRef.current = map;
-      timer = setTimeout(() => map.invalidateSize(), 120);
-    }).catch(() => {
-      if (!cancelled) setFailed(true);
-    });
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-      userMarkerRef.current = null;
-      markersRef.current = [];
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  }, []);
-
-  // Маркеры пересобираются при поиске и смене языка, не трогая саму карту.
-  // Тап по метке сразу открывает карточку места на весь экран.
-  useEffect(() => {
-    let cancelled = false;
-    loadLeaflet().then((L) => {
-      const map = mapRef.current;
-      if (cancelled || !map) return;
-      markersRef.current.forEach((m) => map.removeLayer(m));
-      markersRef.current = filtered.map((raw) =>
-        L.marker([raw.lat, raw.lng])
-          .addTo(map)
-          .bindTooltip(tipText(loc(raw).place), { permanent: false })
-          .on("click", () => onOpen(raw))
-      );
-    }).catch(() => { /* ошибку загрузки показывает эффект создания карты */ });
-    return () => {
-      cancelled = true;
-    };
-  }, [filtered, onOpen, loc]);
-
-  function locateMe() {
-    if (!navigator.geolocation) {
-      setLocateError(true);
-      return;
-    }
-    setLocating(true);
-    setLocateError(false);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        loadLeaflet().then((L) => {
-          const map = mapRef.current;
-          setLocating(false);
-          if (!map) return;
-          if (userMarkerRef.current) {
-            userMarkerRef.current.setLatLng([latitude, longitude]);
-          } else {
-            userMarkerRef.current = L.circleMarker([latitude, longitude], {
-              radius: 8,
-              color: "#fff",
-              weight: 3,
-              fillColor: "#1e2638",
-              fillOpacity: 1,
-            })
-              .addTo(map)
-              .bindTooltip(tipText(t("map.youAreHere")));
-          }
-          map.setView([latitude, longitude], 15);
-        }).catch(() => {
-          setLocating(false);
-          setLocateError(true);
-        });
-      },
-      () => {
-        setLocating(false);
-        setLocateError(true);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  }
-
-  return (
-    <div className="map-wrap">
-      <div ref={ref} className="map-canvas" />
-
-      <div className="map-search-bar">
-        <div className="search map-search-input">
-          <Search size={18} color="var(--muted-2)" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("map.search")} />
-        </div>
-      </div>
-
-      <button className="icon-btn map-locate-btn" onClick={locateMe} aria-label={t("map.locate")} disabled={locating}>
-        <Navigation size={18} color={locating ? "var(--muted-2)" : "var(--terracotta)"} />
-      </button>
-
-      <AnimatePresence>
-        {locateError && (
-          <motion.div key="locate" className="map-locate-toast" {...TOAST}>
-            {t("map.locateError")}
-          </motion.div>
-        )}
-        {!failed && filtered.length === 0 && (
-          <motion.div key="nothing" className="map-locate-toast is-top" {...TOAST}>
-            {t("common.nothing")}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {failed && (
-        <motion.div className="map-failed" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={SPRING}>
-          <MapIcon size={32} color="var(--indigo)" />
-          <b>{t("map.failedTitle")}</b>
-          <span className="muted">{t("map.failedText")}</span>
-        </motion.div>
-      )}
-    </div>
   );
 }
 
@@ -925,7 +757,11 @@ function SavedView({ saved, routeItems, onBack, onOpen, onToggleSave, onToggleRo
             whileTap={TAP}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            onClick={() => notInRoute.forEach(onToggleRoute)}
+            onClick={(e) => {
+              const from = e.currentTarget;
+              notInRoute.slice(0, 4).forEach((x, i) => flyToRoute({ from, image: x.image, delay: i * 0.08 }));
+              notInRoute.forEach(onToggleRoute);
+            }}
           >
             <RouteIcon size={14} /> {t("saved.allToRoute")}
           </motion.button>
@@ -1065,7 +901,23 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
 }
 
 function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours }) {
-  const { t, loc, money, fmtDate, plural, lang, setLang, currency, setCurrency, notifs, setNotifs } = useSettings();
+  const {
+    t,
+    loc,
+    money,
+    fmtDate,
+    fmtRate,
+    ratesDate,
+    plural,
+    lang,
+    setLang,
+    currency,
+    setCurrency,
+    notifs,
+    setNotifs,
+    theme,
+    setTheme,
+  } = useSettings();
   const [screen, setScreen] = useState(null); // null | "lang" | "currency"
   const [helpToast, setHelpToast] = useState(false);
   const hideHelp = useCallback(() => setHelpToast(false), []);
@@ -1097,6 +949,8 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
         items={CURRENCIES.map((c) => ({
           code: c.code,
           label: displayName("currency", c.code, lang),
+          // курс за 1 USD прямо в списке (живой, если успел загрузиться)
+          sub: c.code === "USD" ? undefined : `1 USD = ${fmtRate(c.code)}`,
           symbol: currencySymbol(c.code, lang),
         }))}
         activeCode={currency}
@@ -1230,7 +1084,31 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
             <ChevronRight size={18} color="var(--muted-2)" />
           </span>
         </button>
-        {currency !== "USD" && <div className="muted t-xs mt-8">{t("profile.ratesNote")}</div>}
+        {currency !== "USD" && (
+          <div className="muted t-xs mt-8">
+            {ratesDate
+              ? t("profile.ratesLive", { rate: fmtRate(currency), date: fmtDate(ratesDate) })
+              : t("profile.ratesNote")}
+          </div>
+        )}
+      </motion.div>
+
+      <motion.div className="card panel" variants={RISE}>
+        <div className="panel-head">
+          <Moon size={16} color="var(--terracotta)" />
+          <b>{t("profile.theme")}</b>
+        </div>
+        <Segmented
+          label={t("profile.theme")}
+          value={theme}
+          onChange={setTheme}
+          options={[
+            { value: "light", label: t("theme.light") },
+            { value: "dark", label: t("theme.dark") },
+            { value: "system", label: t("theme.system") },
+          ]}
+        />
+        {theme === "system" && <div className="muted t-xs mt-8">{t("theme.systemNote")}</div>}
       </motion.div>
 
       <motion.div className="card panel" variants={RISE}>
@@ -1337,7 +1215,14 @@ function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggleRoute,
           )}
         </div>
         {self ? (
-          <motion.button className="cta" whileTap={TAP} onClick={() => onToggleRoute(raw)}>
+          <motion.button
+            className="cta"
+            whileTap={TAP}
+            onClick={(e) => {
+              if (!inRoute) flyToRoute({ from: e.currentTarget, image: exp.image });
+              onToggleRoute(raw);
+            }}
+          >
             <Ticker value={inRoute ? t("card.inRoute") : t("card.addRoute")} />
           </motion.button>
         ) : (
@@ -1653,7 +1538,17 @@ function mergeBookings(local, remote) {
 }
 
 // ГЛАВНЫЙ ЭКСПОРТ
+// Слой «полёта в маршрут» живёт рядом с экранами, чтобы работать и на экранах без нижней панели
 export default function App() {
+  return (
+    <>
+      <AppScreens />
+      <FlyLayer />
+    </>
+  );
+}
+
+function AppScreens() {
   const { t, lang, travelMode, setTravelMode } = useSettings();
   const { allTours, byId } = useContent();
   const [tab, setTab] = useState("home");

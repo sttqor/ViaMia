@@ -24,6 +24,7 @@ import {
   Wind,
   X,
 } from "lucide-react";
+import { fallbackOf } from "./i18n";
 import { useSettings } from "./settings-context";
 import { Toast } from "./Toast";
 import "./HomeBlocks.css";
@@ -34,26 +35,30 @@ const OSH = { lat: 40.5283, lng: 72.7985, tz: "Asia/Bishkek" };
 // ── шапка: «Ош» и погода ─────────────────────────────────────────
 
 // Коды погоды WMO → значок и подпись
+// key — ключ подписи в словаре: t(`wx.c.${key}`)
 function weatherKind(code, isDay) {
-  if (code === 0) return { Icon: isDay ? Sun : Moon, ru: "Ясно", en: "Clear" };
-  if (code <= 2) return { Icon: isDay ? CloudSun : Moon, ru: "Малооблачно", en: "Partly cloudy" };
-  if (code === 3) return { Icon: Cloud, ru: "Облачно", en: "Cloudy" };
-  if (code === 45 || code === 48) return { Icon: CloudFog, ru: "Туман", en: "Fog" };
-  if (code >= 51 && code <= 57) return { Icon: CloudDrizzle, ru: "Морось", en: "Drizzle" };
-  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return { Icon: CloudRain, ru: "Дождь", en: "Rain" };
-  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return { Icon: Snowflake, ru: "Снег", en: "Snow" };
-  if (code >= 95) return { Icon: CloudLightning, ru: "Гроза", en: "Thunderstorm" };
-  return { Icon: Cloud, ru: "Облачно", en: "Cloudy" };
+  if (code === 0) return { Icon: isDay ? Sun : Moon, key: "clear" };
+  if (code <= 2) return { Icon: isDay ? CloudSun : Moon, key: "partly" };
+  if (code === 3) return { Icon: Cloud, key: "cloudy" };
+  if (code === 45 || code === 48) return { Icon: CloudFog, key: "fog" };
+  if (code >= 51 && code <= 57) return { Icon: CloudDrizzle, key: "drizzle" };
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return { Icon: CloudRain, key: "rain" };
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return { Icon: Snowflake, key: "snow" };
+  if (code >= 95) return { Icon: CloudLightning, key: "storm" };
+  return { Icon: Cloud, key: "cloudy" };
 }
 
 // Open-Meteo обновляет «сейчас» раз в 15 минут — чаще спрашивать нет смысла
-const WX_KEY = "osh-weather-v2";
+const WX_KEY = "osh-weather-v3";
 const WX_TTL = 10 * 60 * 1000;
+
+// "2026-11-17" — сегодняшняя дата в Оше
+const oshDay = (d = new Date()) => new Intl.DateTimeFormat("sv-SE", { timeZone: OSH.tz }).format(d);
 
 function readWxCache() {
   try {
     const c = JSON.parse(localStorage.getItem(WX_KEY));
-    return c?.data ? c : null;
+    return c?.data?.sun?.length ? c : null;
   } catch {
     return null;
   }
@@ -64,7 +69,7 @@ async function fetchWeather(signal) {
     `https://api.open-meteo.com/v1/forecast?latitude=${OSH.lat}&longitude=${OSH.lng}` +
     "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day" +
     "&hourly=temperature_2m,weather_code,precipitation_probability,is_day&forecast_hours=13" +
-    "&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min&forecast_days=1" +
+    "&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min&forecast_days=2" +
     `&wind_speed_unit=ms&timezone=${encodeURIComponent(OSH.tz)}`;
   const r = await fetch(url, { signal, cache: "no-store" });
   if (!r.ok) throw new Error(String(r.status));
@@ -76,8 +81,8 @@ async function fetchWeather(signal) {
     code: j.current.weather_code,
     wind: j.current.wind_speed_10m,
     isDay: j.current.is_day === 1,
-    sunrise: j.daily.sunrise[0],
-    sunset: j.daily.sunset[0],
+    // сегодня и завтра: после заката показываем завтрашний рассвет
+    sun: j.daily.sunrise.map((rise, i) => ({ rise, set: j.daily.sunset[i] })),
     max: j.daily.temperature_2m_max[0],
     min: j.daily.temperature_2m_min[0],
     // первый час — текущий, его уже показывает крупная цифра
@@ -101,7 +106,8 @@ function useOshWeather() {
 
   const refresh = useCallback(async (force = false) => {
     const c = readWxCache();
-    if (!force && c && Date.now() - c.at < WX_TTL) return;
+    // свежий кэш берём, только если восход/закат в нём на сегодня
+    if (!force && c && Date.now() - c.at < WX_TTL && c.data.sun[0].rise.startsWith(oshDay())) return;
     if (busy.current) return;
     busy.current = true;
     setState((s) => ({ ...s, loading: true }));
@@ -148,8 +154,16 @@ function useOshWeather() {
 function useOshNow() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60 * 1000);
-    return () => clearInterval(id);
+    const tick = () => setNow(new Date());
+    const id = setInterval(tick, 30 * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
   return now;
 }
@@ -171,11 +185,10 @@ function updatedText(t, at, nowMs) {
 }
 
 export function OshHeader() {
-  const { t, lang } = useSettings();
+  const { t, locale, fmtDuration } = useSettings();
   const weather = useOshWeather();
   const wx = weather.data;
   const now = useOshNow();
-  const locale = lang === "ru" ? "ru-RU" : "en-GB";
 
   const dateText = new Intl.DateTimeFormat(locale, {
     timeZone: OSH.tz,
@@ -191,11 +204,25 @@ export function OshHeader() {
   );
 
   const kind = wx ? weatherKind(wx.code, wx.isDay) : null;
-  const rise = wx ? minutesOf(wx.sunrise) : 0;
-  const set = wx ? minutesOf(wx.sunset) : 0;
-  const dayShare = wx ? Math.min(1, Math.max(0, (nowMin - rise) / (set - rise))) : 0;
-  const isDay = wx ? nowMin >= rise && nowMin <= set : true;
-  // солнце на дуге: угол от 180° (восход) до 0° (закат)
+  // восход/закат на сегодня (если кэш с прошлого дня — берём «завтра» из него, это и есть сегодня)
+  const today = oshDay(now);
+  const sunToday = wx ? wx.sun.find((d) => d.rise.startsWith(today)) || wx.sun[0] : null;
+  const sunNext = wx ? wx.sun[wx.sun.indexOf(sunToday) + 1] : null;
+  const rise = sunToday ? minutesOf(sunToday.rise) : 0;
+  const set = sunToday ? minutesOf(sunToday.set) : 0;
+  const isDay = wx ? nowMin >= rise && nowMin < set : true;
+  const afterSet = wx ? nowMin >= set : false;
+  // после заката в строке — завтрашний рассвет
+  const shownRise = afterSet && sunNext ? sunNext.rise : sunToday?.rise;
+  // сколько осталось до ближайшего события
+  const untilMin = !wx ? 0 : isDay ? set - nowMin : afterSet ? 24 * 60 - nowMin + (sunNext ? minutesOf(sunNext.rise) : rise) : rise - nowMin;
+  const nextText = wx ? t(isDay ? "wx.sunsetIn" : "wx.sunriseIn", { t: fmtDuration(Math.max(1, untilMin)) }) : "";
+  // днём по дуге идёт солнце (восход → закат), ночью — луна (закат → рассвет)
+  const nightLen = 24 * 60 - set + rise;
+  const nightPassed = afterSet ? nowMin - set : 24 * 60 - set + nowMin;
+  const share = !wx ? 0 : isDay ? (nowMin - rise) / (set - rise) : nightPassed / nightLen;
+  const dayShare = Math.min(1, Math.max(0, share));
+  // угол от 180° (восход) до 0° (закат)
   const a = Math.PI * (1 - dayShare);
   const sx = 60 + 50 * Math.cos(a);
   const sy = 58 - 50 * Math.sin(a);
@@ -267,7 +294,7 @@ export function OshHeader() {
             </AnimatePresence>
           </span>
           <span className="wx-cond">
-            {kind ? (lang === "ru" ? kind.ru : kind.en) : t("wx.loading")}
+            {kind ? t(`wx.c.${kind.key}`) : t("wx.loading")}
             {wx && <small>{t("wx.feels", { t: deg(wx.feels) })}</small>}
           </span>
         </div>
@@ -275,20 +302,27 @@ export function OshHeader() {
         <div className="wx-sun" aria-hidden={!wx}>
           <svg viewBox="0 0 120 64" className="wx-arc">
             <path d="M10 58 A50 50 0 0 1 110 58" className="wx-arc-track" />
-            {wx && isDay && (
+            {wx && (
               <path
                 d={`M10 58 A50 50 0 0 1 ${sx.toFixed(1)} ${sy.toFixed(1)}`}
-                className="wx-arc-done"
+                className={isDay ? "wx-arc-done" : "wx-arc-done is-night"}
               />
             )}
             {wx && isDay && <circle cx={sx} cy={sy} r="6" className="wx-arc-sun" />}
+            {wx && !isDay && (
+              <g className="wx-arc-moon" transform={`translate(${sx.toFixed(1)} ${sy.toFixed(1)})`}>
+                {/* полумесяц: внешняя дуга r=6, внутренняя r=4.5 */}
+                <path d="M1 -6 A6 6 0 1 0 1 6 A4.5 4.5 0 1 1 1 -6 Z" />
+              </g>
+            )}
           </svg>
+          {wx && <div className="wx-sun-next">{nextText}</div>}
           <div className="wx-sun-row">
             <span>
-              <Sunrise size={14} /> {wx ? wx.sunrise.slice(11, 16) : "—"}
+              <Sunrise size={14} /> {shownRise ? shownRise.slice(11, 16) : "—"}
             </span>
             <span>
-              <Sunset size={14} /> {wx ? wx.sunset.slice(11, 16) : "—"}
+              <Sunset size={14} /> {sunToday ? sunToday.set.slice(11, 16) : "—"}
             </span>
           </div>
         </div>
@@ -586,8 +620,9 @@ function TopPhrase({ phrase, lang, t, onGone, speaking, onSpeak }) {
   const [flipped, setFlipped] = useState(false);
   const dragged = useRef(false);
   const leaving = useRef(false);
-  const translation = lang === "ru" ? phrase.ru : phrase.en;
-  const sound = `[${phrase.tr[lang] || phrase.tr.en}]`;
+  // phrase.ky — сама фраза, перевод для кыргызского интерфейса — русский
+  const translation = (lang !== "ky" && phrase[lang]) || phrase[fallbackOf(lang)];
+  const sound = `[${phrase.tr[lang] || phrase.tr[fallbackOf(lang)]}]`;
 
   function fling(dir) {
     if (leaving.current) return;

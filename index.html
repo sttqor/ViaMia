@@ -12,6 +12,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>ViaMia — экскурсии и туры в Оше</title>
+    <script>
+      // Тема до загрузки приложения — без белой вспышки в тёмном режиме.
+      // Ту же логику потом держит SettingsProvider (ключ osh-guide-settings, поле theme).
+      (function () {
+        var t = "system";
+        try {
+          t = (JSON.parse(localStorage.getItem("osh-guide-settings") || "{}") || {}).theme || "system";
+        } catch (e) {}
+        if (t === "system") {
+          try {
+            t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          } catch (e) {
+            t = "light";
+          }
+        }
+        document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

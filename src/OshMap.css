@@ -1,0 +1,165 @@
+/* Карта MapLibre: чипы категорий, карточка места, подпись OSM */
+
+.map-wrap .maplibregl-canvas {
+  outline: none;
+}
+
+/* подпись © OpenStreetMap — над плавающей навигацией, компактная */
+.map-wrap .maplibregl-ctrl-bottom-left {
+  bottom: calc(var(--nav-h) + 22px);
+}
+
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  background: var(--glass);
+  color: var(--muted);
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--muted);
+}
+
+/* чипы категорий под поиском: прокрутка вбок */
+.map-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.map-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.map-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--h-chip);
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-float);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.map-chip:active {
+  transform: scale(0.96);
+}
+
+.map-chip.is-on {
+  background: var(--solid);
+  border-color: var(--solid);
+  color: var(--on-dark);
+}
+
+/* карточка выбранного места */
+.map-sheet {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(var(--nav-h) + 30px);
+  z-index: 1260;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-float);
+}
+
+.map-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.map-sheet-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.map-sheet-title {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.map-sheet-title b {
+  font-size: var(--fs-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-sheet-title small {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.map-sheet-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.map-sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.map-sheet-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.map-sheet-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  min-width: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius-btn);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.map-sheet-btn.is-main {
+  flex: 1;
+  background: var(--terracotta);
+  border-color: var(--terracotta);
+  color: var(--on-dark);
+}

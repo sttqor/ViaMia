@@ -44,7 +44,7 @@
   position: absolute;
   inset: 0;
   border-radius: var(--radius-pill);
-  background: var(--ink);
+  background: var(--solid);
   box-shadow: 0 2px 6px rgba(30, 38, 56, 0.18);
 }
 

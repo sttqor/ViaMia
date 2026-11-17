@@ -9,6 +9,7 @@ import {
   useTransform,
   useVelocity,
 } from "motion/react";
+import { BUMP_EVENT } from "./flyToRoute";
 import "./TabBar.css";
 
 // Нижняя панель в стиле iOS 26 (Liquid Glass):
@@ -20,6 +21,8 @@ import "./TabBar.css";
 const SPRING = { type: "spring", stiffness: 520, damping: 40, mass: 0.9 };
 const LAYOUT_SPRING = { type: "spring", stiffness: 420, damping: 36 };
 const DRAG_THRESHOLD = 6;
+const BUMP_SPRING = { type: "spring", stiffness: 500, damping: 12 };
+const RIPPLE = { duration: 0.5, ease: "easeOut" };
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
@@ -51,6 +54,48 @@ export function TabBar({ tabs, activeId, onSelect, onReselect, minimized, onExpa
   const velocity = useVelocity(x);
   const stretchRaw = useTransform(velocity, (v) => 1 + Math.min(Math.abs(v) / 3500, 0.28));
   const stretch = useSpring(stretchRaw, { stiffness: 600, damping: 30 });
+
+  // «Приземление» миниатюры (см. FlyLayer): кружок «Маршрута» подпрыгивает, от него расходится кольцо
+  const bump = useMotionValue(1);
+  const [ripple, setRipple] = useState(0);
+  useEffect(() => {
+    let controls = null;
+    let clear = null;
+    const onBump = () => {
+      haptic();
+      setRipple((k) => k + 1);
+      // убираем кольцо по таймеру: onAnimationComplete срабатывал не всегда,
+      // и невидимое кольцо проигрывалось снова при сворачивании панели
+      clearTimeout(clear);
+      clear = setTimeout(() => setRipple(0), 600);
+      controls?.stop();
+      controls = animate(bump, 1.25, {
+        duration: 0.1,
+        ease: "easeOut",
+        onComplete: () => {
+          controls = animate(bump, 1, BUMP_SPRING);
+        },
+      });
+    };
+    window.addEventListener(BUMP_EVENT, onBump);
+    return () => {
+      window.removeEventListener(BUMP_EVENT, onBump);
+      controls?.stop();
+      clearTimeout(clear);
+    };
+  }, [bump]);
+
+  const rippleRing =
+    ripple > 0 ? (
+      <motion.span
+        key={ripple}
+        className="tabbar-ripple"
+        initial={{ scale: 1, opacity: 0.8 }}
+        animate={{ scale: 1.65, opacity: 0 }}
+        transition={RIPPLE}
+        aria-hidden="true"
+      />
+    ) : null;
 
   // Ширина одной вкладки (ResizeObserver срабатывает и сразу после подписки)
   useEffect(() => {
@@ -159,7 +204,10 @@ export function TabBar({ tabs, activeId, onSelect, onReselect, minimized, onExpa
               exit={{ opacity: 0, scale: 0.6 }}
               transition={{ duration: 0.18 }}
             >
-              <ActiveIcon size={24} strokeWidth={2.1} />
+              <motion.span className="tabbar-bump" style={{ scale: bump }}>
+                {rippleRing}
+                <ActiveIcon size={24} strokeWidth={2.1} />
+              </motion.span>
             </motion.button>
           ) : (
             <motion.div
@@ -198,9 +246,12 @@ export function TabBar({ tabs, activeId, onSelect, onReselect, minimized, onExpa
                 >
                   {tab.accent ? (
                     // выделенная вкладка (маршрут) — иконка в терракотовом кружке
-                    <i className="tabbar-accent-icon">
-                      <tab.Icon size={20} strokeWidth={2.4} />
-                    </i>
+                    <motion.span className="tabbar-bump" style={{ scale: bump }}>
+                      {rippleRing}
+                      <i className="tabbar-accent-icon" data-fly-target="route">
+                        <tab.Icon size={20} strokeWidth={2.4} />
+                      </i>
+                    </motion.span>
                   ) : (
                     <tab.Icon size={24} strokeWidth={i === highlight ? 2.3 : 1.9} />
                   )}

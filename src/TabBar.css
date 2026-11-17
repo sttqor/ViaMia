@@ -22,7 +22,12 @@
   right: 0;
   bottom: -40px;
   height: calc(var(--nav-h) + 96px);
-  background: linear-gradient(180deg, rgba(250, 246, 240, 0) 0%, rgba(250, 246, 240, 0.86) 55%, var(--bg) 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 0%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 86%, transparent) 55%,
+    var(--bg) 100%
+  );
   pointer-events: none;
   z-index: -1;
 }
@@ -39,7 +44,7 @@
   height: var(--nav-h);
   overflow: hidden;
   isolation: isolate;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--glass);
   backdrop-filter: blur(24px) saturate(190%) brightness(1.04);
   -webkit-backdrop-filter: blur(24px) saturate(190%) brightness(1.04);
   box-shadow:
@@ -92,14 +97,14 @@
   bottom: 4px;
   left: 4px;
   border-radius: var(--radius-pill);
-  background: rgba(30, 38, 56, 0.07);
+  background: var(--hover);
   transition: background 0.2s ease, box-shadow 0.2s ease;
   z-index: 0;
   will-change: transform;
 }
 
 .tabbar-lens.is-pressed {
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--glass-lens);
   box-shadow:
     0 6px 18px rgba(30, 38, 56, 0.16),
     inset 0 1px 1px rgba(255, 255, 255, 0.95),
@@ -135,7 +140,9 @@
   border-radius: var(--radius-pill);
 }
 
-.tabbar-item span {
+/* только подпись (последний ребёнок): иначе правило цепляет обёртку .tabbar-bump
+   и кольцо — overflow:hidden обрезал тень кружка «Маршрута» в квадрат */
+.tabbar-item > span:last-child {
   font-size: var(--fs-xs);
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -163,7 +170,7 @@
   display: grid;
   place-items: center;
   color: var(--on-dark);
-  background: linear-gradient(150deg, #e0663d 0%, var(--terracotta) 55%, var(--terracotta-dark) 100%);
+  background: linear-gradient(150deg, #e0663d 0%, var(--terracotta) 55%, var(--terracotta-deep) 100%);
   box-shadow:
     0 4px 12px rgba(212, 83, 43, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.35),
@@ -180,8 +187,29 @@
     inset 0 -1px 1px rgba(0, 0, 0, 0.12);
 }
 
-.tabbar-item.is-accent span {
+.tabbar-item.is-accent > span:last-child {
   font-weight: 800;
+}
+
+/* обёртка для «приземления» из FlyLayer: подпрыгивание + расходящееся кольцо */
+.tabbar-bump {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+/* кольцо — строго круг 34px по центру кружка «Маршрута» (обёртка может быть не квадратной);
+   расходится до 1.65× ≈ 56px, чтобы не обрезаться капсулой высотой 62px */
+.tabbar-ripple {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  border: 2px solid var(--terracotta);
+  pointer-events: none;
 }
 
 .tabbar-mini {
@@ -198,4 +226,9 @@
 
 .tabbar-mini:active {
   transform: scale(0.92);
+}
+
+/* тёмная тема: белый блик по краю стекла светится слишком ярко */
+:root[data-theme="dark"] .tabbar::before {
+  opacity: 0.22;
 }

@@ -1,11 +1,22 @@
 // Языки, валюты и форматирование.
 //
-// КАК ДОБАВИТЬ ЯЗЫК: добавьте словарь в DICT (например `ky: { ... }`) —
-// язык сам появится в профиле. Недостающие ключи берутся из русского.
+// КАК ДОБАВИТЬ ЯЗЫК: положите словарь в src/locales/<код>.js (те же ключи, что в `en`)
+// и подключите его в DICT ниже — язык сам появится в профиле.
+// Недостающие ключи берутся из en (или ru для ky/kk/uz), потом из русского.
 //
 // КАК ПЕРЕВЕСТИ КАРТОЧКУ (тур, факт, категорию) — см. data.js:
-// внутри карточки добавьте блок `en: { title: "...", ... }`.
-// Поля без перевода показываются по-русски.
+// внутри карточки добавьте блок `en: { title: "...", ... }` (или `de: {...}`).
+// Нет блока на языке — показывается en, для ky/kk/uz — русский.
+import de from "./locales/de.js";
+import es from "./locales/es.js";
+import fr from "./locales/fr.js";
+import ja from "./locales/ja.js";
+import kk from "./locales/kk.js";
+import ko from "./locales/ko.js";
+import ky from "./locales/ky.js";
+import tr from "./locales/tr.js";
+import uz from "./locales/uz.js";
+import zh from "./locales/zh.js";
 
 export const BASE_LANG = "ru";
 
@@ -31,7 +42,7 @@ const LANG_META = [
   { code: "hi", native: "हिन्दी", locale: "hi-IN" },
 ];
 
-// Курсы к 1 USD. ПРИМЕРНЫЕ — заглушка, обновить вручную или подключить API курсов.
+// Курсы к 1 USD. ПРИМЕРНЫЕ — запасные, пока не пришли живые (rates.js).
 // Все цены в data.js хранятся в USD.
 export const CURRENCIES = [
   { code: "USD", rate: 1 },
@@ -79,6 +90,26 @@ export const DICT = {
     "map.failedTitle": "Карта временно недоступна",
     "map.failedText": "Проверьте интернет и откройте вкладку снова.",
     "map.youAreHere": "Вы здесь",
+    "map.cat.all": "Всё",
+    "map.cat.tours": "Туры",
+    "map.cat.sight": "Места",
+    "map.cat.museum": "Музеи",
+    "map.cat.mosque": "Мечети",
+    "map.cat.cafe": "Кофейни",
+    "map.cat.food": "Еда",
+    "map.cat.market": "Рынки",
+    "map.cat.park": "Парки",
+    "map.cat.hotel": "Жильё",
+    "map.cat.atm": "Деньги",
+    "map.cat.pharmacy": "Аптеки",
+    "map.cat.hospital": "Больницы",
+    "map.poi.hours": "Часы работы",
+    "map.poi.call": "Позвонить",
+    "map.poi.site": "Сайт",
+    "map.poi.route": "Маршрут",
+    "map.poi.open2gis": "Открыть в 2ГИС",
+    "map.poi.noName": "Без названия",
+    "map.poi.close": "Закрыть",
 
     "home.heroAlt": "Сулайман-Тоо, Ош",
     "home.tag": "ДРЕВНИЙ ОШ · 3000 ЛЕТ",
@@ -127,6 +158,16 @@ export const DICT = {
     "wx.hAgo": "обновлено {n} ч назад",
     "wx.refresh": "Обновить погоду",
     "wx.hourly": "Прогноз по часам",
+    "wx.c.clear": "Ясно",
+    "wx.c.partly": "Малооблачно",
+    "wx.c.cloudy": "Облачно",
+    "wx.c.fog": "Туман",
+    "wx.c.drizzle": "Морось",
+    "wx.c.rain": "Дождь",
+    "wx.c.snow": "Снег",
+    "wx.c.storm": "Гроза",
+    "wx.sunsetIn": "закат через {t}",
+    "wx.sunriseIn": "рассвет через {t}",
     "phrase.listen": "Послушать, как произносится",
     "phrase.tapBack": "Нажмите ещё раз — обратно",
     "tips.title": "Советы",
@@ -246,7 +287,13 @@ export const DICT = {
     "profile.language": "Язык приложения",
     "profile.currency": "Валюта",
     "profile.ratesNote": "Цены пересчитаны из USD по примерному курсу",
+    "profile.ratesLive": "1 USD = {rate} · курс на {date}",
     "profile.notifs": "Уведомления о турах",
+    "profile.theme": "Тема",
+    "theme.light": "Светлая",
+    "theme.dark": "Тёмная",
+    "theme.system": "Авто",
+    "theme.systemNote": "«Авто» — как в настройках телефона",
     "profile.help": "Помощь и поддержка",
     "profile.helpSoon": "Поддержка скоро появится. Контакт будет добавлен позже.",
 
@@ -319,6 +366,26 @@ export const DICT = {
     "map.failedTitle": "Map is temporarily unavailable",
     "map.failedText": "Check your connection and reopen the tab.",
     "map.youAreHere": "You are here",
+    "map.cat.all": "All",
+    "map.cat.tours": "Tours",
+    "map.cat.sight": "Sights",
+    "map.cat.museum": "Museums",
+    "map.cat.mosque": "Mosques",
+    "map.cat.cafe": "Cafés",
+    "map.cat.food": "Food",
+    "map.cat.market": "Markets",
+    "map.cat.park": "Parks",
+    "map.cat.hotel": "Stay",
+    "map.cat.atm": "Money",
+    "map.cat.pharmacy": "Pharmacies",
+    "map.cat.hospital": "Hospitals",
+    "map.poi.hours": "Opening hours",
+    "map.poi.call": "Call",
+    "map.poi.site": "Website",
+    "map.poi.route": "Directions",
+    "map.poi.open2gis": "Open in 2GIS",
+    "map.poi.noName": "Unnamed",
+    "map.poi.close": "Close",
 
     "home.heroAlt": "Sulaiman-Too, Osh",
     "home.tag": "ANCIENT OSH · 3000 YEARS",
@@ -367,6 +434,16 @@ export const DICT = {
     "wx.hAgo": "updated {n} h ago",
     "wx.refresh": "Refresh weather",
     "wx.hourly": "Hourly forecast",
+    "wx.c.clear": "Clear",
+    "wx.c.partly": "Partly cloudy",
+    "wx.c.cloudy": "Cloudy",
+    "wx.c.fog": "Fog",
+    "wx.c.drizzle": "Drizzle",
+    "wx.c.rain": "Rain",
+    "wx.c.snow": "Snow",
+    "wx.c.storm": "Thunderstorm",
+    "wx.sunsetIn": "sunset in {t}",
+    "wx.sunriseIn": "sunrise in {t}",
     "phrase.listen": "Listen to the pronunciation",
     "phrase.tapBack": "Tap again to flip back",
     "tips.title": "Tips",
@@ -486,7 +563,13 @@ export const DICT = {
     "profile.language": "App language",
     "profile.currency": "Currency",
     "profile.ratesNote": "Prices converted from USD at an approximate rate",
+    "profile.ratesLive": "1 USD = {rate} · rate as of {date}",
     "profile.notifs": "Tour notifications",
+    "profile.theme": "Theme",
+    "theme.light": "Light",
+    "theme.dark": "Dark",
+    "theme.system": "Auto",
+    "theme.systemNote": "“Auto” follows your phone settings",
     "profile.help": "Help & support",
     "profile.helpSoon": "Support is coming soon. A contact will be added later.",
 
@@ -528,6 +611,16 @@ export const DICT = {
     "pl.stops": { one: "{n} stop", other: "{n} stops" },
     "pl.reviews": { one: "{n} review", other: "{n} reviews" },
   },
+  ky,
+  kk,
+  uz,
+  tr,
+  de,
+  fr,
+  es,
+  zh,
+  ja,
+  ko,
 };
 
 export const LANGUAGES = LANG_META.filter((l) => DICT[l.code]);
@@ -536,18 +629,23 @@ const metaOf = (lang) => LANG_META.find((l) => l.code === lang) || LANG_META[0];
 export const localeOf = (lang) => metaOf(lang).locale;
 export const isRtl = (lang) => Boolean(metaOf(lang).rtl);
 
+// Чем заменить, если на языке нет перевода карточки/фразы:
+// в Средней Азии понятнее русский, остальным — английский.
+const RU_FALLBACK = ["ru", "ky", "kk", "uz", "tg"];
+export const fallbackOf = (lang) => (RU_FALLBACK.includes(lang) ? "ru" : "en");
+
 function fill(str, vars) {
   if (!vars) return str;
   return str.replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? ""));
 }
 
 export function translate(lang, key, vars) {
-  const s = DICT[lang]?.[key] ?? DICT[BASE_LANG][key] ?? key;
+  const s = DICT[lang]?.[key] ?? DICT[fallbackOf(lang)]?.[key] ?? DICT[BASE_LANG][key] ?? key;
   return typeof s === "string" ? fill(s, vars) : key;
 }
 
 export function pluralize(lang, key, n) {
-  const forms = DICT[lang]?.[key] ?? DICT[BASE_LANG][key];
+  const forms = DICT[lang]?.[key] ?? DICT[fallbackOf(lang)]?.[key] ?? DICT[BASE_LANG][key];
   if (!forms) return String(n);
   let cat = "other";
   try {
@@ -559,15 +657,33 @@ export function pluralize(lang, key, n) {
 }
 
 // Карточка на нужном языке: поля из блока `item[lang]` перекрывают русские.
+// Нет блока на этом языке — берём en (или русский для ky/kk/uz).
 export function localize(item, lang) {
   if (!item || lang === BASE_LANG) return item;
-  const tr = item[lang];
+  const fb = fallbackOf(lang);
+  const tr = item[lang] ?? (fb === BASE_LANG ? null : item[fb]);
   return tr ? { ...item, ...tr } : item;
 }
 
-export function formatMoney(usd, currency, lang) {
+// Курс к 1 USD: живой (rates из rates.js), если есть, иначе примерный из CURRENCIES
+export function rateOf(code, rates) {
+  const live = rates?.[code];
+  if (live) return live;
+  return (CURRENCIES.find((x) => x.code === code) || CURRENCIES[0]).rate;
+}
+
+// «87,45 сом» / «€0.86» — цена одной единицы с копейками, для подписи курса
+export function formatRate(code, rates, lang) {
+  const c = CURRENCIES.find((x) => x.code === code) || CURRENCIES[0];
+  const v = rateOf(c.code, rates);
+  const digits = v >= 100 ? 0 : v >= 10 ? 1 : 2;
+  const num = new Intl.NumberFormat(localeOf(lang), { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(v);
+  return `${num} ${c.symbol ? customSymbol(c, lang) : currencySymbol(c.code, lang)}`;
+}
+
+export function formatMoney(usd, currency, lang, rates) {
   const c = CURRENCIES.find((x) => x.code === currency) || CURRENCIES[0];
-  const value = Math.round(usd * c.rate);
+  const value = Math.round(usd * rateOf(c.code, rates));
   if (c.symbol) {
     let num = String(value);
     try {

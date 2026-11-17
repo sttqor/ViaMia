@@ -14,7 +14,7 @@
   overflow: hidden;
   padding: 16px;
   border-radius: var(--radius-card);
-  background: linear-gradient(135deg, var(--ink) 0%, #2f3754 100%);
+  background: linear-gradient(135deg, var(--indigo) 0%, #2f3754 100%);
   color: var(--on-dark);
   box-shadow: 0 10px 24px rgba(30, 38, 56, 0.18);
 }
@@ -202,7 +202,7 @@
 }
 
 .tip-tag.is-dont {
-  background: var(--ink);
+  background: var(--solid);
   color: var(--on-dark);
 }
 

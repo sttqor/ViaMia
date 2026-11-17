@@ -53,6 +53,57 @@
 
   /* минимальная зона нажатия (Apple HIG) */
   --hit: 44px;
+
+  /* поверхности, которые меняются в тёмной теме */
+  --solid: #1e2638;              /* заливка выбранного: чипы, ползунок, «не принято» (текст на ней — --on-dark) */
+  --terracotta-deep: #b8431f;    /* тёмный край градиентов (в отличие от --terracotta-dark не светлеет) */
+  --bg-warm: #fdf9f6;            /* фон под орнаментом */
+  --glass: rgba(255, 255, 255, 0.82);
+  --glass-lens: rgba(255, 255, 255, 0.55);
+  --hover: rgba(30, 38, 56, 0.07);
+  --wx-day: linear-gradient(150deg, #fff7ef 0%, #fbe3d3 55%, #f6c9ae 100%);
+  color-scheme: light;
+}
+
+/* ── Тёмная тема ──────────────────────────────────────────────
+   Включается атрибутом data-theme="dark" на <html> (ставит SettingsProvider,
+   а до загрузки React — скрипт в index.html, чтобы не было белой вспышки).
+   --ink здесь — светлый текст. Тёмные карточки (фраза дня, совет дня, ночная
+   погода, код билета) рисуются через --indigo и остаются тёмными в обеих темах. */
+:root[data-theme="dark"] {
+  --bg: #12161f;
+  --sand-50: #12161f;
+  --sand-100: #232a38;
+  --sand-200: #2d3546;
+  --line: #2d3546;
+  --card: #1a202c;
+  --ink: #ede7dd;
+  --ink-soft: #cdc6ba;
+  --muted: #a59d90;
+  --muted-2: #7f786c;
+  --terracotta-dark: #f2906a;    /* акцентный текст: на тёмном нужен светлее */
+  --terracotta-glow: #3b2520;
+  --green: #6fcf97;
+  --green-bg: #1b3326;
+  --shadow-float: 0 10px 30px rgba(0, 0, 0, 0.45);
+
+  --solid: #3a4560;
+  --bg-warm: #12161f;
+  --glass: rgba(28, 34, 47, 0.8);
+  --glass-lens: rgba(255, 255, 255, 0.1);
+  --hover: rgba(255, 255, 255, 0.08);
+  --wx-day: linear-gradient(150deg, #2b2420 0%, #3a2a22 55%, #4a2e21 100%);
+  color-scheme: dark;
+}
+
+/* горы и орнамент внизу фона нарисованы тёмным по светлому — в тёмной теме переворачиваем */
+:root[data-theme="dark"] .ornament-bg::before,
+:root[data-theme="dark"] .ornament-bg::after {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+:root[data-theme="dark"] .ornament-bg::after {
+  opacity: 0.55;
 }
 
 h1,
@@ -146,8 +197,8 @@ img {
 }
 
 .pill.on {
-  background: var(--ink);
-  border-color: var(--ink);
+  background: var(--solid);
+  border-color: var(--solid);
   color: var(--on-dark);
 }
 
@@ -339,11 +390,6 @@ img {
   isolation: isolate;
 }
 
-/* кнопки карты — над плавающей навигацией */
-.map-wrap .leaflet-bottom {
-  bottom: calc(var(--nav-h) + 22px);
-}
-
 .map-failed {
   position: absolute;
   inset: 0;
@@ -440,7 +486,7 @@ img {
 /* Фон: орнамент как в первой версии + горы */
 /* Фон: орнамент как в первой версии + горы */
 .ornament-bg {
-  background-color: #fdf9f6;
+  background-color: var(--bg-warm);
   position: relative;
   isolation: isolate;
 }
@@ -846,7 +892,7 @@ img {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid var(--line);
@@ -1168,7 +1214,7 @@ img {
   height: 44px;
   flex-shrink: 0;
   border-radius: var(--radius-thumb);
-  background: var(--ink);
+  background: var(--solid);
   color: var(--on-dark);
   display: flex;
   align-items: center;
@@ -1188,14 +1234,14 @@ img {
 
 .chip.is-on {
   color: var(--on-dark);
-  border-color: var(--ink);
+  border-color: var(--solid);
 }
 
 .chip-thumb {
   position: absolute;
   inset: -1.5px;
   border-radius: var(--radius-pill);
-  background: var(--ink);
+  background: var(--solid);
 }
 
 .chip-label {

@@ -36,13 +36,13 @@
   margin-top: 14px;
   padding: 16px;
   border-radius: var(--radius-card);
-  background: linear-gradient(150deg, #fff7ef 0%, #fbe3d3 55%, #f6c9ae 100%);
+  background: var(--wx-day);
   color: var(--ink);
   border: 1px solid var(--line);
 }
 
 .is-night .wx {
-  background: linear-gradient(150deg, #2a3350 0%, var(--ink) 60%, #141a28 100%);
+  background: linear-gradient(150deg, #2a3350 0%, var(--indigo) 60%, #141a28 100%);
   border-color: transparent;
   color: var(--on-dark);
 }
@@ -174,7 +174,7 @@
   gap: 4px;
   padding: 8px 0;
   border-radius: var(--radius-thumb);
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--glass-lens);
   scroll-snap-align: start;
   font-size: var(--fs-sm);
 }
@@ -274,6 +274,26 @@
   stroke-width: 2;
 }
 
+/* ночью дуга — путь луны от заката к рассвету */
+.wx-arc-done.is-night {
+  stroke: var(--gold);
+  stroke-opacity: 0.55;
+}
+
+.wx-arc-moon {
+  fill: var(--gold);
+}
+
+/* «закат через 2 ч 14 мин» */
+.wx-sun-next {
+  margin: 2px 0 2px;
+  text-align: center;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
 .wx-sun-row {
   display: flex;
   justify-content: space-between;
@@ -293,7 +313,7 @@
   display: flex;
   justify-content: space-between;
   padding-top: 10px;
-  border-top: 1px solid rgba(30, 38, 56, 0.1);
+  border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
   font-size: var(--fs-sm);
   font-weight: 700;
   opacity: 0.85;
@@ -371,7 +391,7 @@
   position: absolute;
   inset: 0;
   border-radius: var(--radius-card);
-  background: linear-gradient(135deg, var(--ink) 0%, #2f3754 100%);
+  background: linear-gradient(135deg, var(--indigo) 0%, #2f3754 100%);
   color: var(--on-dark);
   overflow: hidden;
   transform-origin: 50% 100%;

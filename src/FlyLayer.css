@@ -1,0 +1,33 @@
+/* Слой «полёта в маршрут» — поверх всего, нажатия не перехватывает */
+
+.fly-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1400; /* выше нижней панели (1300) */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fly-thumb {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--card);
+  background: var(--terracotta);
+  color: var(--on-dark);
+  box-shadow: 0 6px 16px rgba(30, 38, 56, 0.25);
+  will-change: transform, opacity;
+}
+
+.fly-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
