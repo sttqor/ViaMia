@@ -318,17 +318,6 @@ function walkKm(a, b) {
 
 const WALK_KMH = 4.5;
 
-function openNavigation(items) {
-  if (items.length === 0) return;
-  const pts = items.map((i) => `${i.lat},${i.lng}`);
-  const destination = pts[pts.length - 1];
-  const waypoints = pts.slice(0, -1).join("|");
-  const url =
-    `https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${encodeURIComponent(destination)}` +
-    (waypoints ? `&waypoints=${encodeURIComponent(waypoints)}` : "");
-  window.open(url, "_blank", "noopener");
-}
-
 // Меню «…» у точки маршрута: выше / ниже / убрать.
 // Одна кнопка вместо трёх — карточка не перегружена, цель нажатия 44px.
 function PlaceMenu({ open, onToggle, onClose, canUp, canDown, onUp, onDown, onRemove }) {
@@ -387,7 +376,8 @@ function PlaceMenu({ open, onToggle, onClose, canUp, canDown, onUp, onDown, onRe
   );
 }
 
-function RouteView({ items, setItems, onGoToTours }) {
+// onNavigate(stops) — открыть маршрут дня на карте приложения (не во внешних картах)
+function RouteView({ items, setItems, onGoToTours, onNavigate }) {
   const { t, plural, loc, fmtDuration, locale } = useSettings();
   const [expandedId, setExpandedId] = useState(null);
   const [menuId, setMenuId] = useState(null);
@@ -554,7 +544,13 @@ function RouteView({ items, setItems, onGoToTours }) {
               layout="position"
               className="cta mt-16"
               whileTap={TAP}
-              onClick={() => openNavigation(items)}
+              onClick={() =>
+                onNavigate(
+                  items
+                    .filter((i) => i.lat != null && i.lng != null)
+                    .map((i) => ({ lng: i.lng, lat: i.lat, label: loc(i).title })),
+                )
+              }
             >
               {t("route.navigate", { stops: plural("pl.stops", items.length) })}
             </motion.button>
@@ -1563,6 +1559,8 @@ function AppScreens() {
   const [splash, setSplash] = useState(true);
   // экран поверх вкладок без своего тура: "saved" | "tips" | null
   const [page, setPage] = useState(null);
+  // маршрут дня, открытый на карте кнопкой «навигация» ({ stops }), null — нет
+  const [navPlan, setNavPlan] = useState(null);
 
   const [routeIds, setRouteIds] = useState(() => initialStore?.route || DEFAULT_ROUTE);
   const routeItems = useMemo(() => routeIds.map(byId).filter(Boolean), [routeIds, byId]);
@@ -1754,10 +1752,21 @@ function AppScreens() {
     <div className="gyg-app ornament-bg">
       {tab === "home" && <HomeView onGoTo={setTab} onOpenExp={setSelected} onOpenTips={() => setPage("tips")} />}
 
-      {tab === "map" && <ExploreMap items={allTours} onOpen={setSelected} />}
+      {tab === "map" && (
+        <ExploreMap items={allTours} onOpen={setSelected} nav={navPlan} onNavEnd={() => setNavPlan(null)} />
+      )}
 
       {tab === "route" && (
-        <RouteView items={routeItems} setItems={setRouteItems} onGoToTours={() => setTab("tours")} />
+        <RouteView
+          items={routeItems}
+          setItems={setRouteItems}
+          onGoToTours={() => setTab("tours")}
+          onNavigate={(stops) => {
+            if (stops.length === 0) return;
+            setNavPlan({ stops });
+            setTab("map");
+          }}
+        />
       )}
 
       {tab === "tours" && (
