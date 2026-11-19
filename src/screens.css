@@ -624,5 +624,44 @@
 }
 
 .login-change { margin-top: 6px; }
+.login-change:disabled { opacity: 0.5; }
+.login-field:focus-within { border-color: var(--terracotta); }
+.login-field input { min-width: 0; }
+
+/* «показать пароль» внутри поля */
+.login-eye {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: -8px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* ── способы входа в профиле ─────────────────────────────── */
+.method-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--hit);
+}
+div.method-row { cursor: default; }
+.method-main { flex: 1; min-width: 0; }
+.method-label {
+  display: block;
+  font-weight: 700;
+  font-size: var(--fs-sm);
+}
+.method-action {
+  flex-shrink: 0;
+  color: var(--terracotta-dark);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+}
 .login-done { padding-top: 44px; }
 .login-email { overflow-wrap: anywhere; }

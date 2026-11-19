@@ -238,3 +238,26 @@ alter table public.tours add constraint tours_category_check
 alter table public.tours alter column price drop not null;
 alter table public.tours add column if not exists agency_name text;
 alter table public.tours add column if not exists source_url text;
+
+-- ── Настройки в аккаунте и автосоздание профиля ─────────────────────────────
+-- settings: {lang, currency, theme, notifs, travelMode} — синхронизируются между устройствами
+alter table public.profiles add column if not exists settings jsonb not null default '{}'::jsonb;
+alter table public.profiles drop constraint if exists profiles_settings_check;
+alter table public.profiles add constraint profiles_settings_check
+  check (jsonb_typeof(settings) = 'object' and pg_column_size(settings) < 4096);
+
+-- профиль появляется сразу при регистрации (первый вход по коду)
+create or replace function public.handle_new_user() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.profiles (id) values (new.id) on conflict (id) do nothing;
+  return new;
+end $$;
+
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+insert into public.profiles (id) select id from auth.users on conflict (id) do nothing;

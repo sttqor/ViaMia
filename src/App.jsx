@@ -31,7 +31,8 @@ import {
 } from "lucide-react";
 import { CATEGORIES, EXPERIENCES, makeCode, upcomingDates } from "./data";
 import { useContent } from "./content-context";
-import { cancelBookingRequest, fetchMyBookings, fetchProfile, saveProfile, submitBookingRequest } from "./api";
+import { cancelBookingRequest, submitBookingRequest } from "./api";
+import { useAccountSync } from "./useAccountSync";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName, durationMinutes, weekdayShort } from "./i18n";
 import { useSettings } from "./settings-context";
 import { FactsSection } from "./Facts";
@@ -45,6 +46,8 @@ import { useMinimizeOnScroll } from "./useMinimizeOnScroll";
 import { Onboarding } from "./Onboarding";
 import { TipsScreen } from "./Tips.jsx";
 import { LoginScreen } from "./Login.jsx";
+import { LinkScreen, LoginMethods } from "./AccountMethods.jsx";
+import { prettyPhone } from "./phone";
 import { useAuth } from "./auth-context";
 import splashVideo from "./splash.mp4";
 
@@ -918,7 +921,7 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
     theme,
     setTheme,
   } = useSettings();
-  const [screen, setScreen] = useState(null); // null | "lang" | "currency"
+  const [screen, setScreen] = useState(null); // null | "lang" | "currency" | "link-email" | "link-phone" | "link-password"
   const [helpToast, setHelpToast] = useState(false);
   const hideHelp = useCallback(() => setHelpToast(false), []);
 
@@ -926,6 +929,10 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
   const currentLang = LANGUAGES.find((l) => l.code === lang);
   const { allTours } = useContent();
   const savedRaw = allTours.filter((e) => saved.has(e.id));
+
+  if (screen?.startsWith("link-") && authUser) {
+    return <LinkScreen mode={screen.slice(5)} onBack={() => setScreen(null)} />;
+  }
 
   if (screen === "lang") {
     return (
@@ -974,7 +981,9 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
           </div>
           <div className="grow">
             <div className="t-md b">{authUser ? t("login.account") : t("profile.guest")}</div>
-            <div className="muted t-xs login-email">{authUser ? authUser.email : t("profile.guestNote")}</div>
+            <div className="muted t-xs login-email">
+              {authUser ? authUser.email || prettyPhone(authUser.phone) : t("profile.guestNote")}
+            </div>
           </div>
           {!authUser &&
             (authOn ? (
@@ -997,6 +1006,12 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
           </button>
         )}
       </motion.div>
+
+      {authUser && (
+        <motion.div variants={RISE}>
+          <LoginMethods onOpen={(mode) => setScreen(`link-${mode}`)} />
+        </motion.div>
+      )}
 
       <motion.div className="card panel" variants={RISE}>
         <div className="panel-head">
@@ -1519,24 +1534,6 @@ function loadStore() {
 const initialStore = loadStore();
 const DEFAULT_ROUTE = ["self-sulaiman", "self-center", "self-jayma"];
 
-// При входе гостевые данные не теряются, а сливаются с тем, что лежит в аккаунте.
-function mergeRoute(serverRoute, localRoute) {
-  const local = localRoute || [];
-  const server = serverRoute || [];
-  if (server.length === 0) return local;
-  // маршрут не трогали — просто берём свой из аккаунта
-  const untouched = local.length === DEFAULT_ROUTE.length && local.every((id, i) => id === DEFAULT_ROUTE[i]);
-  if (untouched) return server;
-  return [...local, ...server.filter((id) => !local.includes(id))];
-}
-
-function mergeBookings(local, remote) {
-  const byCode = new Map((local || []).map((b) => [b.code, b]));
-  // с сервера приходит актуальный статус — он главнее сохранённого на устройстве
-  for (const r of remote) byCode.set(r.code, { ...byCode.get(r.code), ...r });
-  return [...byCode.values()].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
-}
-
 // ГЛАВНЫЙ ЭКСПОРТ
 // Слой «полёта в маршрут» живёт рядом с экранами, чтобы работать и на экранах без нижней панели
 export default function App() {
@@ -1569,65 +1566,18 @@ function AppScreens() {
   const setRouteItems = (items) => setRouteIds(items.map((x) => x.id));
 
   // ── Аккаунт ───────────────────────────────────────────────────
-  // Вход — не косметика: избранное, маршрут и брони переезжают в аккаунт и
-  // возвращаются на любом устройстве. Выход убирает личное с этого устройства.
-  const { user: authUser } = useAuth();
-  const [account, setAccount] = useState(null); // имя и контакт для подстановки в бронь
-  const pulledFor = useRef(null); // чьи данные начали тянуть
-  const readyFor = useRef(null);  // чьи данные уже слиты — только после этого можно писать
-
-  useEffect(() => {
-    const uid = authUser?.id ?? null;
-
-    if (!uid) {
-      // чистим устройство только если данные успели уехать в аккаунт:
-      // иначе (вошли без сети и вышли) стёрли бы то, чего больше нигде нет
-      const wasSynced = readyFor.current;
-      pulledFor.current = null;
-      readyFor.current = null;
-      if (wasSynced) {
-        setAccount(null);
-        setSaved(new Set());
-        setRouteIds(DEFAULT_ROUTE);
-        setBookings([]);
-        setTicket(null);
-      }
-      return;
-    }
-    if (pulledFor.current === uid) return;
-    pulledFor.current = uid;
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const [profile, remote] = await Promise.all([fetchProfile(uid), fetchMyBookings(uid, byId)]);
-        if (cancelled) return;
-        setAccount({ name: profile?.name || "", contact: profile?.contact || "" });
-        setSaved((prev) => new Set([...(profile?.saved || []), ...prev]));
-        setRouteIds((prev) => mergeRoute(profile?.route, prev));
-        setBookings((prev) => mergeBookings(prev, remote));
-        readyFor.current = uid; // слияние прошло — теперь можно писать в базу
-      } catch (err) {
-        // не смогли прочитать — ничего не пишем, чтобы не затереть аккаунт пустотой
-        console.warn("Не удалось загрузить данные аккаунта", err);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [authUser, byId]);
-
-  // Изменения уходят в аккаунт с задержкой, чтобы не писать на каждый тап
-  useEffect(() => {
-    const uid = authUser?.id;
-    if (!uid || readyFor.current !== uid) return;
-    const id = setTimeout(() => {
-      saveProfile(uid, { saved: [...saved], route: routeIds }).catch((err) =>
-        console.warn("Не удалось сохранить избранное в аккаунт", err),
-      );
-    }, 800);
-    return () => clearTimeout(id);
-  }, [saved, routeIds, authUser]);
+  // Избранное, маршрут, брони и настройки сливаются с облаком при входе и
+  // синхронизируются дальше; выход убирает личное с устройства (useAccountSync.js)
+  const { account, rememberContact } = useAccountSync({
+    byId,
+    saved,
+    setSaved,
+    routeIds,
+    setRouteIds,
+    setBookings,
+    onSignedOut: () => setTicket(null),
+    defaultRoute: DEFAULT_ROUTE,
+  });
 
   useEffect(() => {
     try {
@@ -1686,11 +1636,7 @@ function AppScreens() {
     const { synced } = await submitBookingRequest(entry, lang);
     const record = { ...entry, synced };
     setBookings((b) => [record, ...b]);
-    // контакты запоминаются в аккаунте — в следующий раз не вводить заново
-    if (authUser && readyFor.current === authUser.id) {
-      setAccount({ name: entry.name, contact: entry.contact });
-      saveProfile(authUser.id, { name: entry.name, contact: entry.contact }).catch(() => {});
-    }
+    rememberContact(entry);
     setBookingExp(null);
     setSelected(null);
     setPage(null);

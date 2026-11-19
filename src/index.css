@@ -62,6 +62,8 @@
   --glass-lens: rgba(255, 255, 255, 0.55);
   --hover: rgba(30, 38, 56, 0.07);
   --wx-day: linear-gradient(150deg, #fff7ef 0%, #fbe3d3 55%, #f6c9ae 100%);
+  --orn: #d4532b;                /* түндүк на фоне */
+  --orn-o: 0.09;
   color-scheme: light;
 }
 
@@ -93,18 +95,11 @@
   --glass-lens: rgba(255, 255, 255, 0.1);
   --hover: rgba(255, 255, 255, 0.08);
   --wx-day: linear-gradient(150deg, #2b2420 0%, #3a2a22 55%, #4a2e21 100%);
+  --orn: #e9b44c;
+  --orn-o: 0.09;
   color-scheme: dark;
 }
 
-/* горы и орнамент внизу фона нарисованы тёмным по светлому — в тёмной теме переворачиваем */
-:root[data-theme="dark"] .ornament-bg::before,
-:root[data-theme="dark"] .ornament-bg::after {
-  filter: invert(1) hue-rotate(180deg);
-}
-
-:root[data-theme="dark"] .ornament-bg::after {
-  opacity: 0.55;
-}
 
 h1,
 h2,
@@ -483,43 +478,28 @@ img {
 /* Кыргызский орнамент: один декоративный слой за существующим интерфейсом. */
 /* Фон: орнамент + свечения + горы */
 
-/* Фон: орнамент как в первой версии + горы */
-/* Фон: орнамент как в первой версии + горы */
+/* Фон: один тонкий түндүк по центру экрана (public/tunduk.svg как маска,
+   цвет и прозрачность — токены --orn / --orn-o, в тёмной теме свои) */
 .ornament-bg {
   background-color: var(--bg-warm);
   position: relative;
   isolation: isolate;
 }
 
-/* орнамент — едва заметная фактура: плитка в натуральных пропорциях, с повтором */
 .ornament-bg::before {
   content: "";
   position: fixed;
-  inset: 0;
-  width: 100%;
-  max-width: 430px;
-  margin: 0 auto;
-  pointer-events: none;
-  z-index: 0;
-  background-image: url("/ornament-tile.webp");
-  background-repeat: repeat;
-  background-position: top center;
-  background-size: 320px auto;
-  opacity: 0.07;
-}
-
-.ornament-bg::after {
-  content: "";
-  position: fixed;
   left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 430px;
-  height: 240px;
+  top: 45%;
+  width: min(78vw, 336px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 430 240' preserveAspectRatio='none'%3E%3Cpath d='M0 240 V120 L40 90 L85 115 L140 60 L190 105 L240 75 L300 120 L350 85 L430 125 V240 Z' fill='%231e2638' fill-opacity='.10'/%3E%3Cpath d='M122 80 L140 60 L158 82 L148 76 L140 84 L131 76 Z' fill='%23ffffff' fill-opacity='.7'/%3E%3Cpath d='M0 240 V150 L60 115 L110 140 L175 95 L230 135 L290 110 L350 145 L430 120 V240 Z' fill='%231e2638' fill-opacity='.12'/%3E%3Cpath d='M0 240 V185 L70 150 L130 175 L200 140 L270 172 L340 150 L430 180 V240 Z' fill='%23d4532b' fill-opacity='.14'/%3E%3C/svg%3E") bottom center / 100% 100% no-repeat;
+  background-color: var(--orn);
+  -webkit-mask: url("/tunduk.svg") center / contain no-repeat;
+  mask: url("/tunduk.svg") center / contain no-repeat;
+  opacity: var(--orn-o);
 }
 
 

@@ -1,98 +1,111 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { AtSign, Check, ChevronLeft, KeyRound, Mail } from "lucide-react";
-import { useAuth } from "./auth-context";
+import { Check, ChevronLeft, Lock, UserRound } from "lucide-react";
+import { authErrorKey, useAuth } from "./auth-context";
+import { CodeStep, ErrorNote, IdField, PasswordField } from "./AuthParts";
+import { prettyPhone, readLoginId, showLoginId } from "./phone";
 import { useSettings } from "./settings-context";
 
 const SPRING = { type: "spring", stiffness: 400, damping: 32 };
 const EASE_OUT = [0.22, 1, 0.36, 1];
-const EMAIL_RE = /^\S+@\S+\.\S+$/;
-const RESEND_S = 60;
+const SLIDE = (dir) => ({
+  initial: { opacity: 0, x: 24 * dir },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: 24 * dir },
+  transition: { duration: 0.22, ease: "easeOut" },
+});
 
-// Экран входа: почта → шестизначный код из письма → готово.
-// Код проверяется сам, как только введены все шесть цифр.
+// Единое окно входа и регистрации: почта или номер +996 → код → готово.
+// Аккаунта нет — он создаётся при первом верном коде, без отдельной формы.
+// Пароль — по желанию: «войти по паролю» (если задан в профиле).
 export function LoginScreen({ onBack }) {
   const { t } = useSettings();
-  const { user, sendCode, verifyCode } = useAuth();
-  const [step, setStep] = useState("email"); // "email" | "code" | "done"
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
+  const { user, sendCode, verifyCode, signInWithPassword } = useAuth();
+  const [step, setStep] = useState("id"); // "id" | "code" | "password" | "done"
+  const [raw, setRaw] = useState("");
+  const [id, setId] = useState(null); // { email } | { phone }
+  const [password, setPasswordValue] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null); // ключ перевода
-  const [left, setLeft] = useState(0); // секунды до повторной отправки
-  const codeRef = useRef(null);
   const doneTimer = useRef(null);
 
-  // уже вошли (например, вторая вкладка) — на экране делать нечего
-  const signedElsewhere = user && step === "email";
-
-  useEffect(() => {
-    if (left <= 0) return;
-    const id = setInterval(() => setLeft((s) => s - 1), 1000);
-    return () => clearInterval(id);
-  }, [left]);
+  // уже вошли (например, во второй вкладке) — на экране делать нечего
+  const signedElsewhere = user && step === "id";
 
   useEffect(() => () => clearTimeout(doneTimer.current), []);
 
-  async function submitEmail(e) {
+  function finish() {
+    setStep("done");
+    doneTimer.current = setTimeout(onBack, 1200);
+  }
+
+  function readId() {
+    const res = readLoginId(raw);
+    if (res.error) setError(res.error);
+    return res.id || null;
+  }
+
+  async function submitId(e) {
     e.preventDefault();
-    const addr = email.trim().toLowerCase();
-    if (!EMAIL_RE.test(addr)) {
-      setError("login.errEmail");
-      return;
-    }
+    const next = readId();
+    if (!next) return;
     setBusy(true);
     setError(null);
     try {
-      await sendCode(addr);
-      setEmail(addr);
-      setCode("");
-      setLeft(RESEND_S);
+      await sendCode(next);
+      setId(next);
       setStep("code");
-    } catch {
-      setError("login.errSend");
+    } catch (err) {
+      setError(authErrorKey(err));
     } finally {
       setBusy(false);
     }
   }
 
-  async function submitCode(value) {
+  function toPassword() {
+    const next = readId();
+    if (!next) return;
+    setError(null);
+    setId(next);
+    setPasswordValue("");
+    setStep("password");
+  }
+
+  async function submitPassword(e) {
+    e.preventDefault();
+    if (!password) return;
     setBusy(true);
     setError(null);
     try {
-      await verifyCode(email, value);
-      setStep("done");
-      doneTimer.current = setTimeout(onBack, 1200);
-    } catch {
-      setError("login.errCode");
-      setCode("");
-      codeRef.current?.focus();
+      await signInWithPassword(id, password);
+      finish();
+    } catch (err) {
+      setError(authErrorKey(err, "login.errPassword"));
     } finally {
       setBusy(false);
     }
   }
 
-  function onCodeChange(e) {
-    const v = e.target.value.replace(/\D/g, "").slice(0, 6);
-    setCode(v);
-    if (error) setError(null);
-    if (v.length === 6 && !busy) submitCode(v);
-  }
-
-  async function resend() {
+  async function codeInstead() {
     setBusy(true);
     setError(null);
     try {
-      await sendCode(email);
-      setLeft(RESEND_S);
-      setCode("");
-      codeRef.current?.focus();
-    } catch {
-      setError("login.errSend");
+      await sendCode(id);
+      setStep("code");
+    } catch (err) {
+      setError(authErrorKey(err));
     } finally {
       setBusy(false);
     }
   }
+
+  function backToId() {
+    setStep("id");
+    setError(null);
+  }
+
+  const target = showLoginId(id);
+  const who = user?.email || prettyPhone(user?.phone);
 
   return (
     <motion.div
@@ -127,113 +140,82 @@ export function LoginScreen({ onBack }) {
                 <Check size={30} strokeWidth={3} />
               </motion.span>
               <h2>{t("login.done")}</h2>
-              <p className="muted">{user?.email}</p>
+              <p className="muted">{who}</p>
               {signedElsewhere && (
                 <button className="cta mt-16" onClick={onBack}>
                   {t("common.back")}
                 </button>
               )}
             </motion.div>
-          ) : step === "email" ? (
-            <motion.form
-              key="email"
-              className="login-step"
-              onSubmit={submitEmail}
-              initial={{ opacity: 0, x: -24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
-            >
+          ) : step === "id" ? (
+            <motion.form key="id" className="login-step" onSubmit={submitId} noValidate {...SLIDE(-1)}>
               <span className="login-icon">
-                <Mail size={26} />
+                <UserRound size={26} />
               </span>
               <h2>{t("login.heroTitle")}</h2>
               <p className="muted">{t("login.heroText")}</p>
-              <label className="search login-field">
-                <AtSign size={18} color="var(--muted-2)" />
-                <input
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  autoFocus
-                  placeholder={t("login.email")}
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error) setError(null);
-                  }}
-                />
-              </label>
+              <IdField
+                value={raw}
+                placeholder={t("login.idPlaceholder")}
+                onChange={(v) => {
+                  setRaw(v);
+                  if (error) setError(null);
+                }}
+              />
               {error && <ErrorNote text={t(error)} />}
-              <button className="cta" type="submit" disabled={busy || !email.trim()}>
+              <button className="cta" type="submit" disabled={busy || !raw.trim()}>
                 {busy ? t("login.sending") : t("login.send")}
+              </button>
+              <button className="text-btn login-change" type="button" disabled={busy || !raw.trim()} onClick={toPassword}>
+                {t("login.withPassword")}
               </button>
               <p className="muted t-xs login-note">{t("login.note")}</p>
             </motion.form>
+          ) : step === "code" ? (
+            <motion.div key="code" className="login-step" {...SLIDE(1)}>
+              <CodeStep
+                title={t("login.codeTitle")}
+                text={t(id?.phone ? "login.codeTextPhone" : "login.codeTextEmail", { target })}
+                verify={async (token) => {
+                  await verifyCode(id, token);
+                  finish();
+                }}
+                resend={() => sendCode(id)}
+                onChangeTarget={backToId}
+                changeLabel={t("login.changeId")}
+              />
+            </motion.div>
           ) : (
-            <motion.div
-              key="code"
-              className="login-step"
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 24 }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
-            >
+            <motion.form key="password" className="login-step" onSubmit={submitPassword} {...SLIDE(1)}>
               <span className="login-icon">
-                <KeyRound size={26} />
+                <Lock size={26} />
               </span>
-              <h2>{t("login.codeTitle")}</h2>
-              <p className="muted">{t("login.codeText", { email })}</p>
-              <motion.input
-                ref={codeRef}
-                className={`code-input ${error ? "is-error" : ""}`}
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                autoFocus
-                maxLength={6}
-                placeholder="••••••"
-                aria-label={t("login.codeTitle")}
-                value={code}
-                onChange={onCodeChange}
-                disabled={busy}
-                animate={error ? { x: [0, -8, 8, -5, 5, 0] } : { x: 0 }}
-                transition={{ duration: 0.35 }}
+              <h2>{t("login.passwordTitle")}</h2>
+              <p className="muted">
+                {target} · {t("login.passwordText")}
+              </p>
+              <PasswordField
+                value={password}
+                placeholder={t("login.password")}
+                onChange={(v) => {
+                  setPasswordValue(v);
+                  if (error) setError(null);
+                }}
               />
               {error && <ErrorNote text={t(error)} />}
-              {busy && <p className="muted t-sm">{t("login.checking")}</p>}
-              <button className="cta ghost" type="button" disabled={busy || left > 0} onClick={resend}>
-                {left > 0 ? t("login.resendIn", { s: left }) : t("login.resend")}
+              <button className="cta" type="submit" disabled={busy || !password}>
+                {busy ? t("login.checking") : t("login.signIn")}
               </button>
-              <button
-                className="text-btn login-change"
-                type="button"
-                onClick={() => {
-                  setStep("email");
-                  setCode("");
-                  setError(null);
-                }}
-              >
-                {t("login.changeEmail")}
+              <button className="text-btn login-change" type="button" disabled={busy} onClick={codeInstead}>
+                {t("login.withCode")}
               </button>
-            </motion.div>
+              <button className="text-btn login-change" type="button" onClick={backToId}>
+                {t("login.changeId")}
+              </button>
+            </motion.form>
           )}
         </AnimatePresence>
       </div>
     </motion.div>
-  );
-}
-
-function ErrorNote({ text }) {
-  return (
-    <motion.p
-      className="login-error"
-      role="alert"
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      {text}
-    </motion.p>
   );
 }
