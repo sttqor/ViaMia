@@ -12,7 +12,8 @@ import "./agency.css";
 // (playbooks/agency-cabinet/toolbox/03-make-admin.sql). Права проверяет база, не этот экран.
 // Что смотреть — playbooks/agency-cabinet/toolbox/accreditation-checklist.md и tour-checklist.md.
 
-export default function AdminApp() {
+export default function AdminApp({ onExit }) {
+  const exit = onExit || (() => window.location.assign("/"));
   const { t } = useSettings();
   const { enabled, user, signOut } = useAuth();
   const [admin, setAdmin] = useState(null); // null — проверяем
@@ -36,12 +37,12 @@ export default function AdminApp() {
       </div>
     );
   }
-  if (!user) return <LoginScreen onBack={() => window.location.assign("/")} />;
+  if (!user) return <LoginScreen onBack={exit} />;
 
   const logout = (
     <button className="icon-btn" onClick={signOut} aria-label={t("login.out")}><LogOut size={18} /></button>
   );
-  const head = <AgencyHeader title={t("adm.title")} sub={user.email} right={logout} />;
+  const head = <AgencyHeader title={t("adm.title")} sub={user.email} right={logout} onBack={exit} />;
 
   if (admin === null) return <div className="ag-app">{head}<div className="ag-empty">{t("ag.loading")}</div></div>;
   if (!admin) {

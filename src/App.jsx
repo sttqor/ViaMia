@@ -23,6 +23,7 @@ import {
   MoreHorizontal,
   Route as RouteIcon,
   Search,
+  ShieldCheck,
   Sparkles,
   Star,
   Ticket,
@@ -34,7 +35,7 @@ import {
 } from "lucide-react";
 import { CATEGORIES, EXPERIENCES, makeCode, upcomingDates } from "./data";
 import { useContent } from "./content-context";
-import { cancelBookingRequest, submitBookingRequest } from "./api";
+import { cancelBookingRequest, fetchAccountRoles, submitBookingRequest } from "./api";
 import { useAccountSync } from "./useAccountSync";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName, durationMinutes, weekdayShort } from "./i18n";
 import { useSettings } from "./settings-context";
@@ -116,6 +117,9 @@ const TAP = { scale: 0.97 };
 
 // Карта (maplibre, ~1 МБ) грузится отдельным файлом — только когда её открыли
 const ExploreMapLazy = lazy(() => import("./OshMap").then((m) => ({ default: m.ExploreMap })));
+// кабинет агентства и модерация — экраны внутри приложения, грузятся только когда открыты
+const AgencyScreen = lazy(() => import("./agency/AgencyApp.jsx"));
+const AdminScreen = lazy(() => import("./agency/AdminApp.jsx"));
 const MiniMapLazy = lazy(() => import("./OshMap").then((m) => ({ default: m.MiniMap })));
 function ExploreMap(props) {
   return (
@@ -914,7 +918,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   );
 }
 
-function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours }) {
+function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours, onOpenAgency, onOpenAdmin }) {
   const {
     t,
     loc,
@@ -937,6 +941,19 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
   const hideHelp = useCallback(() => setHelpToast(false), []);
 
   const { enabled: authOn, user: authUser, signOut } = useAuth();
+  // своё агентство и права админа — чтобы показать нужные входы
+  const [roles, setRoles] = useState({ agency: null, admin: false, for: null });
+  useEffect(() => {
+    if (!authUser) return;
+    let off = false;
+    fetchAccountRoles(authUser.id)
+      .then((r) => !off && setRoles({ ...r, for: authUser.id }))
+      .catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, [authUser]);
+  const myRoles = authUser && roles.for === authUser.id ? roles : { agency: null, admin: false };
   const currentLang = LANGUAGES.find((l) => l.code === lang);
   const { allTours } = useContent();
   const savedRaw = allTours.filter((e) => saved.has(e.id));
@@ -1160,16 +1177,30 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
       </motion.div>
 
       <motion.div className="card panel" variants={RISE}>
-        <a className="row-btn" href="/agency">
+        <button className="row-btn" onClick={onOpenAgency}>
           <span className="row">
             <Building2 size={16} color="var(--terracotta)" />
             <span className="grow">
-              <span>{t("profile.agencyTitle")}</span>
-              <span className="muted t-xs">{t("profile.agencyText")}</span>
+              <span>{myRoles.agency ? myRoles.agency.name : t("profile.agencyTitle")}</span>
+              <span className="muted t-xs">
+                {myRoles.agency ? t(`profile.agency.${myRoles.agency.status}`) : t("profile.agencyText")}
+              </span>
             </span>
           </span>
           <ChevronRight size={16} color="var(--muted-2)" />
-        </a>
+        </button>
+        {myRoles.admin && (
+          <button className="row-btn row-btn-divided" onClick={onOpenAdmin}>
+            <span className="row">
+              <ShieldCheck size={16} color="var(--terracotta)" />
+              <span className="grow">
+                <span>{t("profile.adminTitle")}</span>
+                <span className="muted t-xs">{t("profile.adminText")}</span>
+              </span>
+            </span>
+            <ChevronRight size={16} color="var(--muted-2)" />
+          </button>
+        )}
       </motion.div>
 
       <Toast show={helpToast} onHide={hideHelp}>
@@ -1753,6 +1784,14 @@ function AppScreens() {
   }
   if (page === "tips") return <TipsScreen onBack={closeScreen} />;
   if (page === "login") return <LoginScreen onBack={closeScreen} />;
+  if (page === "agency" || page === "admin") {
+    const Screen = page === "agency" ? AgencyScreen : AdminScreen;
+    return (
+      <Suspense fallback={null}>
+        <Screen onExit={closeScreen} />
+      </Suspense>
+    );
+  }
 
   return (
     <div className="gyg-app ornament-bg">
@@ -1797,6 +1836,8 @@ function AppScreens() {
           onOpenSaved={setSelected}
           onOpenSavedList={() => setPage("saved")}
           onOpenLogin={() => setPage("login")}
+          onOpenAgency={() => setPage("agency")}
+          onOpenAdmin={() => setPage("admin")}
           onGoToTours={() => setTab("tours")}
         />
       )}

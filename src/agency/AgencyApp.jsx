@@ -26,7 +26,9 @@ import "./agency.css";
 // 1. вход (тот же, что у туристов) → 2. данные организации и документы → 3. проверка админом
 // → 4. туры (черновик → на проверку → опубликован) и заявки туристов.
 
-export default function AgencyApp() {
+// onExit — выйти обратно в приложение (экран профиля); без него — на главную по ссылке /agency
+export default function AgencyApp({ onExit }) {
+  const exit = onExit || (() => window.location.assign("/"));
   const { t } = useSettings();
   const { enabled, user, signOut } = useAuth();
   const [agency, setAgency] = useState(undefined); // undefined — грузится, null — ещё не зарегистрировано
@@ -59,14 +61,14 @@ export default function AgencyApp() {
   if (!enabled) {
     return (
       <div className="ag-app">
-        <AgencyHeader title={t("ag.brand")} />
+        <AgencyHeader title={t("ag.brand")} onBack={exit} />
         <div className="ag-body"><div className="ag-banner">{t("ag.noBackend")}</div></div>
       </div>
     );
   }
 
   // экран входа сам размонтируется, когда появится user
-  if (!user) return <LoginScreen onBack={() => window.location.assign("/")} />;
+  if (!user) return <LoginScreen onBack={exit} />;
 
   const logout = (
     <button className="icon-btn" onClick={signOut} aria-label={t("login.out")}>
@@ -78,7 +80,7 @@ export default function AgencyApp() {
   if (loadError) {
     return (
       <div className="ag-app">
-        <AgencyHeader title={t("ag.brand")} sub={who} right={logout} />
+        <AgencyHeader title={t("ag.brand")} sub={who} right={logout} onBack={exit} />
         <div className="ag-body">
           <div className="ag-banner is-bad">{t("ag.loadError")}</div>
           <button className="cta" onClick={reload}>{t("ag.retry")}</button>
@@ -89,7 +91,7 @@ export default function AgencyApp() {
   if (agency === undefined) {
     return (
       <div className="ag-app">
-        <AgencyHeader title={t("ag.brand")} sub={who} right={logout} />
+        <AgencyHeader title={t("ag.brand")} sub={who} right={logout} onBack={exit} />
         <div className="ag-empty">{t("ag.loading")}</div>
       </div>
     );
@@ -101,7 +103,7 @@ export default function AgencyApp() {
         <AgencyHeader
           title={agency ? t("ag.form.editTitle") : t("ag.brand")}
           sub={who}
-          onBack={agency ? () => setEditingAgency(false) : undefined}
+          onBack={agency ? () => setEditingAgency(false) : exit}
           right={logout}
         />
         <div className="ag-body">
@@ -138,7 +140,7 @@ export default function AgencyApp() {
 
   return (
     <div className="ag-app">
-      <AgencyHeader title={agency.name} sub={who} right={logout} />
+      <AgencyHeader title={agency.name} sub={who} right={logout} onBack={exit} />
       <div className="ag-tabs">
         <Segmented
           label={t("ag.brand")}

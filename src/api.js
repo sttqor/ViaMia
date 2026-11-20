@@ -135,6 +135,16 @@ export async function fetchProfile(userId) {
   return data;
 }
 
+// Для профиля: есть ли у пользователя агентство и права модерации (входы в кабинет и /admin)
+export async function fetchAccountRoles(userId) {
+  if (!supabase) return { agency: null, admin: false };
+  const [agency, admin] = await Promise.all([
+    supabase.from("agencies").select("name, status").eq("owner_user_id", userId).maybeSingle(),
+    supabase.rpc("is_admin"),
+  ]);
+  return { agency: agency.data || null, admin: Boolean(admin.data) };
+}
+
 export async function saveProfile(userId, patch) {
   if (!supabase) return;
   const { error } = await supabase.from("profiles").upsert({ id: userId, ...patch });
