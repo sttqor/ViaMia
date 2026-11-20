@@ -286,7 +286,8 @@
 .list-empty { padding: 16px; text-align: center; }
 
 /* ── профиль ─────────────────────────────────────────────── */
-.profile { padding: 16px; }
+/* снизу — место под плавающую панель вкладок, иначе последние карточки уходят под неё */
+.profile { padding: 16px 16px calc(var(--nav-h) + max(14px, env(safe-area-inset-bottom)) + 28px); }
 .profile .page-title { margin: 8px 0 14px; }
 
 .panel {

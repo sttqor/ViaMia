@@ -1041,6 +1041,33 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
         </motion.div>
       )}
 
+      {/* для партнёров: кабинет агентства и модерация (пускает только админов — решает база) */}
+      <motion.div className="card panel" variants={RISE}>
+        <button className="row-btn" onClick={onOpenAgency}>
+          <span className="row">
+            <Building2 size={16} color="var(--terracotta)" />
+            <span className="grow">
+              <span>{myRoles.agency ? myRoles.agency.name : t("profile.agencyTitle")}</span>
+              <span className="muted t-xs">
+                {myRoles.agency ? t(`profile.agency.${myRoles.agency.status}`) : t("profile.agencyText")}
+              </span>
+            </span>
+          </span>
+          <ChevronRight size={16} color="var(--muted-2)" />
+        </button>
+        <button className="row-btn row-btn-divided" onClick={onOpenAdmin}>
+          <span className="row">
+            <ShieldCheck size={16} color="var(--terracotta)" />
+            <span className="grow">
+              <span>{t(myRoles.admin ? "profile.adminTitle" : "profile.adminAsk")}</span>
+              <span className="muted t-xs">{t(myRoles.admin ? "profile.adminText" : "profile.adminAskText")}</span>
+            </span>
+          </span>
+          <ChevronRight size={16} color="var(--muted-2)" />
+        </button>
+      </motion.div>
+
+
       <motion.div className="card panel" variants={RISE}>
         <div className="panel-head">
           <Ticket size={16} color="var(--terracotta)" />
@@ -1171,35 +1198,6 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
           <span className="row">
             <HelpCircle size={16} color="var(--terracotta)" />
             <span>{t("profile.help")}</span>
-          </span>
-          <ChevronRight size={16} color="var(--muted-2)" />
-        </button>
-      </motion.div>
-
-      <motion.div className="card panel" variants={RISE}>
-        <button className="row-btn" onClick={onOpenAgency}>
-          <span className="row">
-            <Building2 size={16} color="var(--terracotta)" />
-            <span className="grow">
-              <span>{myRoles.agency ? myRoles.agency.name : t("profile.agencyTitle")}</span>
-              <span className="muted t-xs">
-                {myRoles.agency ? t(`profile.agency.${myRoles.agency.status}`) : t("profile.agencyText")}
-              </span>
-            </span>
-          </span>
-          <ChevronRight size={16} color="var(--muted-2)" />
-        </button>
-      </motion.div>
-
-      {/* вход в модерацию — виден всем, пускает только админов (проверяет база) */}
-      <motion.div className="card panel" variants={RISE}>
-        <button className="row-btn" onClick={onOpenAdmin}>
-          <span className="row">
-            <ShieldCheck size={16} color="var(--terracotta)" />
-            <span className="grow">
-              <span>{t(myRoles.admin ? "profile.adminTitle" : "profile.adminAsk")}</span>
-              <span className="muted t-xs">{t(myRoles.admin ? "profile.adminText" : "profile.adminAskText")}</span>
-            </span>
           </span>
           <ChevronRight size={16} color="var(--muted-2)" />
         </button>
