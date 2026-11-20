@@ -246,6 +246,11 @@ grant execute on function public.my_agency_folder(text) to authenticated;
 drop policy if exists tour_photos_write on storage.objects;
 create policy tour_photos_write on storage.objects for insert to authenticated
   with check (bucket_id = 'tour-photos' and (public.my_agency_folder(name) or public.is_admin()));
+-- без права «видеть» строку supabase-js не может удалить файл (remove сначала ищет его).
+-- Туристам это не нужно: фото открываются по публичной ссылке, мимо этих правил.
+drop policy if exists tour_photos_read_own on storage.objects;
+create policy tour_photos_read_own on storage.objects for select to authenticated
+  using (bucket_id = 'tour-photos' and (public.my_agency_folder(name) or public.is_admin()));
 drop policy if exists tour_photos_delete on storage.objects;
 create policy tour_photos_delete on storage.objects for delete to authenticated
   using (bucket_id = 'tour-photos' and (public.my_agency_folder(name) or public.is_admin()));

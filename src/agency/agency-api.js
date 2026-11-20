@@ -98,8 +98,11 @@ export async function setMyTourStatus(id, status) {
   return check(await supabase.from("tours").update({ status }).eq("id", id).select().single());
 }
 
-export async function deleteTour(id) {
-  check(await supabase.from("tours").delete().eq("id", id));
+// Удаляем тур, потом его фото из хранилища (иначе файлы остаются навсегда).
+// Тур с заявками база удалить не даст — тогда фото не трогаем.
+export async function deleteTour(row) {
+  check(await supabase.from("tours").delete().eq("id", row.id));
+  await Promise.all((row.images || []).map((u) => removePhoto(u).catch(() => {})));
 }
 
 // ── заявки ─────────────────────────────────────────────────────

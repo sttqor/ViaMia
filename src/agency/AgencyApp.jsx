@@ -441,7 +441,7 @@ function ToursTab({ agency, onEdit }) {
   async function remove(row) {
     if (!window.confirm(t("ag.tour.confirmDelete"))) return;
     try {
-      await deleteTour(row.id);
+      await deleteTour(row);
       setTours((list) => list.filter((x) => x.id !== row.id));
     } catch (err) {
       console.warn(err);
@@ -546,7 +546,9 @@ function BookingsTab({ agency }) {
       />
       {error && <div className="form-error">{t("ag.loadError")}</div>}
       {list === null && !error && <div className="ag-empty">{t("ag.loading")}</div>}
-      {list && shown.length === 0 && <div className="card ag-empty">{t("ag.bk.empty")}</div>}
+      {list && shown.length === 0 && (
+        <div className="card ag-empty">{t(filter === "new" && list.length > 0 ? "ag.bk.emptyNew" : "ag.bk.empty")}</div>
+      )}
       {shown.map((b) => {
         const href = contactHref(b.contact);
         return (

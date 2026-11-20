@@ -155,7 +155,7 @@
 .ag-add input { display: none; }
 .ag-file-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-thumb); font-size: var(--fs-sm); color: var(--ink); }
 .ag-file-row .grow { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
-.ag-file-btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.ag-file-btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: var(--ink); text-decoration: none; }
 .ag-file-btn input { display: none; }
 
 .pick-map { height: 220px; }
