@@ -162,6 +162,9 @@ export const AGENCY_RU = {
   "ag.bk.cancelled": "Отменена",
 
   "adm.title": "Модерация",
+  "adm.deniedAs": "Вы вошли как {who} — у этого аккаунта нет прав модерации.",
+  "adm.deniedHint": "Выйдите и войдите почтой администратора.",
+  "adm.switchAccount": "Войти другим аккаунтом",
   "adm.denied": "У вас нет доступа к этой странице.",
   "adm.tab.agencies": "Агентства",
   "adm.tab.tours": "Туры",
@@ -348,6 +351,9 @@ export const AGENCY_EN = {
   "ag.bk.cancelled": "Cancelled",
 
   "adm.title": "Moderation",
+  "adm.deniedAs": "You are signed in as {who} — this account has no moderation rights.",
+  "adm.deniedHint": "Sign out and sign in with the admin email.",
+  "adm.switchAccount": "Use another account",
   "adm.denied": "You don't have access to this page.",
   "adm.tab.agencies": "Agencies",
   "adm.tab.tours": "Tours",

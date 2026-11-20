@@ -4,6 +4,7 @@ import { useAuth } from "../auth-context";
 import { useSettings } from "../settings-context";
 import { LoginScreen } from "../Login";
 import { Segmented } from "../Segmented";
+import { prettyPhone } from "../phone";
 import { fetchAgencies, fetchIsAdmin, fetchToursForReview, openDoc, reviewAgency, reviewTour } from "./agency-api";
 import { AgencyHeader, StatusBadge } from "./ui";
 import "./agency.css";
@@ -16,15 +17,17 @@ export default function AdminApp({ onExit }) {
   const exit = onExit || (() => window.location.assign("/"));
   const { t } = useSettings();
   const { enabled, user, signOut } = useAuth();
-  const [admin, setAdmin] = useState(null); // null — проверяем
+  // ответ привязан к аккаунту: сменили аккаунт — снова «проверяем», без мигания «нет доступа»
+  const [check, setCheck] = useState({ for: null, admin: false });
+  const admin = user && check.for === user.id ? check.admin : null; // null — проверяем
   const [tab, setTab] = useState("agencies");
 
   useEffect(() => {
     if (!user) return;
     let off = false;
     fetchIsAdmin()
-      .then((v) => !off && setAdmin(v))
-      .catch(() => !off && setAdmin(false));
+      .then((v) => !off && setCheck({ for: user.id, admin: v }))
+      .catch(() => !off && setCheck({ for: user.id, admin: false }));
     return () => {
       off = true;
     };
@@ -42,14 +45,22 @@ export default function AdminApp({ onExit }) {
   const logout = (
     <button className="icon-btn" onClick={signOut} aria-label={t("login.out")}><LogOut size={18} /></button>
   );
-  const head = <AgencyHeader title={t("adm.title")} sub={user.email} right={logout} onBack={exit} />;
+  const who = user.email || prettyPhone(user.phone);
+  const head = <AgencyHeader title={t("adm.title")} sub={who} right={logout} onBack={exit} />;
 
   if (admin === null) return <div className="ag-app">{head}<div className="ag-empty">{t("ag.loading")}</div></div>;
   if (!admin) {
     return (
       <div className="ag-app">
         {head}
-        <div className="ag-body"><div className="ag-banner is-bad">{t("adm.denied")}</div></div>
+        <div className="ag-body">
+          <div className="ag-banner is-bad">
+            <b>{t("adm.denied")}</b>
+            <span>{t("adm.deniedAs", { who })}</span>
+            <span>{t("adm.deniedHint")}</span>
+          </div>
+          <button className="cta" onClick={signOut}>{t("adm.switchAccount")}</button>
+        </div>
       </div>
     );
   }

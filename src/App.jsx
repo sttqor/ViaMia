@@ -1189,18 +1189,20 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
           </span>
           <ChevronRight size={16} color="var(--muted-2)" />
         </button>
-        {myRoles.admin && (
-          <button className="row-btn row-btn-divided" onClick={onOpenAdmin}>
-            <span className="row">
-              <ShieldCheck size={16} color="var(--terracotta)" />
-              <span className="grow">
-                <span>{t("profile.adminTitle")}</span>
-                <span className="muted t-xs">{t("profile.adminText")}</span>
-              </span>
+      </motion.div>
+
+      {/* вход в модерацию — виден всем, пускает только админов (проверяет база) */}
+      <motion.div className="card panel" variants={RISE}>
+        <button className="row-btn" onClick={onOpenAdmin}>
+          <span className="row">
+            <ShieldCheck size={16} color="var(--terracotta)" />
+            <span className="grow">
+              <span>{t(myRoles.admin ? "profile.adminTitle" : "profile.adminAsk")}</span>
+              <span className="muted t-xs">{t(myRoles.admin ? "profile.adminText" : "profile.adminAskText")}</span>
             </span>
-            <ChevronRight size={16} color="var(--muted-2)" />
-          </button>
-        )}
+          </span>
+          <ChevronRight size={16} color="var(--muted-2)" />
+        </button>
       </motion.div>
 
       <Toast show={helpToast} onHide={hideHelp}>
