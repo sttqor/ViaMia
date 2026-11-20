@@ -665,3 +665,25 @@ div.method-row { cursor: default; }
 }
 .login-done { padding-top: 44px; }
 .login-email { overflow-wrap: anywhere; }
+
+/* ── тур агентства: организатор и как проходит бронь ─────── */
+.mode-label { gap: 4px; }
+.organizer { padding: 14px; }
+.organizer .grow { gap: 1px; }
+.organizer img.agency-logo { object-fit: cover; }
+.how-steps { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; counter-reset: how; }
+.how-steps li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; font-size: var(--fs-sm); line-height: 1.45; color: var(--ink-soft); }
+.how-steps li::before {
+  counter-increment: how;
+  content: counter(how);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--terracotta-glow);
+  color: var(--terracotta-dark);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+}
+a.row-btn { color: inherit; text-decoration: none; }

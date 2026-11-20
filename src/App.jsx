@@ -1,7 +1,9 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
+  BadgeCheck,
   Bell,
+  Building2,
   Calendar,
   Check,
   ChevronDown,
@@ -28,6 +30,7 @@ import {
   Undo2,
   User,
   Users,
+  X,
 } from "lucide-react";
 import { CATEGORIES, EXPERIENCES, makeCode, upcomingDates } from "./data";
 import { useContent } from "./content-context";
@@ -261,7 +264,10 @@ function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave, onTogg
           {exp.selfGuided ? (
             <span className="mode-label self">{t("label.self")}</span>
           ) : exp.agencyName ? (
-            <span className="mode-label guided">{t("label.guided", { agency: exp.agencyName })}</span>
+            <span className="mode-label guided">
+              {raw.agencyVerified && <BadgeCheck size={13} aria-label={t("label.verified")} />}
+              {t("label.guided", { agency: exp.agencyName })}
+            </span>
           ) : (
             <StarRow rating={exp.rating} />
           )}
@@ -583,9 +589,11 @@ function AgencyBlock({ onPick }) {
       if (!x.agencyName) continue;
       const a = map.get(x.agencyName) || { name: x.agencyName, count: 0, site: siteOf(x.url) };
       a.count += 1;
+      if (x.agencyVerified) a.verified = true;
+      if (x.agencyLogo) a.logo = x.agencyLogo;
       map.set(x.agencyName, a);
     }
-    return [...map.values()];
+    return [...map.values()].sort((x, y) => Number(!!y.verified) - Number(!!x.verified));
   }, [tours]);
   if (agencies.length === 0) return null;
   return (
@@ -594,9 +602,16 @@ function AgencyBlock({ onPick }) {
       <div className="stack-10">
         {agencies.map((a, i) => (
           <motion.div key={a.name} className="card agency-card" {...inView(i)}>
-            <div className="agency-logo">{a.name.slice(0, 1)}</div>
+            {a.logo ? (
+              <img className="agency-logo" src={a.logo} alt="" />
+            ) : (
+              <div className="agency-logo">{a.name.slice(0, 1)}</div>
+            )}
             <div className="grow">
-              <div className="t-md b">{a.name}</div>
+              <div className="row gap-6 t-md b">
+                {a.name}
+                {a.verified && <BadgeCheck size={15} color="var(--green)" aria-label={t("label.verified")} />}
+              </div>
               <div className="muted">
                 {t("home.agencyTours", { n: plural("pl.tours", a.count) })}
               </div>
@@ -1144,6 +1159,19 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
         </button>
       </motion.div>
 
+      <motion.div className="card panel" variants={RISE}>
+        <a className="row-btn" href="/agency">
+          <span className="row">
+            <Building2 size={16} color="var(--terracotta)" />
+            <span className="grow">
+              <span>{t("profile.agencyTitle")}</span>
+              <span className="muted t-xs">{t("profile.agencyText")}</span>
+            </span>
+          </span>
+          <ChevronRight size={16} color="var(--muted-2)" />
+        </a>
+      </motion.div>
+
       <Toast show={helpToast} onHide={hideHelp}>
         {t("profile.helpSoon")}
       </Toast>
@@ -1173,7 +1201,6 @@ function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggleRoute,
         <motion.div variants={RISE} className="row wrap gap-14 mb-12 muted">
           <StarRow rating={exp.rating} />
           {exp.reviews > 0 && <span>{plural("pl.reviews", exp.reviews)}</span>}
-          {exp.agencyName && <b>{exp.agencyName}</b>}
           <span className="row gap-4"><Clock size={14} /> {fmtDuration(durationMinutes(exp.duration))}</span>
         </motion.div>
         <motion.div variants={RISE} className="detail-chips">
@@ -1197,6 +1224,35 @@ function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggleRoute,
               {exp.includes.map((i) => <span key={i} className="detail-chip">{i}</span>)}
             </div>
           </>
+        )}
+        {!self && exp.agencyName && (
+          <motion.div variants={RISE} className="card organizer mb-16">
+            <div className="row gap-12">
+              {raw.agencyLogo ? (
+                <img className="agency-logo" src={raw.agencyLogo} alt="" />
+              ) : (
+                <div className="agency-logo">{exp.agencyName.slice(0, 1)}</div>
+              )}
+              <div className="grow">
+                <span className="muted t-xs">{t("detail.organizer")}</span>
+                <b className="t-md">{exp.agencyName}</b>
+              </div>
+              {raw.agencyVerified && (
+                <span className="mode-label self"><BadgeCheck size={13} /> {t("label.verified")}</span>
+              )}
+            </div>
+            <div className="muted t-sm mt-8">{t(raw.agencyVerified ? "detail.verifiedText" : "detail.fromSite")}</div>
+          </motion.div>
+        )}
+        {!self && (
+          <motion.div variants={RISE} className="mb-16">
+            <b>{t("detail.howTitle")}</b>
+            <ol className="how-steps">
+              <li>{t("detail.how1")}</li>
+              <li>{t("detail.how2")}</li>
+              <li>{t(exp.freeCancel ? "detail.how3cancel" : "detail.how3")}</li>
+            </ol>
+          </motion.div>
         )}
         <div className="row mb-8"><MapPin size={16} /> <b>{t(self ? "detail.start" : "detail.meeting")}</b></div>
         <div className="muted mb-12">{exp.meeting}</div>
@@ -1440,6 +1496,10 @@ function TicketView({ booking, onClose, onCancel }) {
                   <Check size={16} />
                 </motion.span>
                 {t("ticket.confirmed")}
+              </div>
+            ) : booking.status === "declined" || booking.status === "cancelled" || booking.status === "done" ? (
+              <div className={`row ticket-status ${booking.status === "done" ? "is-ok" : ""}`}>
+                {booking.status === "done" ? <Check size={16} /> : <X size={16} />} {t(`ticket.${booking.status}`)}
               </div>
             ) : (
               <div className="row ticket-status">

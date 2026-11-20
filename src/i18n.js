@@ -7,6 +7,7 @@
 // КАК ПЕРЕВЕСТИ КАРТОЧКУ (тур, факт, категорию) — см. data.js:
 // внутри карточки добавьте блок `en: { title: "...", ... }` (или `de: {...}`).
 // Нет блока на языке — показывается en, для ky/kk/uz — русский.
+import { AGENCY_EN, AGENCY_RU } from "./locales/agency.js";
 import de from "./locales/de.js";
 import es from "./locales/es.js";
 import fr from "./locales/fr.js";
@@ -62,6 +63,7 @@ export const CURRENCIES = [
 
 export const DICT = {
   ru: {
+    ...AGENCY_RU, // кабинет агентства и модерация — src/locales/agency.js
     "nav.home": "Ош: Гид",
     "nav.map": "Карта",
     "nav.route": "Маршрут",
@@ -140,6 +142,20 @@ export const DICT = {
     "home.agencyOpen": "Туры агентства",
     "label.self": "Самостоятельно · бесплатно",
     "label.guided": "С гидом · {agency}",
+    "label.verified": "Проверено",
+    "detail.organizer": "Организатор",
+    "detail.verifiedText": "ViaMia проверила организацию: регистрация, ИНН и документы. Тур тоже прошёл проверку.",
+    "detail.fromSite": "Тур взят с сайта агентства и пока не проверен ViaMia — детали уточняйте у агентства.",
+    "detail.howTitle": "Как проходит бронь",
+    "detail.how1": "Отправляете заявку: дата и число гостей. Это бесплатно и ни к чему не обязывает.",
+    "detail.how2": "Агентство подтверждает заявку — статус появится в вашем билете в профиле.",
+    "detail.how3": "Оплата на месте гиду в день тура.",
+    "detail.how3cancel": "Оплата на месте гиду в день тура. Передумали — отмените бронь в билете бесплатно.",
+    "ticket.declined": "Агентство не сможет провести тур в эту дату",
+    "ticket.cancelled": "Бронь отменена",
+    "ticket.done": "Тур проведён",
+    "profile.agencyTitle": "Вы турагентство?",
+    "profile.agencyText": "Кабинет: добавляйте туры, принимайте заявки",
     "route.bridge": "Хотите с гидом?",
     "profile.mode": "Режим путешествия",
     "profile.modeAgain": "Показать выбор заново",
@@ -378,6 +394,7 @@ export const DICT = {
   },
 
   en: {
+    ...AGENCY_EN,
     "nav.home": "Osh Guide",
     "nav.map": "Map",
     "nav.route": "Route",
@@ -456,6 +473,20 @@ export const DICT = {
     "home.agencyOpen": "Agency tours",
     "label.self": "On your own · free",
     "label.guided": "With a guide · {agency}",
+    "label.verified": "Verified",
+    "detail.organizer": "Organizer",
+    "detail.verifiedText": "ViaMia checked this company: registration, tax ID and documents. The tour was reviewed too.",
+    "detail.fromSite": "Listed from the agency website and not yet verified by ViaMia — confirm the details with the agency.",
+    "detail.howTitle": "How booking works",
+    "detail.how1": "Send a request with the date and number of guests. It is free and not binding.",
+    "detail.how2": "The agency confirms it — the status shows up in your ticket under Profile.",
+    "detail.how3": "Pay your guide on site on the day of the tour.",
+    "detail.how3cancel": "Pay your guide on site on the day of the tour. Changed your mind? Cancel in the ticket for free.",
+    "ticket.declined": "The agency can’t run the tour on this date",
+    "ticket.cancelled": "Booking cancelled",
+    "ticket.done": "Tour completed",
+    "profile.agencyTitle": "Are you a tour agency?",
+    "profile.agencyText": "Your dashboard: add tours, handle requests",
     "route.bridge": "Want a guide?",
     "profile.mode": "Travel mode",
     "profile.modeAgain": "Show the choice again",

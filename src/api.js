@@ -20,7 +20,10 @@ export function tourFromRow(r) {
     price: r.price == null ? null : Number(r.price), // null — цена по запросу
     rating: r.rating == null ? null : Number(r.rating),
     reviews: r.reviews ?? 0,
-    agencyName: r.agency_name,
+    // агентство с аккаунтом — имя и метка «проверено» из agencies; туры с сайтов — только agency_name
+    agencyName: r.agency?.name || r.agency_name,
+    agencyVerified: Boolean(r.agency?.verified),
+    agencyLogo: r.agency?.logo_url || null,
     url: r.source_url,
     badge: r.badge,
     lang: r.langs,
@@ -59,7 +62,7 @@ export function factFromRow(r) {
 export async function fetchContent() {
   if (!supabase) return null;
   const [tours, facts] = await Promise.all([
-    supabase.from("tours").select("*").eq("published", true).order("sort").order("created_at"),
+    supabase.from("tours").select("*, agency:agencies(name, verified, logo_url)").eq("published", true).order("sort").order("created_at"),
     supabase.from("facts").select("*").eq("published", true).order("sort").order("created_at"),
   ]);
   if (tours.error) throw tours.error;

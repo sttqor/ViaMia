@@ -1,0 +1,184 @@
+/* Кабинет агентства и панель модерации. Только токены из index.css. */
+
+.ag-app {
+  min-height: 100svh;
+  background: var(--bg);
+  padding-bottom: 48px;
+}
+
+.ag-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+.ag-head .grow { gap: 1px; }
+.ag-brand { font-family: var(--display); font-size: var(--fs-lg); color: var(--ink); }
+
+.ag-body { padding: 16px; display: grid; gap: 14px; }
+.ag-tabs { padding: 12px 16px 0; }
+
+.ag-panel { padding: 16px; display: grid; gap: 12px; }
+.ag-panel h2 { margin: 0; font-family: var(--display); font-size: var(--fs-lg); color: var(--ink); }
+.ag-panel p { margin: 0; }
+
+/* поля формы */
+.ag-field { display: grid; gap: 6px; }
+.ag-label { font-size: var(--fs-sm); font-weight: 800; color: var(--ink); }
+.ag-label .req { color: var(--terracotta); }
+.ag-hint { font-size: var(--fs-xs); color: var(--muted); line-height: 1.4; }
+.ag-input,
+.ag-textarea,
+.ag-select {
+  width: 100%;
+  min-height: var(--h-btn);
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-btn);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-md);
+  outline: none;
+}
+.ag-textarea { min-height: 110px; resize: vertical; line-height: 1.45; }
+.ag-input:focus,
+.ag-textarea:focus,
+.ag-select:focus { border-color: var(--terracotta); box-shadow: 0 0 0 3px var(--terracotta-glow); }
+.ag-input.is-bad,
+.ag-textarea.is-bad { border-color: var(--danger); }
+.ag-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.ag-check { display: flex; align-items: center; gap: 10px; font-size: var(--fs-md); color: var(--ink); }
+.ag-check input { width: 20px; height: 20px; accent-color: var(--terracotta); }
+
+/* метки статуса */
+.ag-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  white-space: nowrap;
+  background: var(--sand-100);
+  color: var(--ink-soft);
+}
+.ag-status.is-review,
+.ag-status.is-pending { background: var(--terracotta-glow); color: var(--terracotta-dark); }
+.ag-status.is-published,
+.ag-status.is-approved,
+.ag-status.is-confirmed,
+.ag-status.is-done { background: var(--green-bg); color: var(--green); }
+.ag-status.is-rejected,
+.ag-status.is-blocked,
+.ag-status.is-declined { background: var(--terracotta-glow); color: var(--danger); }
+
+.ag-banner { padding: 14px 16px; display: grid; gap: 6px; border-radius: var(--radius-card); background: var(--sand-100); color: var(--ink); font-size: var(--fs-sm); line-height: 1.45; }
+.ag-banner.is-ok { background: var(--green-bg); color: var(--green); }
+.ag-banner.is-bad { background: var(--terracotta-glow); color: var(--terracotta-dark); }
+.ag-banner b { font-size: var(--fs-md); }
+
+/* шаги «как это работает» */
+.ag-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: step; }
+.ag-steps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; font-size: var(--fs-sm); color: var(--ink-soft); line-height: 1.45; }
+.ag-steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--terracotta-glow);
+  color: var(--terracotta-dark);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+}
+.ag-steps b { color: var(--ink); }
+
+/* список туров / заявок */
+.ag-item { display: grid; grid-template-columns: 72px 1fr; gap: 12px; padding: 12px; text-align: left; width: 100%; background: var(--card); border: 0; color: inherit; font: inherit; cursor: pointer; }
+.ag-item.no-thumb { grid-template-columns: 1fr; }
+.ag-thumb { width: 72px; height: 72px; border-radius: var(--radius-thumb); object-fit: cover; background: var(--sand-100); }
+.ag-item .grow { gap: 4px; }
+.ag-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 12px 12px; }
+.ag-actions .pill { min-height: 36px; }
+.ag-reason { font-size: var(--fs-sm); color: var(--danger); }
+
+/* фото */
+.ag-photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.ag-photo { position: relative; aspect-ratio: 1; border-radius: var(--radius-thumb); overflow: hidden; background: var(--sand-100); }
+.ag-photo img { width: 100%; height: 100%; object-fit: cover; }
+.ag-photo .ag-photo-x {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 0;
+  background: var(--glass);
+  color: var(--ink);
+  cursor: pointer;
+}
+.ag-photo .ag-cover-mark {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--gold);
+  color: var(--indigo);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+}
+.ag-add {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-thumb);
+  border: 1.5px dashed var(--line);
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+}
+.ag-add input { display: none; }
+.ag-file-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-thumb); font-size: var(--fs-sm); color: var(--ink); }
+.ag-file-row .grow { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.ag-file-btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.ag-file-btn input { display: none; }
+
+.pick-map { height: 220px; }
+
+/* чек-лист «понятно ли туристу» */
+.ag-checklist { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: var(--fs-sm); }
+.ag-checklist li { display: flex; gap: 8px; align-items: center; color: var(--muted); }
+.ag-checklist li.is-ok { color: var(--green); }
+
+.ag-sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+  background: var(--card);
+  border-top: 1px solid var(--line);
+}
+.ag-sticky .cta { flex: 1; }
+
+.ag-kv { display: grid; grid-template-columns: 110px 1fr; gap: 6px 10px; font-size: var(--fs-sm); }
+.ag-kv dt { color: var(--muted); }
+.ag-kv dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+
+.ag-empty { padding: 28px 16px; text-align: center; color: var(--muted); font-size: var(--fs-sm); }

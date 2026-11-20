@@ -344,6 +344,48 @@ export function MiniMap({ lat, lng, label }) {
   return <div ref={ref} className="mini-map" />;
 }
 
+// ── выбор точки: кабинет агентства (точка встречи тура) ─────────
+// Тап по карте или перетаскивание метки → onPick({ lat, lng })
+const PICK_OPTS = { zoom: 14, maxZoom: 19, minZoom: 9 };
+
+export function PickMap({ lat, lng, onPick }) {
+  const ref = useRef(null);
+  const posRef = useRef({ lat, lng });
+  const onPickRef = useRef(onPick);
+  useEffect(() => {
+    posRef.current = { lat, lng };
+    onPickRef.current = onPick;
+  });
+
+  const onStyle = useCallback((map) => {
+    const { lat: la, lng: ln } = posRef.current;
+    map.addSource("spot", { type: "geojson", data: fc([point(ln, la, {})]) });
+    map.addLayer({
+      id: "spot",
+      type: "symbol",
+      source: "spot",
+      layout: { "icon-image": "pin-tours", "icon-allow-overlap": true },
+    });
+    if (map.__pickBound) return; // после смены темы обработчик уже висит
+    map.__pickBound = true;
+    map.on("click", (e) => {
+      const next = { lat: +e.lngLat.lat.toFixed(6), lng: +e.lngLat.lng.toFixed(6) };
+      onPickRef.current?.(next);
+    });
+  }, []);
+
+  const { mapRef, ready } = useMapLibre(ref, { ...PICK_OPTS, center: [lng, lat] }, onStyle);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map?.getSource("spot")) return;
+    map.getSource("spot").setData(fc([point(lng, lat, {})]));
+    if (!map.getBounds().contains([lng, lat])) map.jumpTo({ center: [lng, lat] });
+  }, [lat, lng, ready, mapRef]);
+
+  return <div ref={ref} className="mini-map pick-map" />;
+}
+
 // ── большая карта: туры + важные места ──────────────────────────
 
 const EXPLORE_OPTS = { center: [CITY.lng, CITY.lat], zoom: 14, maxZoom: 19, minZoom: 10 };
