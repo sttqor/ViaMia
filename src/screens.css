@@ -688,3 +688,26 @@ div.method-row { cursor: default; }
   font-weight: 800;
 }
 a.row-btn { color: inherit; text-decoration: none; }
+
+/* кнопки 2ГИС под картой точки встречи */
+.gis-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gis-actions .cta { font-size: var(--fs-sm); padding: 0 10px; text-decoration: none; }
+
+/* узор на билете — тонкая полоса под фото */
+.ticket-orn { width: 100%; margin: 10px 0 -4px; opacity: 0.7; }
+
+/* политика конфиденциальности */
+.privacy-intro { margin: 0 0 16px; font-size: var(--fs-md); line-height: 1.5; color: var(--ink); }
+.privacy-sec { margin-bottom: 18px; }
+.privacy-sec h2 { margin: 0 0 8px; font-family: var(--display); font-size: var(--fs-lg); color: var(--ink); }
+.privacy-sec p { margin: 0 0 8px; font-size: var(--fs-sm); line-height: 1.55; color: var(--ink-soft); }
+.privacy-orn { margin: 8px auto 16px; }
+.privacy-mail { text-decoration: none; margin-bottom: 32px; }
+/* удалить аккаунт */
+.delete-row .row > .grow > span:first-child { color: var(--danger); font-weight: 700; }
+a.row-btn { color: inherit; text-decoration: none; }
+
+/* скачивание карты без интернета */
+.offline-bar { display: block; height: 4px; margin-top: 6px; border-radius: 2px; background: var(--sand-100); overflow: hidden; }
+.offline-bar > span { display: block; height: 100%; background: var(--terracotta); transition: width 0.2s; }
+.is-danger { color: var(--danger) !important; }

@@ -163,3 +163,23 @@
   border-color: var(--terracotta);
   color: var(--on-dark);
 }
+
+/* поиск: крестик и список результатов как в 2ГИС */
+.map-search-input { position: relative; }
+.map-search-clear {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px;
+  border: 0; border-radius: 50%; background: var(--sand-100); color: var(--muted); cursor: pointer;
+}
+.map-results {
+  list-style: none; margin: 8px 0 0; padding: 4px; display: grid;
+  max-height: 46vh; overflow-y: auto; box-shadow: var(--shadow-float);
+}
+.map-results button {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border: 0; border-radius: 12px; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+}
+.map-results button:active { background: var(--sand-100); }
+.map-sheet-icon.is-sm { width: 30px; height: 30px; }
+.map-result-text { min-width: 0; display: grid; }
+.map-result-text b { font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.map-result-text small { color: var(--muted); font-size: var(--fs-xs); font-weight: 600; }

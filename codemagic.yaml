@@ -1,0 +1,71 @@
+# Сборка ViaMia в облаке Codemagic (mac не нужен).
+# Как подключить — playbooks/store-release/toolbox/accounts-and-codemagic.md
+workflows:
+  ios-testflight:
+    name: iOS → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: ViaMia ASC key # имя ключа App Store Connect API в настройках Codemagic
+    environment:
+      groups:
+        - supabase # VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: kg.viamia.app
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Зависимости и сборка сайта
+        script: |
+          npm ci
+          npm run build
+      - name: Перенос в iOS-проект
+        script: |
+          npx cap sync ios
+      - name: Подпись
+        script: |
+          xcode-project use-profiles
+      - name: Номер сборки
+        script: |
+          cd ios/App
+          agvtool new-version -all $(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID") + 1))
+      - name: Сборка .ipa
+        script: |
+          xcode-project build-ipa --workspace ios/App/App.xcworkspace --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+
+  android-closed-test:
+    name: Android → Google Play (закрытый тест)
+    max_build_duration: 45
+    instance_type: linux_x2
+    environment:
+      groups:
+        - supabase
+        - google_play # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+      android_signing:
+        - viamia_upload_key # ключ загрузки, создаётся в Codemagic → Code signing
+      node: 22
+      java: 21
+    scripts:
+      - name: Зависимости и сборка сайта
+        script: |
+          npm ci
+          npm run build
+          npx cap sync android
+      - name: Сборка .aab
+        script: |
+          cd android
+          ./gradlew bundleRelease -PversionCode=$BUILD_NUMBER
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: alpha # «закрытое тестирование» — нужно 12 тестеров × 14 дней
+        submit_as_draft: true

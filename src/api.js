@@ -145,6 +145,14 @@ export async function fetchAccountRoles(userId) {
   return { agency: agency.data || null, admin: Boolean(admin.data) };
 }
 
+// Удалить свой аккаунт навсегда (App Store / Google Play требуют). Права проверяет база:
+// playbooks/store-release/toolbox/01-delete-account.sql
+export async function deleteMyAccount() {
+  if (!supabase) throw new Error("offline");
+  const { error } = await supabase.rpc("delete_my_account");
+  if (error) throw error;
+}
+
 export async function saveProfile(userId, patch) {
   if (!supabase) return;
   const { error } = await supabase.from("profiles").upsert({ id: userId, ...patch });

@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { CATEGORIES, EXPERIENCES, makeCode, upcomingDates } from "./data";
 import { useContent } from "./content-context";
-import { cancelBookingRequest, fetchAccountRoles, submitBookingRequest } from "./api";
+import { cancelBookingRequest, deleteMyAccount, fetchAccountRoles, submitBookingRequest } from "./api";
 import { useAccountSync } from "./useAccountSync";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName, durationMinutes, weekdayShort } from "./i18n";
 import { useSettings } from "./settings-context";
@@ -53,6 +53,11 @@ import { LoginScreen } from "./Login.jsx";
 import { LinkScreen, LoginMethods } from "./AccountMethods.jsx";
 import { prettyPhone } from "./phone";
 import { useAuth } from "./auth-context";
+import { twoGisPlace, twoGisRoute } from "./twogis";
+import { ErrorBoundary, Loader, OfflineBanner } from "./Status.jsx";
+import { PrivacyScreen } from "./Privacy.jsx";
+import { SUPPORT_EMAIL } from "./privacy-text";
+import { OfflineMapRow } from "./OfflineMapRow.jsx";
 import splashVideo from "./splash.mp4";
 
 // Заставка при запуске: ролик с иконкой-дорогой. Пропускается тапом,
@@ -123,16 +128,20 @@ const AdminScreen = lazy(() => import("./agency/AdminApp.jsx"));
 const MiniMapLazy = lazy(() => import("./OshMap").then((m) => ({ default: m.MiniMap })));
 function ExploreMap(props) {
   return (
-    <Suspense fallback={<div className="map-wrap" />}>
-      <ExploreMapLazy {...props} />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<div className="map-wrap"><Loader /></div>}>
+        <ExploreMapLazy {...props} />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 function MiniMap(props) {
   return (
-    <Suspense fallback={<div className="mini-map" />}>
-      <MiniMapLazy {...props} />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<div className="mini-map" />}>
+        <MiniMapLazy {...props} />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
@@ -918,7 +927,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   );
 }
 
-function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours, onOpenAgency, onOpenAdmin }) {
+function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours, onOpenAgency, onOpenAdmin, onOpenPrivacy }) {
   const {
     t,
     loc,
@@ -937,8 +946,10 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
     setTheme,
   } = useSettings();
   const [screen, setScreen] = useState(null); // null | "lang" | "currency" | "link-email" | "link-phone" | "link-password"
-  const [helpToast, setHelpToast] = useState(false);
-  const hideHelp = useCallback(() => setHelpToast(false), []);
+  // удаление аккаунта: первый тап — спросить, второй — удалить
+  const [del, setDel] = useState({ ask: false, busy: false, err: null });
+  const [deletedToast, setDeletedToast] = useState(false);
+  const hideDeleted = useCallback(() => setDeletedToast(false), []);
 
   const { enabled: authOn, user: authUser, signOut } = useAuth();
   // своё агентство и права админа — чтобы показать нужные входы
@@ -1182,6 +1193,10 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
       </motion.div>
 
       <motion.div className="card panel" variants={RISE}>
+        <OfflineMapRow />
+      </motion.div>
+
+      <motion.div className="card panel" variants={RISE}>
         <label className="row-btn">
           <span className="row">
             <Bell size={16} color="var(--terracotta)" />
@@ -1194,17 +1209,66 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
             className="switch"
           />
         </label>
-        <button className="row-btn row-btn-divided" onClick={() => setHelpToast(true)}>
+        <a className="row-btn row-btn-divided" href={`mailto:${SUPPORT_EMAIL}`}>
           <span className="row">
             <HelpCircle size={16} color="var(--terracotta)" />
-            <span>{t("profile.help")}</span>
+            <span className="grow">
+              <span>{t("profile.help")}</span>
+              <span className="muted t-xs">{SUPPORT_EMAIL}</span>
+            </span>
+          </span>
+          <ChevronRight size={16} color="var(--muted-2)" />
+        </a>
+        <button className="row-btn row-btn-divided" onClick={onOpenPrivacy}>
+          <span className="row">
+            <ShieldCheck size={16} color="var(--terracotta)" />
+            <span>{t("profile.privacy")}</span>
           </span>
           <ChevronRight size={16} color="var(--muted-2)" />
         </button>
       </motion.div>
 
-      <Toast show={helpToast} onHide={hideHelp}>
-        {t("profile.helpSoon")}
+      {authUser && (
+        <motion.div className="card panel" variants={RISE}>
+          <button
+            className="row-btn delete-row"
+            disabled={del.busy}
+            onClick={() => {
+              if (!del.ask) return setDel({ ask: true, busy: false, err: null });
+              setDel({ ask: true, busy: true, err: null });
+              deleteMyAccount()
+                .then(() => {
+                  setDel({ ask: false, busy: false, err: null });
+                  setDeletedToast(true);
+                  return signOut();
+                })
+                .catch((e) => {
+                  const code = String(e?.message || "");
+                  const err = /agency_owner/.test(code) ? "agency" : /admin/.test(code) ? "admin" : "other";
+                  setDel({ ask: false, busy: false, err });
+                });
+            }}
+          >
+            <span className="row">
+              <Trash2 size={16} color="var(--danger)" />
+              <span className="grow">
+                <span>{t(del.ask ? "profile.deleteConfirm" : "profile.delete")}</span>
+                <span className="muted t-xs">
+                  {del.err ? t(`profile.deleteErr.${del.err}`) : t(del.ask ? "profile.deleteWarn" : "profile.deleteText")}
+                </span>
+              </span>
+            </span>
+          </button>
+          {del.ask && !del.busy && (
+            <button className="row-btn row-btn-divided" onClick={() => setDel({ ask: false, busy: false, err: null })}>
+              <span>{t("common.cancel")}</span>
+            </button>
+          )}
+        </motion.div>
+      )}
+
+      <Toast show={deletedToast} onHide={hideDeleted}>
+        {t("profile.deleted")}
       </Toast>
     </motion.div>
   );
@@ -1288,6 +1352,16 @@ function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggleRoute,
         <div className="row mb-8"><MapPin size={16} /> <b>{t(self ? "detail.start" : "detail.meeting")}</b></div>
         <div className="muted mb-12">{exp.meeting}</div>
         <MiniMap lat={exp.lat} lng={exp.lng} label={exp.place} />
+        {exp.lat != null && exp.lng != null && (
+          <div className="gis-actions mt-12">
+            <a className="cta ghost" href={twoGisRoute(exp.lat, exp.lng)} target="_blank" rel="noreferrer">
+              <RouteIcon size={16} /> {t("map.poi.route2gis")}
+            </a>
+            <a className="cta ghost" href={twoGisPlace(exp.lat, exp.lng)} target="_blank" rel="noreferrer">
+              <MapIcon size={16} /> {t("map.poi.open2gis")}
+            </a>
+          </div>
+        )}
         {!self && exp.url && (
           <a className="route-link mt-12" href={exp.url} target="_blank" rel="noopener noreferrer">
             {t("detail.agencySite", { name: exp.agencyName || "" })} →
@@ -1515,6 +1589,7 @@ function TicketView({ booking, onClose, onCancel }) {
           transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.1 }}
         >
           <img className="ticket-cover" src={exp.image} alt="" />
+          <span className="orn-band ticket-orn" aria-hidden="true" />
           <div className="ticket-body">
             {booking.status === "confirmed" ? (
               <div className="row ticket-status is-ok">
@@ -1783,18 +1858,22 @@ function AppScreens() {
     );
   }
   if (page === "tips") return <TipsScreen onBack={closeScreen} />;
+  if (page === "privacy") return <PrivacyScreen onBack={closeScreen} />;
   if (page === "login") return <LoginScreen onBack={closeScreen} />;
   if (page === "agency" || page === "admin") {
     const Screen = page === "agency" ? AgencyScreen : AdminScreen;
     return (
-      <Suspense fallback={null}>
-        <Screen onExit={closeScreen} />
-      </Suspense>
+      <ErrorBoundary full>
+        <Suspense fallback={<Loader full />}>
+          <Screen onExit={closeScreen} />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 
   return (
     <div className="gyg-app ornament-bg">
+      <OfflineBanner />
       {tab === "home" && <HomeView onGoTo={setTab} onOpenExp={setSelected} onOpenTips={() => setPage("tips")} />}
 
       {tab === "map" && (
@@ -1838,6 +1917,7 @@ function AppScreens() {
           onOpenLogin={() => setPage("login")}
           onOpenAgency={() => setPage("agency")}
           onOpenAdmin={() => setPage("admin")}
+          onOpenPrivacy={() => setPage("privacy")}
           onGoToTours={() => setTab("tours")}
         />
       )}

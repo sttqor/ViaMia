@@ -34,9 +34,13 @@ import PLACES from "./places-osm.json";
 import { CITY } from "./data";
 import { fallbackOf } from "./i18n";
 import { useSettings } from "./settings-context";
+import { distanceM, twoGisPlace, twoGisRoute, walkMinutes } from "./twogis";
+import { cachedFetch, registerOshProtocol, toOsh } from "./offlineMap";
 import "./OshMap.css";
 
 maplibregl.setWorkerUrl(workerUrl);
+// тайлы, шрифты и значки — через кэш (карта Оша работает без интернета)
+registerOshProtocol(maplibregl);
 
 const SPRING = { type: "spring", stiffness: 400, damping: 32 };
 const SHEET = { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 24 }, transition: SPRING };
@@ -196,7 +200,17 @@ function recolor(style, theme, lang) {
     }
     return l;
   });
-  return { ...style, layers };
+  // все адреса карты — через свой протокол osh:// (сначала кэш, потом сеть)
+  const sources = Object.fromEntries(
+    Object.entries(style.sources).map(([k, v]) => {
+      const s = { ...v };
+      if (s.url) s.url = toOsh(s.url);
+      if (s.tiles) s.tiles = s.tiles.map(toOsh);
+      return [k, s];
+    }),
+  );
+  const sprite = Array.isArray(style.sprite) ? style.sprite.map((x) => ({ ...x, url: toOsh(x.url) })) : toOsh(style.sprite);
+  return { ...style, layers, sources, sprite, glyphs: toOsh(style.glyphs) };
 }
 
 async function loadStyle(theme, lang) {
@@ -204,10 +218,7 @@ async function loadStyle(theme, lang) {
   if (!styleCache.has(base)) {
     styleCache.set(
       base,
-      fetch(`https://tiles.openfreemap.org/styles/${base}`).then((r) => {
-        if (!r.ok) throw new Error(String(r.status));
-        return r.json();
-      }),
+      cachedFetch(`https://tiles.openfreemap.org/styles/${base}`).then((r) => r.json()),
     );
   }
   try {
@@ -390,7 +401,8 @@ export function PickMap({ lat, lng, onPick }) {
 
 const EXPLORE_OPTS = { center: [CITY.lng, CITY.lat], zoom: 14, maxZoom: 19, minZoom: 10 };
 
-export function ExploreMap({ items, onOpen }) {
+// nav = { stops: [{lng, lat, label}] } — маршрут дня с вкладки «Маршрут»: линия по порядку + «в 2ГИС»
+export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
   const { t, loc, lang } = useSettings();
   const ref = useRef(null);
   const [query, setQuery] = useState("");
@@ -398,7 +410,11 @@ export function ExploreMap({ items, onOpen }) {
   const [picked, setPicked] = useState(null);
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState(false);
+  const [me, setMe] = useState(null); // [lng, lat] — для расстояний
+  const [searchOpen, setSearchOpen] = useState(false);
   const userPos = useRef(null);
+  const watchId = useRef(null);
+  useEffect(() => () => watchId.current != null && navigator.geolocation?.clearWatch(watchId.current), []);
   const onOpenRef = useRef(onOpen);
   const itemsRef = useRef(items);
   useEffect(() => {
@@ -440,9 +456,18 @@ export function ExploreMap({ items, onOpen }) {
     };
   }, [items, query, cat, loc, t, placeName]);
 
-  const dataRef = useRef({ tourFeatures, placeFeatures });
+  const navStops = nav?.stops?.length ? nav.stops : null;
+  const navData = useMemo(() => {
+    if (!navStops) return { line: [], pts: [] };
+    return {
+      line: navStops.length > 1 ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: navStops.map((p) => [p.lng, p.lat]) } }] : [],
+      pts: navStops.map((p, i) => point(p.lng, p.lat, { n: String(i + 1), label: p.label })),
+    };
+  }, [navStops]);
+
+  const dataRef = useRef({ tourFeatures, placeFeatures, navData });
   useEffect(() => {
-    dataRef.current = { tourFeatures, placeFeatures };
+    dataRef.current = { tourFeatures, placeFeatures, navData };
   });
 
   const onStyle = useCallback((map) => {
@@ -453,6 +478,8 @@ export function ExploreMap({ items, onOpen }) {
 
     map.addSource("places", { type: "geojson", data: fc(dataRef.current.placeFeatures) });
     map.addSource("tours", { type: "geojson", data: fc(dataRef.current.tourFeatures) });
+    map.addSource("nav-line", { type: "geojson", data: fc(dataRef.current.navData.line) });
+    map.addSource("nav-pts", { type: "geojson", data: fc(dataRef.current.navData.pts) });
     map.addSource("me", { type: "geojson", data: fc(userPos.current ? [point(userPos.current[0], userPos.current[1], {})] : []) });
 
     map.addLayer({
@@ -491,6 +518,26 @@ export function ExploreMap({ items, onOpen }) {
       paint: { "text-color": text, "text-halo-color": halo, "text-halo-width": 1.6 },
     });
     map.addLayer({
+      id: "nav-line",
+      type: "line",
+      source: "nav-line",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": "#D4532B", "line-width": 4, "line-dasharray": [1.5, 1.5] },
+    });
+    map.addLayer({
+      id: "nav-pts",
+      type: "circle",
+      source: "nav-pts",
+      paint: { "circle-radius": 13, "circle-color": "#D4532B", "circle-stroke-color": "#FFFFFF", "circle-stroke-width": 3 },
+    });
+    map.addLayer({
+      id: "nav-num",
+      type: "symbol",
+      source: "nav-pts",
+      layout: { "text-field": ["get", "n"], "text-font": font, "text-size": 13, "text-allow-overlap": true },
+      paint: { "text-color": "#FFFFFF" },
+    });
+    map.addLayer({
       id: "me",
       type: "circle",
       source: "me",
@@ -500,6 +547,8 @@ export function ExploreMap({ items, onOpen }) {
     // обработчики вешаем один раз на карту (слои с этими id появляются после каждой смены стиля)
     if (!map.__oshHandlers) {
       map.__oshHandlers = true;
+      map.on("click", () => setSearchOpen(false));
+      map.on("dragstart", () => setSearchOpen(false));
       map.on("click", "tours", (ev) => {
         const id = ev.features?.[0]?.properties?.id;
         const raw = itemsRef.current.find((x) => String(x.id) === String(id));
@@ -529,6 +578,17 @@ export function ExploreMap({ items, onOpen }) {
     map.getSource("tours")?.setData(fc(tourFeatures));
   }, [placeFeatures, tourFeatures, ready, mapRef]);
 
+  // пришёл маршрут дня — рисуем и показываем целиком
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    map.getSource("nav-line")?.setData(fc(navData.line));
+    map.getSource("nav-pts")?.setData(fc(navData.pts));
+    if (!navStops) return;
+    const b = navStops.reduce((acc, p) => acc.extend([p.lng, p.lat]), new maplibregl.LngLatBounds([navStops[0].lng, navStops[0].lat], [navStops[0].lng, navStops[0].lat]));
+    map.fitBounds(b, { padding: { top: 170, bottom: 230, left: 50, right: 50 }, maxZoom: 16, duration: 700 });
+  }, [navData, navStops, ready, mapRef]);
+
   // выбрали категорию — показываем все её места в кадре
   function pickCat(id) {
     setCat(id);
@@ -549,23 +609,60 @@ export function ExploreMap({ items, onOpen }) {
     }
     setLocating(true);
     setLocateError(false);
-    navigator.geolocation.getCurrentPosition(
+    // уже следим — просто возвращаем карту к точке
+    if (watchId.current != null && userPos.current) {
+      setLocating(false);
+      mapRef.current?.flyTo({ center: userPos.current, zoom: 16 });
+      return;
+    }
+    let first = true;
+    watchId.current = navigator.geolocation.watchPosition(
       (pos) => {
-        setLocating(false);
         const { latitude, longitude } = pos.coords;
         userPos.current = [longitude, latitude];
+        setMe([longitude, latitude]);
         const map = mapRef.current;
-        if (!map) return;
-        map.getSource("me")?.setData(fc([point(longitude, latitude, {})]));
-        map.flyTo({ center: [longitude, latitude], zoom: 16 });
+        map?.getSource("me")?.setData(fc([point(longitude, latitude, {})]));
+        if (first) {
+          first = false;
+          setLocating(false);
+          map?.flyTo({ center: [longitude, latitude], zoom: 16 });
+        }
       },
       () => {
+        if (watchId.current != null) navigator.geolocation.clearWatch(watchId.current);
+        watchId.current = null;
         setLocating(false);
         setLocateError(true);
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 },
     );
   }
+
+  function distLabel(lat, lng) {
+    if (!me) return null;
+    const m = distanceM(me, [lng, lat]);
+    const d = m < 1000 ? t("map.m", { n: Math.round(m / 10) * 10 }) : t("map.km", { n: (m / 1000).toFixed(1) });
+    return m > 15000 ? d : `${d} · ${t("map.walk", { n: walkMinutes(m) })}`;
+  }
+
+  function openPlace(p) {
+    setPicked(p);
+    setSearchOpen(false);
+    setQuery("");
+    mapRef.current?.flyTo({ center: [p.lng, p.lat], zoom: Math.max(mapRef.current.getZoom(), 16), duration: 600 });
+  }
+
+  // список под поиском, как в 2ГИС: сначала ближайшие
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const list = PLACES.filter(
+      (p) => (cat === "all" || p.cat === cat) && `${p.name} ${p.name_en || ""} ${t(`map.cat.${p.cat}`)}`.toLowerCase().includes(q),
+    );
+    if (me) list.sort((a, b) => distanceM(me, [a.lng, a.lat]) - distanceM(me, [b.lng, b.lat]));
+    return list.slice(0, 8);
+  }, [query, cat, me, t]);
 
   const pickedCat = picked ? CAT[picked.cat] : null;
 
@@ -576,8 +673,46 @@ export function ExploreMap({ items, onOpen }) {
       <div className="map-search-bar">
         <div className="search map-search-input">
           <Search size={18} color="var(--muted-2)" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("map.search")} />
+          <input
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSearchOpen(true);
+            }}
+            onFocus={() => setSearchOpen(true)}
+            onKeyDown={(e) => e.key === "Enter" && results[0] && openPlace(results[0])}
+            placeholder={t("map.search")}
+            enterKeyHint="search"
+          />
+          {query && (
+            <button type="button" className="map-search-clear" onClick={() => setQuery("")} aria-label={t("map.poi.close")}>
+              <X size={16} />
+            </button>
+          )}
         </div>
+        {searchOpen && results.length > 0 && (
+          <ul className="map-results card">
+            {results.map((p) => {
+              const c = CAT[p.cat];
+              return (
+                <li key={p.id}>
+                  <button type="button" onClick={() => openPlace(p)}>
+                    <span className="map-sheet-icon is-sm" style={{ background: c.color }}>
+                      <c.Icon size={14} color="#fff" />
+                    </span>
+                    <span className="map-result-text">
+                      <b>{placeName(p)}</b>
+                      <small>
+                        {t(`map.cat.${p.cat}`)}
+                        {me && ` · ${distLabel(p.lat, p.lng)}`}
+                      </small>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
         <div className="map-chips" role="tablist">
           {[{ id: "all" }, ...MAP_CATS].map((c) => (
             <button
@@ -609,7 +744,10 @@ export function ExploreMap({ items, onOpen }) {
               </span>
               <span className="map-sheet-title">
                 <b>{placeName(picked)}</b>
-                <small>{t(`map.cat.${picked.cat}`)}</small>
+                <small>
+                  {t(`map.cat.${picked.cat}`)}
+                  {me && ` · ${distLabel(picked.lat, picked.lng)}`}
+                </small>
               </span>
               <button type="button" className="map-sheet-close" onClick={() => setPicked(null)} aria-label={t("map.poi.close")}>
                 <X size={18} />
@@ -621,16 +759,11 @@ export function ExploreMap({ items, onOpen }) {
               </div>
             )}
             <div className="map-sheet-actions">
-              <a
-                className="map-sheet-btn is-main"
-                href={`https://www.google.com/maps/dir/?api=1&destination=${picked.lat},${picked.lng}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Route size={16} /> {t("map.poi.route")}
+              <a className="map-sheet-btn is-main" href={twoGisRoute(picked.lat, picked.lng)} target="_blank" rel="noreferrer">
+                <Route size={16} /> {t("map.poi.route2gis")}
               </a>
-              <a className="map-sheet-btn" href={`https://2gis.kg/osh/geo/${picked.lng}%2C${picked.lat}`} target="_blank" rel="noreferrer">
-                <MapIcon size={16} /> 2GIS
+              <a className="map-sheet-btn" href={twoGisPlace(picked.lat, picked.lng)} target="_blank" rel="noreferrer" aria-label={t("map.poi.open2gis")}>
+                <MapIcon size={16} /> 2ГИС
               </a>
               {picked.phone && (
                 <a className="map-sheet-btn" href={`tel:${picked.phone.split(/[;,]/)[0].replace(/\s/g, "")}`} aria-label={t("map.poi.call")}>
@@ -642,6 +775,27 @@ export function ExploreMap({ items, onOpen }) {
                   <Globe size={16} />
                 </a>
               )}
+            </div>
+          </motion.div>
+        )}
+        {navStops && !picked && (
+          <motion.div key="nav" className="map-sheet" {...SHEET}>
+            <div className="map-sheet-head">
+              <span className="map-sheet-icon" style={{ background: C_TOUR }}>
+                <Route size={18} color="#fff" />
+              </span>
+              <span className="map-sheet-title">
+                <b>{t("map.nav.title")}</b>
+                <small>{navStops.map((p) => p.label).join(" → ")}</small>
+              </span>
+              <button type="button" className="map-sheet-close" onClick={onNavEnd} aria-label={t("map.poi.close")}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="map-sheet-actions">
+              <a className="map-sheet-btn is-main" href={twoGisRoute(navStops)} target="_blank" rel="noreferrer">
+                <Route size={16} /> {t("map.poi.route2gis")}
+              </a>
             </div>
           </motion.div>
         )}

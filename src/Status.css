@@ -1,0 +1,94 @@
+/* Загрузка / ошибка / нет сети. Только токены. */
+
+.status-loader,
+.status-error {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--ink);
+}
+.status-loader.is-full,
+.status-error.is-full {
+  min-height: 100svh;
+  background: var(--bg);
+}
+.status-loader-text {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  font-weight: 600;
+}
+.status-error b {
+  font-family: var(--display);
+  font-size: var(--fs-lg);
+}
+.status-error .muted {
+  max-width: 300px;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.status-retry {
+  width: auto;
+  margin-top: 6px;
+}
+
+/* түндүк: маска, цвет — терракота */
+.tunduk-spin,
+.tunduk-mark {
+  width: 56px;
+  height: 56px;
+  background-color: var(--terracotta);
+  -webkit-mask: url("/tunduk.svg") center / contain no-repeat;
+  mask: url("/tunduk.svg") center / contain no-repeat;
+}
+.tunduk-spin {
+  animation: tunduk-spin 2.4s linear infinite;
+}
+.tunduk-mark {
+  width: 64px;
+  height: 64px;
+  opacity: 0.85;
+}
+@keyframes tunduk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tunduk-spin {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* полоска узора «кочкор мүйүз» — золото, тонко */
+.orn-band {
+  display: block;
+  width: 120px;
+  height: 12px;
+  background-color: var(--gold);
+  -webkit-mask: url("/ornament-band.svg") left center / 32px 12px repeat-x;
+  mask: url("/ornament-band.svg") left center / 32px 12px repeat-x;
+  opacity: 0.9;
+}
+
+.offline-banner {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  left: 50%;
+  translate: -50% 0;
+  z-index: 3000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--solid);
+  color: var(--on-dark);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-float);
+}

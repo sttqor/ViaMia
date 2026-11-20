@@ -1,0 +1,21 @@
+{
+  "appId": "kg.viamia.app",
+  "appName": "ViaMia",
+  "webDir": "dist",
+  "backgroundColor": "#D4532B",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "launchAutoHide": true,
+      "backgroundColor": "#D4532B",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DEFAULT"
+    }
+  },
+  "ios": {
+    "contentInset": "never"
+  }
+}
