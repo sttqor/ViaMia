@@ -18,3 +18,10 @@ createRoot(document.getElementById('root')).render(
 )
 
 initNative()
+
+// отчёты о падениях — только если задан ключ; без личных данных (почта/ip не уходят)
+if (import.meta.env.VITE_SENTRY_DSN) {
+  import('@sentry/react').then((Sentry) =>
+    Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, sendDefaultPii: false }),
+  )
+}

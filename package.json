@@ -16,6 +16,7 @@
     "@capacitor/ios": "8.6.0",
     "@capacitor/splash-screen": "8.0.2",
     "@capacitor/status-bar": "8.0.4",
+    "@sentry/react": "^11.16.0",
     "@supabase/supabase-js": "^2.119.0",
     "lucide-react": "^1.21.0",
     "maplibre-gl": "^6.19.0",
