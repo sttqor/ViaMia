@@ -1,21 +1,21 @@
 import { Fragment, useEffect, useState } from "react";
-import { BadgeCheck, FileText, LogOut, Phone, Plus, Send, Trash2, Upload } from "lucide-react";
+import { BadgeCheck, FileText, LogOut, Plus, Send, Trash2, Upload } from "lucide-react";
 import { useAuth } from "../auth-context";
 import { useSettings } from "../settings-context";
 import { LoginScreen } from "../Login";
 import { Segmented } from "../Segmented";
 import { prettyPhone } from "../phone";
 import { TourEditor } from "./TourEditor";
+import { BookingsTab } from "./BookingsTab";
+import { GuidesTab } from "./GuidesTab";
 import { AgencyHeader, Field, StatusBadge } from "./ui";
 import {
   deleteTour,
-  fetchAgencyBookings,
   fetchMyAgency,
   fetchMyTours,
   openDoc,
   removeDoc,
   saveAgency,
-  setBookingStatus,
   setMyTourStatus,
   uploadDoc,
   uploadPhoto,
@@ -33,7 +33,8 @@ export default function AgencyApp({ onExit }) {
   const { enabled, user, signOut } = useAuth();
   const [agency, setAgency] = useState(undefined); // undefined — грузится, null — ещё не зарегистрировано
   const [loadError, setLoadError] = useState(false);
-  const [tab, setTab] = useState("tours");
+  const [tab, setTab] = useState("bookings");
+  const [bkBadge, setBkBadge] = useState(0); // новые заявки + непрочитанные сообщения
   const [editingAgency, setEditingAgency] = useState(false);
   const [editingTour, setEditingTour] = useState(null); // null | "new" | строка тура
 
@@ -147,8 +148,9 @@ export default function AgencyApp({ onExit }) {
           value={tab}
           onChange={setTab}
           options={[
+            { value: "bookings", label: bkBadge ? `${t("ag.tab.bookings")} · ${bkBadge}` : t("ag.tab.bookings") },
             { value: "tours", label: t("ag.tab.tours") },
-            { value: "bookings", label: t("ag.tab.bookings") },
+            { value: "guides", label: t("ag.tab.guides") },
             { value: "agency", label: t("ag.tab.agency") },
           ]}
         />
@@ -156,7 +158,8 @@ export default function AgencyApp({ onExit }) {
       <div className="ag-body">
         <AgencyStatus agency={agency} onEdit={() => setEditingAgency(true)} />
         {tab === "tours" && <ToursTab agency={agency} onEdit={setEditingTour} />}
-        {tab === "bookings" && <BookingsTab agency={agency} />}
+        {tab === "bookings" && <BookingsTab agency={agency} onUnread={setBkBadge} />}
+        {tab === "guides" && <GuidesTab agency={agency} />}
         {tab === "agency" && <AgencyInfo agency={agency} onEdit={() => setEditingAgency(true)} />}
       </div>
     </div>
@@ -489,100 +492,6 @@ function ToursTab({ agency, onEdit }) {
           </div>
         </article>
       ))}
-    </>
-  );
-}
-
-// ── заявки ─────────────────────────────────────────────────────
-function contactHref(c) {
-  const v = (c || "").trim();
-  if (/^@\w+/.test(v)) return `https://t.me/${v.slice(1)}`;
-  if (/@/.test(v)) return `mailto:${v}`;
-  if (/^\+?[\d\s()-]{7,}$/.test(v)) return `tel:${v.replace(/[^\d+]/g, "")}`;
-  return null;
-}
-
-function BookingsTab({ agency }) {
-  const { t, money, plural, fmtDate } = useSettings();
-  const [list, setList] = useState(null);
-  const [filter, setFilter] = useState("new");
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let off = false;
-    fetchAgencyBookings(agency.id)
-      .then((d) => !off && setList(d))
-      .catch((err) => {
-        console.warn(err);
-        if (!off) setError(true);
-      });
-    return () => {
-      off = true;
-    };
-  }, [agency.id]);
-
-  async function change(row, status) {
-    try {
-      await setBookingStatus(row.id, status);
-      setList((l) => l.map((x) => (x.id === row.id ? { ...x, status } : x)));
-    } catch (err) {
-      console.warn(err);
-      setError(true);
-    }
-  }
-
-  const shown = (list || []).filter((b) => (filter === "new" ? b.status === "pending" : true));
-  const today = new Date().toISOString().slice(0, 10);
-
-  return (
-    <>
-      <div className="ag-banner">{t("ag.bk.how")}</div>
-      <Segmented
-        label={t("ag.tab.bookings")}
-        value={filter}
-        onChange={setFilter}
-        options={[
-          { value: "new", label: t("ag.bk.new") },
-          { value: "all", label: t("ag.bk.all") },
-        ]}
-      />
-      {error && <div className="form-error">{t("ag.loadError")}</div>}
-      {list === null && !error && <div className="ag-empty">{t("ag.loading")}</div>}
-      {list && shown.length === 0 && (
-        <div className="card ag-empty">{t(filter === "new" && list.length > 0 ? "ag.bk.emptyNew" : "ag.bk.empty")}</div>
-      )}
-      {shown.map((b) => {
-        const href = contactHref(b.contact);
-        return (
-          <article key={b.id} className="card">
-            <div className="ag-item no-thumb" role="group">
-              <span className="grow">
-                <span className="row between gap-6">
-                  <span className="t-md b">{b.tour?.title || b.tour_id}</span>
-                  <StatusBadge kind="bk" status={b.status} />
-                </span>
-                <span className="muted t-sm">{fmtDate(b.date)} · {plural("pl.guests", b.guests)} · {b.total_usd == null ? t("price.request") : money(Number(b.total_usd))}</span>
-                <span className="t-sm">{b.name} · {href ? <a className="route-link" href={href}>{b.contact}</a> : b.contact}</span>
-                <span className="muted t-xs">{t("ag.bk.code")}: <b>{b.code}</b>{b.lang ? ` · ${b.lang.toUpperCase()}` : ""}</span>
-              </span>
-            </div>
-            <div className="ag-actions">
-              {b.status === "pending" && (
-                <>
-                  <button className="pill on" onClick={() => change(b, "confirmed")}>{t("ag.bk.confirm")}</button>
-                  <button className="pill" onClick={() => change(b, "declined")}>{t("ag.bk.decline")}</button>
-                </>
-              )}
-              {b.status === "confirmed" && b.date <= today && (
-                <button className="pill" onClick={() => change(b, "done")}>{t("ag.bk.markDone")}</button>
-              )}
-              {href && (
-                <a className="pill ag-file-btn" href={href}><Phone size={14} /> {t("ag.bk.contact")}</a>
-              )}
-            </div>
-          </article>
-        );
-      })}
     </>
   );
 }

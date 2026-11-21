@@ -11,6 +11,17 @@ const MAX_PHOTOS = 8;
 const LANGS = ["RU", "EN", "KY", "UZ", "KK", "TR", "DE", "FR", "ZH"];
 const lines = (s) => s.split("\n").map((x) => x.trim()).filter(Boolean);
 
+// программа: строка «10:00 — Сулайман-Тоо» ↔ { time, title }
+const planToText = (it) => (it || []).map((p) => (p.time ? `${p.time} — ${p.title}` : p.title)).join("\n");
+function textToPlan(text) {
+  return lines(text)
+    .slice(0, 30)
+    .map((l) => {
+      const m = /^(\d{1,2})[:.](\d{2})\s*[—–-]?\s*(.+)$/.exec(l);
+      return m ? { time: `${m[1].padStart(2, "0")}:${m[2]}`, title: m[3].trim().slice(0, 120) } : { time: "", title: l.slice(0, 120) };
+    });
+}
+
 function fromRow(r) {
   return {
     title: r?.title || "",
@@ -26,6 +37,7 @@ function fromRow(r) {
     description: r?.description || "",
     highlights: (r?.highlights || []).join("\n"),
     includes: (r?.includes || []).join("\n"),
+    plan: planToText(r?.itinerary),
     images: r?.images || [],
     lat: r?.lat ?? CITY.lat,
     lng: r?.lng ?? CITY.lng,
@@ -50,6 +62,7 @@ function toRow(f, status) {
     description: f.description.trim() || null,
     highlights: lines(f.highlights),
     includes: lines(f.includes),
+    itinerary: textToPlan(f.plan),
     images: f.images,
     lat: f.lat,
     lng: f.lng,
@@ -241,6 +254,9 @@ export function TourEditor({ agency, tour, onClose, onSaved }) {
           </Field>
           <Field label={t("ag.t.includes")} hint={t("ag.t.includesHint")} required>
             <textarea className="ag-textarea" value={f.includes} onChange={set("includes")} rows={4} />
+          </Field>
+          <Field label={t("ag.t.plan")} hint={t("ag.t.planHint")}>
+            <textarea className="ag-textarea" value={f.plan} onChange={set("plan")} rows={5} placeholder={t("ag.t.planPlaceholder")} />
           </Field>
         </section>
 

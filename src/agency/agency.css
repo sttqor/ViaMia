@@ -182,3 +182,10 @@
 .ag-kv dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
 
 .ag-empty { padding: 28px 16px; text-align: center; color: var(--muted); font-size: var(--fs-sm); }
+
+/* гиды и карточка заявки */
+.ag-thumb-round { border-radius: 50%; }
+.ag-initial { display: grid; place-items: center; color: var(--terracotta-dark); font-weight: 800; font-size: var(--fs-lg); }
+.ag-bk-row { border: 1px solid var(--line); border-radius: var(--radius-card); }
+.ag-back { display: inline-flex; align-items: center; gap: 4px; justify-self: start; }
+.ag-actions-flat { padding: 0; }
