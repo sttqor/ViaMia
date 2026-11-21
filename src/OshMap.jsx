@@ -12,10 +12,12 @@ import {
   Banknote,
   BedDouble,
   Camera,
+  Car,
   Clock,
   Coffee,
   Compass,
   Cross,
+  Footprints,
   Globe,
   Landmark,
   Map as MapIcon,
@@ -33,8 +35,11 @@ import {
 import PLACES from "./places-osm.json";
 import { CITY } from "./data";
 import { fallbackOf } from "./i18n";
+import { distKm, fetchRoute, getPosition } from "./routing";
+import { primeSpeech } from "./navigation";
+import { Navigator } from "./Navigator";
 import { useSettings } from "./settings-context";
-import { distanceM, twoGisPlace, twoGisRoute, walkMinutes } from "./twogis";
+import { distanceM, twoGisRoute, walkMinutes } from "./twogis";
 import { cachedFetch, registerOshProtocol, toOsh } from "./offlineMap";
 import "./OshMap.css";
 
@@ -118,14 +123,33 @@ function loadPin(cat, size) {
   return imageCache.get(key);
 }
 
+// стрелка «я» для навигации: терракотовый наконечник в белом круге, смотрит вверх (на север)
+const ARROW_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 48 48">' +
+  '<circle cx="24" cy="24" r="21" fill="#fff" stroke="#E8E0D4" stroke-width="1.5"/>' +
+  '<path d="M24 9 L35 36 L24 30 L13 36 Z" fill="#D4532B" stroke="#B8431F" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+let arrowImg = null;
+function loadArrow() {
+  arrowImg ||= new Promise((resolve, reject) => {
+    const img = new Image(96, 96);
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(ARROW_SVG)}`;
+  });
+  return arrowImg;
+}
+
 async function addPins(map) {
-  await Promise.all(
-    MAP_CATS.map(async (cat) => {
+  await Promise.all([
+    ...MAP_CATS.map(async (cat) => {
       const size = cat.id === "tours" ? 38 : 28;
       const img = await loadPin(cat, size);
       if (!map.hasImage(`pin-${cat.id}`)) map.addImage(`pin-${cat.id}`, img, { pixelRatio: 2 });
     }),
-  );
+    loadArrow().then((img) => {
+      if (!map.hasImage("nav-arrow")) map.addImage("nav-arrow", img, { pixelRatio: 2 });
+    }),
+  ]);
 }
 
 // ── стиль карты в цветах приложения ─────────────────────────────
@@ -401,9 +425,28 @@ export function PickMap({ lat, lng, onPick }) {
 
 const EXPLORE_OPTS = { center: [CITY.lng, CITY.lat], zoom: 14, maxZoom: 19, minZoom: 10 };
 
-// nav = { stops: [{lng, lat, label}] } — маршрут дня с вкладки «Маршрут»: линия по порядку + «в 2ГИС»
+// линия маршрута и номера остановок для источников карты
+function routeLine(r) {
+  const coords = r?.data?.coords;
+  if (!coords || coords.length < 2) return fc([]);
+  return fc([{ type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: { approx: Boolean(r.data.approx) } }]);
+}
+function routeStops(r) {
+  if (!r) return fc([]);
+  return fc(r.stops.map((s, i) => point(s.lng, s.lat, { n: String(i + 1) })));
+}
+function fmtKm(m, locale, t) {
+  const km = Math.max(0.1, m / 1000);
+  return t("unit.km", { n: new Intl.NumberFormat(locale, { maximumFractionDigits: km < 10 ? 1 : 0 }).format(km) });
+}
+
+// дальше этого от центра — значит, человек не в Оше, и маршрут от него не нужен
+const NEAR_OSH_KM = 40;
+const CENTER = [CITY.lng, CITY.lat];
+
+// nav — маршрут дня из вкладки «Маршрут»: { stops: [{ lng, lat, label }] }; onNavEnd — его закрыли
 export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
-  const { t, loc, lang } = useSettings();
+  const { t, loc, lang, locale, fmtDuration } = useSettings();
   const ref = useRef(null);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("all");
@@ -415,6 +458,17 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
   const userPos = useRef(null);
   const watchId = useRef(null);
   useEffect(() => () => watchId.current != null && navigator.geolocation?.clearWatch(watchId.current), []);
+  // активный маршрут: { title, stops, start, startIsMe, note, mode, ready, data, loading }
+  // ready — точка старта уже выбрана (ждём геолокацию), только тогда прокладываем
+  const [route, setRoute] = useState(null);
+  const routeRef = useRef(null);
+  // пошаговое ведение: null | "live" | "demo"
+  const [navMode, setNavMode] = useState(null);
+  const navModeRef = useRef(null);
+  useEffect(() => {
+    routeRef.current = route;
+    navModeRef.current = navMode;
+  });
   const onOpenRef = useRef(onOpen);
   const itemsRef = useRef(items);
   useEffect(() => {
@@ -456,18 +510,9 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
     };
   }, [items, query, cat, loc, t, placeName]);
 
-  const navStops = nav?.stops?.length ? nav.stops : null;
-  const navData = useMemo(() => {
-    if (!navStops) return { line: [], pts: [] };
-    return {
-      line: navStops.length > 1 ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: navStops.map((p) => [p.lng, p.lat]) } }] : [],
-      pts: navStops.map((p, i) => point(p.lng, p.lat, { n: String(i + 1), label: p.label })),
-    };
-  }, [navStops]);
-
-  const dataRef = useRef({ tourFeatures, placeFeatures, navData });
+  const dataRef = useRef({ tourFeatures, placeFeatures });
   useEffect(() => {
-    dataRef.current = { tourFeatures, placeFeatures, navData };
+    dataRef.current = { tourFeatures, placeFeatures };
   });
 
   const onStyle = useCallback((map) => {
@@ -476,10 +521,36 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
     const text = dark ? "#EDE7DD" : "#1E2638";
     const halo = dark ? "#12161F" : "#FFFFFF";
 
+    // линия маршрута — под метками
+    const r = routeRef.current;
+    map.addSource("route", { type: "geojson", data: routeLine(r) });
+    map.addSource("route-stops", { type: "geojson", data: routeStops(r) });
+    map.addLayer({
+      id: "route-casing",
+      type: "line",
+      source: "route",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: { "line-color": "#FFFFFF", "line-width": 9, "line-opacity": dark ? 0.25 : 0.9 },
+    });
+    map.addLayer({
+      id: "route-line",
+      type: "line",
+      source: "route",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: { "line-color": "#D4532B", "line-width": 5 },
+    });
+    // прямые линии (сервис маршрутов не ответил) — пунктиром
+    map.addLayer({
+      id: "route-approx",
+      type: "line",
+      source: "route",
+      filter: ["==", ["get", "approx"], true],
+      layout: { "line-join": "round" },
+      paint: { "line-color": dark ? "#12161F" : "#FAF6F0", "line-width": 3, "line-dasharray": [1, 2] },
+    });
+
     map.addSource("places", { type: "geojson", data: fc(dataRef.current.placeFeatures) });
     map.addSource("tours", { type: "geojson", data: fc(dataRef.current.tourFeatures) });
-    map.addSource("nav-line", { type: "geojson", data: fc(dataRef.current.navData.line) });
-    map.addSource("nav-pts", { type: "geojson", data: fc(dataRef.current.navData.pts) });
     map.addSource("me", { type: "geojson", data: fc(userPos.current ? [point(userPos.current[0], userPos.current[1], {})] : []) });
 
     map.addLayer({
@@ -517,31 +588,41 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
       },
       paint: { "text-color": text, "text-halo-color": halo, "text-halo-width": 1.6 },
     });
-    map.addLayer({
-      id: "nav-line",
-      type: "line",
-      source: "nav-line",
-      layout: { "line-cap": "round", "line-join": "round" },
-      paint: { "line-color": "#D4532B", "line-width": 4, "line-dasharray": [1.5, 1.5] },
-    });
-    map.addLayer({
-      id: "nav-pts",
-      type: "circle",
-      source: "nav-pts",
-      paint: { "circle-radius": 13, "circle-color": "#D4532B", "circle-stroke-color": "#FFFFFF", "circle-stroke-width": 3 },
-    });
-    map.addLayer({
-      id: "nav-num",
-      type: "symbol",
-      source: "nav-pts",
-      layout: { "text-field": ["get", "n"], "text-font": font, "text-size": 13, "text-allow-overlap": true },
-      paint: { "text-color": "#FFFFFF" },
-    });
+    // «я»: точка, а в навигации (есть heading) — стрелка по ходу движения
     map.addLayer({
       id: "me",
       type: "circle",
       source: "me",
+      filter: ["!", ["has", "heading"]],
       paint: { "circle-radius": 8, "circle-color": "#1E2638", "circle-stroke-color": "#FFFFFF", "circle-stroke-width": 3 },
+    });
+    map.addLayer({
+      id: "me-arrow",
+      type: "symbol",
+      source: "me",
+      filter: ["has", "heading"],
+      layout: {
+        "icon-image": "nav-arrow",
+        "icon-rotate": ["get", "heading"],
+        "icon-rotation-alignment": "map",
+        "icon-pitch-alignment": "map",
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
+    });
+    // номера остановок маршрута — поверх всех меток
+    map.addLayer({
+      id: "route-stops",
+      type: "circle",
+      source: "route-stops",
+      paint: { "circle-radius": 11, "circle-color": "#1E2638", "circle-stroke-color": "#FFFFFF", "circle-stroke-width": 2.5 },
+    });
+    map.addLayer({
+      id: "route-stops-num",
+      type: "symbol",
+      source: "route-stops",
+      layout: { "text-field": ["get", "n"], "text-font": font, "text-size": 12, "text-allow-overlap": true },
+      paint: { "text-color": "#FFFFFF" },
     });
 
     // обработчики вешаем один раз на карту (слои с этими id появляются после каждой смены стиля)
@@ -578,17 +659,6 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
     map.getSource("tours")?.setData(fc(tourFeatures));
   }, [placeFeatures, tourFeatures, ready, mapRef]);
 
-  // пришёл маршрут дня — рисуем и показываем целиком
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!ready || !map) return;
-    map.getSource("nav-line")?.setData(fc(navData.line));
-    map.getSource("nav-pts")?.setData(fc(navData.pts));
-    if (!navStops) return;
-    const b = navStops.reduce((acc, p) => acc.extend([p.lng, p.lat]), new maplibregl.LngLatBounds([navStops[0].lng, navStops[0].lat], [navStops[0].lng, navStops[0].lat]));
-    map.fitBounds(b, { padding: { top: 170, bottom: 230, left: 50, right: 50 }, maxZoom: 16, duration: 700 });
-  }, [navData, navStops, ready, mapRef]);
-
   // выбрали категорию — показываем все её места в кадре
   function pickCat(id) {
     setCat(id);
@@ -600,6 +670,106 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
     if (pts.length === 0) return;
     const b = pts.reduce((acc, c) => acc.extend(c), new maplibregl.LngLatBounds(pts[0], pts[0]));
     map.fitBounds(b, { padding: { top: 150, bottom: 140, left: 40, right: 40 }, maxZoom: 16, duration: 600 });
+  }
+
+  // ── маршрут внутри приложения ──
+  // Старт: где человек сейчас (если он в Оше). Иначе для одной цели — центр города,
+  // а маршрут дня — просто от первой остановки.
+  const startRoute = useCallback(
+    async (stops, title) => {
+      setPicked(null);
+      const mode = routeRef.current?.mode || "foot";
+      setRoute({ title, stops, start: null, startIsMe: false, note: null, mode, ready: false, data: null, loading: true });
+      const me = await getPosition();
+      if (me) {
+        userPos.current = me;
+        mapRef.current?.getSource("me")?.setData(fc([point(me[0], me[1], {})]));
+      }
+      const near = Boolean(me) && distKm(me, CENTER) < NEAR_OSH_KM;
+      let start = null;
+      let note = null;
+      if (near) start = me;
+      else if (stops.length === 1) {
+        start = CENTER;
+        note = me ? "map.nav.fromCenter" : "map.nav.noGeo";
+      }
+      // пока ждали геолокацию, маршрут могли закрыть или начать другой
+      setRoute((r) => (r && r.stops === stops ? { ...r, start, startIsMe: near, note, ready: true } : r));
+    },
+    [mapRef],
+  );
+
+  // старт выбран / сменились точки или способ — прокладываем заново
+  const routeKey = route?.ready ? JSON.stringify([route.start, route.stops.map((s) => [s.lng, s.lat]), route.mode]) : "";
+  useEffect(() => {
+    const r = routeRef.current;
+    if (!routeKey || !r) return undefined;
+    const pts = [...(r.start ? [r.start] : []), ...r.stops.map((s) => [s.lng, s.lat])];
+    const ctrl = new AbortController();
+    fetchRoute(pts, r.mode, ctrl.signal)
+      .then((data) => setRoute((x) => (x ? { ...x, data, loading: false } : x)))
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [routeKey]);
+
+  // нарисовать маршрут и показать его целиком
+  const routeData = route?.data;
+  const routeOn = Boolean(route);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    const r = routeRef.current;
+    map.getSource("route")?.setData(routeLine(r));
+    map.getSource("route-stops")?.setData(routeStops(r));
+    const coords = routeData?.coords;
+    // в навигации камерой управляет Navigator — весь маршрут в кадр не показываем
+    if (coords?.length > 1 && !navModeRef.current) {
+      const b = coords.reduce((acc, c) => acc.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
+      map.fitBounds(b, { padding: { top: 170, bottom: 270, left: 56, right: 56 }, maxZoom: 17, duration: 700 });
+    }
+  }, [routeData, routeOn, ready, mapRef]);
+
+  // маршрут дня пришёл из вкладки «Маршрут»
+  useEffect(() => {
+    if (!nav?.stops?.length) return undefined;
+    // старт — не прямо в эффекте, а следующим тиком (без лишнего каскада рендеров)
+    const id = setTimeout(() => startRoute(nav.stops, t("map.nav.dayTitle")), 0);
+    return () => clearTimeout(id);
+    // заголовок берём на момент открытия, язык здесь не меняется
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nav, startRoute]);
+
+  function setMode(mode) {
+    setRoute((r) => (r && r.mode !== mode ? { ...r, mode, loading: true } : r));
+  }
+
+  function endRoute() {
+    setNavMode(null);
+    setRoute(null);
+    onNavEnd?.();
+  }
+
+  // ── пошаговая навигация ──
+  // "live" — по GPS (человек в Оше), "demo" — стрелка сама едет по маршруту
+  function startNav(kind) {
+    primeSpeech();
+    setNavMode(kind);
+  }
+
+  // сошли с пути — Navigator проложил новый маршрут от текущей точки до оставшихся остановок
+  function onReroute(data, from, restStops) {
+    setRoute((r) => (r ? { ...r, start: from, startIsMe: true, stops: restStops, data, loading: false } : r));
+  }
+
+  function stopNav() {
+    setNavMode(null);
+    // обратно к обзору маршрута целиком
+    const coords = routeRef.current?.data?.coords;
+    const map = mapRef.current;
+    if (map && coords?.length > 1) {
+      const b = coords.reduce((acc, c) => acc.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
+      setTimeout(() => map.fitBounds(b, { padding: { top: 170, bottom: 270, left: 56, right: 56 }, maxZoom: 17, duration: 700 }), 650);
+    }
   }
 
   function locateMe() {
@@ -665,6 +835,15 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
   }, [query, cat, me, t]);
 
   const pickedCat = picked ? CAT[picked.cat] : null;
+
+  if (navMode && route?.data) {
+    return (
+      <div className="map-wrap">
+        <div ref={ref} className="map-canvas" />
+        <Navigator mapRef={mapRef} route={route} demo={navMode === "demo"} onReroute={onReroute} onExit={stopNav} />
+      </div>
+    );
+  }
 
   return (
     <div className="map-wrap">
@@ -736,7 +915,76 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
       </button>
 
       <AnimatePresence>
-        {picked && pickedCat && (
+        {route && (
+          <motion.div key="route" className="map-sheet map-route" {...SHEET}>
+            <div className="map-sheet-head">
+              <span className="map-sheet-icon" style={{ background: C_TOUR }}>
+                <Route size={18} color="#fff" />
+              </span>
+              <span className="map-sheet-title">
+                <b>{route.title}</b>
+                <small>
+                  {route.loading || !route.data
+                    ? t("map.nav.loading")
+                    : `${fmtKm(route.data.distance, locale, t)} ·${fmtDuration(Math.max(1, Math.round(route.data.duration / 60)))}`}
+                  {route.stops.length > 1 && ` · ${t("map.nav.stops", { n: route.stops.length })}`}
+                </small>
+              </span>
+              <button type="button" className="map-sheet-close" onClick={endRoute} aria-label={t("map.nav.end")}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="map-route-modes" role="tablist">
+              {[
+                { id: "foot", Icon: Footprints, label: t("map.nav.walk") },
+                { id: "car", Icon: Car, label: t("map.nav.car") },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={route.mode === m.id}
+                  className={`map-chip ${route.mode === m.id ? "is-on" : ""}`}
+                  onClick={() => setMode(m.id)}
+                >
+                  <m.Icon size={14} /> {m.label}
+                </button>
+              ))}
+            </div>
+            <ol className="map-route-stops">
+              {route.start && <li className="is-start">{route.startIsMe ? t("map.nav.fromMe") : t("home.city")}</li>}
+              {route.stops.map((s, i) => (
+                <li key={`${s.lng},${s.lat},${i}`}>
+                  <b>{i + 1}</b>
+                  <span>{s.label}</span>
+                </li>
+              ))}
+            </ol>
+            {(route.note || route.data?.approx) && (
+              <div className="map-sheet-row">{t(route.data?.approx ? "map.nav.failed" : route.note)}</div>
+            )}
+            {route.data && !route.loading && !route.startIsMe && !route.note && (
+              <div className="map-sheet-row">{t("nav.demoHint")}</div>
+            )}
+            {route.data && !route.loading && (
+              <div className="map-route-go">
+                {route.startIsMe ? (
+                  <button type="button" className="map-sheet-btn is-main" onClick={() => startNav("live")}>
+                    <Navigation size={18} /> {t("nav.start")}
+                  </button>
+                ) : (
+                  <button type="button" className="map-sheet-btn is-main" onClick={() => startNav("demo")} title={t("nav.demoHint")}>
+                    <Navigation size={18} /> {t("nav.demo")}
+                  </button>
+                )}
+                <a className="map-sheet-btn" href={twoGisRoute(route.stops)} target="_blank" rel="noreferrer" aria-label={t("map.poi.route2gis")}>
+                  <MapIcon size={16} /> 2ГИС
+                </a>
+              </div>
+            )}
+          </motion.div>
+        )}
+        {picked && pickedCat && !route && (
           <motion.div key={picked.id} className="map-sheet" {...SHEET}>
             <div className="map-sheet-head">
               <span className="map-sheet-icon" style={{ background: pickedCat.color }}>
@@ -759,10 +1007,14 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
               </div>
             )}
             <div className="map-sheet-actions">
-              <a className="map-sheet-btn is-main" href={twoGisRoute(picked.lat, picked.lng)} target="_blank" rel="noreferrer">
-                <Route size={16} /> {t("map.poi.route2gis")}
-              </a>
-              <a className="map-sheet-btn" href={twoGisPlace(picked.lat, picked.lng)} target="_blank" rel="noreferrer" aria-label={t("map.poi.open2gis")}>
+              <button
+                type="button"
+                className="map-sheet-btn is-main"
+                onClick={() => startRoute([{ lng: picked.lng, lat: picked.lat, label: placeName(picked) }], t("map.nav.title"))}
+              >
+                <Route size={16} /> {t("map.poi.route")}
+              </button>
+              <a className="map-sheet-btn" href={twoGisRoute(picked.lat, picked.lng)} target="_blank" rel="noreferrer" aria-label={t("map.poi.route2gis")}>
                 <MapIcon size={16} /> 2ГИС
               </a>
               {picked.phone && (
@@ -775,27 +1027,6 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
                   <Globe size={16} />
                 </a>
               )}
-            </div>
-          </motion.div>
-        )}
-        {navStops && !picked && (
-          <motion.div key="nav" className="map-sheet" {...SHEET}>
-            <div className="map-sheet-head">
-              <span className="map-sheet-icon" style={{ background: C_TOUR }}>
-                <Route size={18} color="#fff" />
-              </span>
-              <span className="map-sheet-title">
-                <b>{t("map.nav.title")}</b>
-                <small>{navStops.map((p) => p.label).join(" → ")}</small>
-              </span>
-              <button type="button" className="map-sheet-close" onClick={onNavEnd} aria-label={t("map.poi.close")}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="map-sheet-actions">
-              <a className="map-sheet-btn is-main" href={twoGisRoute(navStops)} target="_blank" rel="noreferrer">
-                <Route size={16} /> {t("map.poi.route2gis")}
-              </a>
             </div>
           </motion.div>
         )}
