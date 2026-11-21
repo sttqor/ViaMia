@@ -226,6 +226,7 @@ export default {
   "login.errEmail": "Cette adresse semble incorrecte. Veuillez la vérifier.",
   "login.errPhone": "Il faut le numéro complet : +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Ce code d’opérateur n’existe pas au Kirghizistan. Vérifiez le numéro.",
+  "login.errSmsSoon": "La connexion par SMS arrive bientôt — connectez-vous par e-mail pour l’instant.",
   "login.errSend": "Impossible d’envoyer le code. Patientez une minute et réessayez.",
   "login.errCode": "Le code n’est pas bon. Vérifiez les chiffres ou demandez-en un nouveau.",
   "login.errPassword": "Mot de passe incorrect. Vous pouvez vous connecter par code.",

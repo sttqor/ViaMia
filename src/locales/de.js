@@ -222,6 +222,7 @@ export default {
   "login.errEmail": "Diese Adresse scheint ungültig. Bitte prüfen Sie sie.",
   "login.errPhone": "Bitte die vollständige Nummer: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Diese Netzvorwahl gibt es in Kirgisistan nicht. Prüfen Sie die Nummer.",
+  "login.errSmsSoon": "Anmeldung per SMS kommt bald – melden Sie sich vorerst per E-Mail an.",
   "login.errSend": "Der Code konnte nicht gesendet werden. Warten Sie eine Minute und versuchen Sie es erneut.",
   "login.errCode": "Der Code passt nicht. Prüfen Sie die Ziffern oder fordern Sie einen neuen an.",
   "login.errPassword": "Falsches Passwort. Sie können sich stattdessen per Code anmelden.",

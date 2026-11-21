@@ -68,6 +68,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 // Поле входа «почта или телефон» → { id: { email } | { phone } } или { error: ключ перевода }.
 // mode: "any" — что ввели, "email" / "phone" — только этот способ (привязка в профиле)
+// shortcut: SMS-шлюза нет (в supabase заглушка twilio) — по телефону входят только тестовые номера
+// (для проверки apple/google, код 123456). Подключите шлюз — поставьте VITE_SMS_ENABLED=1.
+const SMS_READY = import.meta.env.VITE_SMS_ENABLED === "1";
+const TEST_PHONES = ["+996700000001", "+996555000002"];
+
 export function readLoginId(raw, mode = "any") {
   const s = String(raw || "").trim();
   if (!s) return { error: mode === "phone" ? "login.errPhone" : mode === "email" ? "login.errEmail" : "login.errId" };
@@ -75,7 +80,9 @@ export function readLoginId(raw, mode = "any") {
     const check = checkPhone(s);
     if (check === "short") return { error: "login.errPhone" };
     if (check === "operator") return { error: "login.errOperator" };
-    return { id: { phone: toE164(s) } };
+    const phone = toE164(s);
+    if (!SMS_READY && !TEST_PHONES.includes(phone)) return { error: "login.errSmsSoon" };
+    return { id: { phone } };
   }
   if (mode === "phone") return { error: "login.errPhone" };
   const email = s.toLowerCase();
