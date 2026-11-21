@@ -18,7 +18,9 @@
 - Стили — обычный CSS (`src/index.css`, `src/Facts.css`), без Tailwind в коде
 
 ## Файлы
-- `src/App.jsx` — всё приложение: вкладки Гид / Карта / Маршрут / Туры / Профиль, экраны тура, бронирования, билета. Большой (~1100 строк) — желательно разбить на `src/views/*` и `src/components/*`.
+- `src/App.jsx` — каркас: заставка, вкладки (`TABS`), хранилище (`osh-guide-v1`), переходы между экранами (`AppScreens`).
+- `src/views/*` — экраны: `HomeView`, `RouteView`, `ToursView`, `SavedView`, `ProfileView`, `Detail` (тур), `Booking`, `TicketView`.
+- `src/components/ui.jsx` — общие куски экранов (`ExperienceCard`, `ChipRow`, `SaveHeart`, ленивые `ExploreMap` / `MiniMap` …); `src/components/shared.js` — пресеты анимаций (`SPRING`, `SCREEN_IN`, `TAP` …) и `priceText`.
 - `src/data.js` — `EXPERIENCES` (туры), `CATEGORIES`, `FACTS`, `CITY`, `upcomingDates`, `makeCode`. Вверху файла — инструкция, как добавлять карточки.
 - `src/Facts.jsx` + `src/Facts.css` — блок «Интересные факты» с нижним листом (портал в body).
 - `src/HomeBlocks.jsx` — шапка с погодой (Open-Meteo, сама обновляется раз в 10 мин и при возврате в приложение, почасовой прогноз), быстрые кнопки, фразы на кыргызском (транскрипция `tr` + озвучка через `speechSynthesis`: ky → kk → ru), SOS.
