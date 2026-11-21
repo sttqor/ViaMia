@@ -12,6 +12,7 @@ import { prettyPhone } from "../phone";
 import { useAuth } from "../auth-context";
 import { SUPPORT_EMAIL } from "../privacy-text";
 import { OfflineMapRow } from "../OfflineMapRow.jsx";
+import { EventsBell } from "../booking/EventsBell.jsx";
 import { SPRING, SCREEN_IN, STAGGER, RISE, TAP, priceText } from "../components/shared";
 
 // 4. ПРОФИЛЬ: НАСТРОЙКИ, ЯЗЫК, ВАЛЮТА, ПОДДЕРЖКА
@@ -62,7 +63,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   );
 }
 
-export function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours, onOpenAgency, onOpenAdmin, onOpenPrivacy }) {
+export function ProfileView({ bookings, onOpenTicket, onOpenBooking, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours, onOpenAgency, onOpenAdmin, onOpenPrivacy }) {
   const {
     t,
     loc,
@@ -146,7 +147,10 @@ export function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpen
 
   return (
     <motion.div className="gyg-scroll profile" variants={STAGGER} initial="hidden" animate="show">
-      <h1 className="page-title">{t("profile.title")}</h1>
+      <div className="row between">
+        <h1 className="page-title">{t("profile.title")}</h1>
+        <EventsBell onOpen={onOpenBooking} />
+      </div>
 
       <motion.div className="card panel" variants={RISE}>
         <div className="row gap-12">
@@ -187,6 +191,38 @@ export function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpen
         </motion.div>
       )}
 
+      <motion.div className="card panel" variants={RISE}>
+        <div className="panel-head">
+          <Ticket size={16} color="var(--terracotta)" />
+          <b>{t("profile.tickets", { n: bookings.length })}</b>
+        </div>
+        {bookings.length === 0 ? (
+          <div className="empty-cta">
+            <div className="muted">{t("profile.noTickets")}</div>
+            <button className="cta cta-sm" onClick={onGoToTours}>{t("profile.seeTours")}</button>
+          </div>
+        ) : (
+          <div className="stack-8">
+            {bookings.map((b) => {
+              const exp = loc(b.exp);
+              return (
+                <motion.button key={b.code} layout className="booking-row" whileTap={TAP} onClick={() => onOpenTicket(b)}>
+                  <img src={exp.image} alt="" />
+                  <span className="grow">
+                    <span className="booking-row-title">{exp.title}</span>
+                    <span className="muted t-xs">
+                      {fmtDate(b.date)} · {plural("pl.guests", b.guests)} · {b.code}
+                    </span>
+                    <span className={`trip-status is-${b.status || "pending"}`}>{t(`trip.status.${b.status || "pending"}`)}</span>
+                  </span>
+                  <ChevronRight size={16} color="var(--muted-2)" />
+                </motion.button>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
+
       {/* для партнёров: кабинет агентства и модерация (пускает только админов — решает база) */}
       <motion.div className="card panel" variants={RISE}>
         <button className="row-btn" onClick={onOpenAgency}>
@@ -211,37 +247,6 @@ export function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpen
           </span>
           <ChevronRight size={16} color="var(--muted-2)" />
         </button>
-      </motion.div>
-
-      <motion.div className="card panel" variants={RISE}>
-        <div className="panel-head">
-          <Ticket size={16} color="var(--terracotta)" />
-          <b>{t("profile.tickets", { n: bookings.length })}</b>
-        </div>
-        {bookings.length === 0 ? (
-          <div className="empty-cta">
-            <div className="muted">{t("profile.noTickets")}</div>
-            <button className="cta cta-sm" onClick={onGoToTours}>{t("profile.seeTours")}</button>
-          </div>
-        ) : (
-          <div className="stack-8">
-            {bookings.map((b) => {
-              const exp = loc(b.exp);
-              return (
-                <motion.button key={b.code} layout className="booking-row" whileTap={TAP} onClick={() => onOpenTicket(b)}>
-                  <img src={exp.image} alt="" />
-                  <span className="grow">
-                    <span className="booking-row-title">{exp.title}</span>
-                    <span className="muted t-xs">
-                      {fmtDate(b.date)} · {plural("pl.guests", b.guests)} · {b.code}
-                    </span>
-                  </span>
-                  <ChevronRight size={16} color="var(--muted-2)" />
-                </motion.button>
-              );
-            })}
-          </div>
-        )}
       </motion.div>
 
       <motion.div className="card panel" variants={RISE}>

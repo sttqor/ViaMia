@@ -6,6 +6,8 @@ import { durationMinutes, weekdayShort } from "../i18n";
 import { useSettings } from "../settings-context";
 import { SPRING, SCREEN_IN, TAP } from "../components/shared";
 import { Reveal, Ticker } from "../components/ui.jsx";
+import { useAuth } from "../auth-context";
+import { LoginScreen } from "../Login.jsx";
 
 export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
   const { t, loc, money, plural, fmtDuration, lang } = useSettings();
@@ -24,12 +26,20 @@ export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
   const [tried, setTried] = useState(false); // нажимали «отправить» с пустыми полями
   const nameRef = useRef(null);
   const contactRef = useRef(null);
+  // бронь — только из аккаунта: иначе не прислать подтверждение, гида и сообщения
+  const { enabled: authOn, user } = useAuth();
+  const needLogin = authOn && !user;
+  const [askLogin, setAskLogin] = useState(false);
 
   async function submit() {
     if (sending) return;
     if (!canSubmit) {
       setTried(true);
       (nameOk ? contactRef : nameRef).current?.focus();
+      return;
+    }
+    if (needLogin) {
+      setAskLogin(true); // вход по коду, поля формы сохранятся
       return;
     }
     setSending(true);
@@ -52,6 +62,8 @@ export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
       setSending(false);
     }
   }
+
+  if (askLogin && needLogin) return <LoginScreen onBack={() => setAskLogin(false)} />;
 
   const dayLabel = (d, i) => (i === 0 ? t("booking.today") : i === 1 ? t("booking.tomorrow") : weekdayShort(d.date, lang));
 
@@ -146,10 +158,14 @@ export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
           </div>
         </Reveal>
 
+        {needLogin && <div className="muted t-sm mb-8">{t("booking.loginWhy")}</div>}
+
         <motion.button className="cta" disabled={sending} whileTap={TAP} onClick={submit}>
           {sending
             ? t("booking.sending")
-            : total == null
+            : needLogin
+              ? t("booking.loginFirst")
+              : total == null
               ? t("booking.submitRequest")
               : t("booking.submit", { total: money(total) })}
         </motion.button>

@@ -148,3 +148,16 @@
   text-align: left;
   cursor: pointer;
 }
+
+/* колокольчик на главной — в углу поверх шапки */
+.home-view { position: relative; }
+.home-bell { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 16px; z-index: 5; }
+.home-bell:empty { display: none; }
+
+/* статус поездки в профиле */
+.trip-status { display: inline-block; margin-top: 2px; font-size: var(--fs-xs); font-weight: 800; color: var(--terracotta-dark); }
+.trip-status.is-confirmed,
+.trip-status.is-done { color: var(--green); }
+.trip-status.is-declined,
+.trip-status.is-cancelled,
+.trip-status.is-expired { color: var(--muted); }

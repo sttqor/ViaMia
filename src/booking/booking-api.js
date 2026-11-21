@@ -33,6 +33,7 @@ export async function markChatRead(bookingId) {
 
 // Новые сообщения сразу (Supabase Realtime, видны только разрешённые RLS строки). Возвращает отписку.
 export function subscribeMessages(bookingId, onMessage) {
+  if (!supabase) return () => {};
   const ch = supabase
     .channel(`chat-${bookingId}`)
     .on(
@@ -66,6 +67,7 @@ export async function markEventsRead() {
 
 // любое новое событие для этого аккаунта (RLS отдаёт только свои)
 export function subscribeEvents(key, onEvent) {
+  if (!supabase) return () => {};
   const ch = supabase
     .channel(`events-${key}`)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "booking_events" }, (p) => onEvent(p.new))

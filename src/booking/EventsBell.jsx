@@ -85,7 +85,7 @@ export function EventsBell({ onOpen }) {
                         }}
                       >
                         <span className="t-sm">{text(e)}</span>
-                        <span className="muted t-xs">{fmtDate(e.created_at.slice(0, 10))}</span>
+                        <span className="muted t-xs">{fmtDate(new Date(e.created_at).toLocaleDateString("en-CA"))}</span>
                       </button>
                     </li>
                   ))}

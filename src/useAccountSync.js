@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchMyBookings, fetchProfile, saveProfile } from "./api";
 import { useAuth } from "./auth-context";
+import { subscribeEvents } from "./booking/booking-api";
 import { cleanSettings, mergeSettings, useSettings } from "./settings-context";
 
 // Аккаунт — не косметика: избранное, маршрут, брони и настройки (язык, валюта, тема,
@@ -77,6 +78,19 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
       cancelled = true;
     };
     // слияние — один раз на вход; остальные зависимости — стабильные сеттеры
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, byId]);
+
+  // Агентство подтвердило / назначило гида / ответило — брони обновляются сразу (Supabase Realtime)
+  useEffect(() => {
+    const uid = user?.id;
+    if (!uid) return;
+    return subscribeEvents(`sync-${uid}`, () => {
+      if (readyFor.current !== uid) return;
+      fetchMyBookings(uid, byId)
+        .then((remote) => setBookings((prev) => mergeBookings(prev, remote)))
+        .catch(() => {});
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, byId]);
 

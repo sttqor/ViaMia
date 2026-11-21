@@ -189,8 +189,8 @@ function AppScreens() {
 
   // Заявка уходит в Supabase (если он настроен). Ошибка пробрасывается — экран брони её покажет.
   async function confirmBooking(entry) {
-    const { synced } = await submitBookingRequest(entry, lang);
-    const record = { ...entry, synced };
+    const { synced, id } = await submitBookingRequest(entry, lang);
+    const record = { ...entry, synced, id };
     setBookings((b) => [record, ...b]);
     rememberContact(entry);
     setBookingExp(null);
@@ -198,6 +198,13 @@ function AppScreens() {
     setPage(null);
     setTicket(record);
     setTab("profile");
+  }
+
+  // из колокольчика: открыть поездку по id брони
+  function openBookingById(id) {
+    const b = bookings.find((x) => x.id === id);
+    if (b) setTicket(b);
+    else setTab("profile");
   }
 
   async function cancelBooking(entry) {
@@ -217,7 +224,22 @@ function AppScreens() {
       />
     );
   }
-  if (ticket) return <TicketView booking={ticket} onClose={closeScreen} onCancel={cancelBooking} />;
+  if (ticket) {
+    // билет берём из списка броней — статус и детали обновляются, пока он открыт
+    const live = bookings.find((b) => b.code === ticket.code) || ticket;
+    return (
+      <TicketView
+        booking={live}
+        onClose={closeScreen}
+        onCancel={cancelBooking}
+        onNavigate={(exp) => {
+          setTicket(null);
+          setNavPlan({ stops: [{ lng: exp.lng, lat: exp.lat, label: exp.title }] });
+          setTab("map");
+        }}
+      />
+    );
+  }
   if (bookingExp)
     return <Booking exp={bookingExp} defaults={account} onBack={closeScreen} onConfirm={confirmBooking} />;
   if (selected) {
@@ -266,7 +288,9 @@ function AppScreens() {
   return (
     <div className="gyg-app ornament-bg">
       <OfflineBanner />
-      {tab === "home" && <HomeView onGoTo={setTab} onOpenExp={setSelected} onOpenTips={() => setPage("tips")} />}
+      {tab === "home" && (
+        <HomeView onGoTo={setTab} onOpenExp={setSelected} onOpenTips={() => setPage("tips")} onOpenBooking={openBookingById} />
+      )}
 
       {tab === "map" && (
         <ExploreMap items={allTours} onOpen={setSelected} nav={navPlan} onNavEnd={() => setNavPlan(null)} />
@@ -303,6 +327,7 @@ function AppScreens() {
         <ProfileView
           bookings={bookings}
           onOpenTicket={setTicket}
+          onOpenBooking={openBookingById}
           saved={saved}
           onOpenSaved={setSelected}
           onOpenSavedList={() => setPage("saved")}

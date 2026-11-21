@@ -4,8 +4,9 @@ import { Calendar, Check, ChevronLeft, Clock, MapPin, Ticket, User, X } from "lu
 import { useSettings } from "../settings-context";
 import { EASE_OUT, SCREEN_IN, TAP } from "../components/shared";
 import { Reveal } from "../components/ui.jsx";
+import { TripBlock } from "../booking/TripBlock.jsx";
 
-export function TicketView({ booking, onClose, onCancel }) {
+export function TicketView({ booking, onClose, onCancel, onNavigate }) {
   const { t, loc, money, plural, fmtDate } = useSettings();
   const exp = loc(booking.exp);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -52,7 +53,7 @@ export function TicketView({ booking, onClose, onCancel }) {
                 </motion.span>
                 {t("ticket.confirmed")}
               </div>
-            ) : booking.status === "declined" || booking.status === "cancelled" || booking.status === "done" ? (
+            ) : ["declined", "cancelled", "expired", "done"].includes(booking.status) ? (
               <div className={`row ticket-status ${booking.status === "done" ? "is-ok" : ""}`}>
                 {booking.status === "done" ? <Check size={16} /> : <X size={16} />} {t(`ticket.${booking.status}`)}
               </div>
@@ -78,11 +79,17 @@ export function TicketView({ booking, onClose, onCancel }) {
           </div>
         </motion.div>
 
+        {booking.status === "declined" && booking.declineReason && (
+          <div className="card panel mt-16 t-sm">{t("bell.reason", { reason: booking.declineReason })}</div>
+        )}
+
+        <TripBlock booking={booking} onNavigate={onNavigate} />
+
         <Reveal show={cancelError}>
           <div className="form-error mt-16" role="alert">{t("ticket.cancelError")}</div>
         </Reveal>
 
-        {onCancel && (
+        {onCancel && ["pending", "confirmed"].includes(booking.status) && (
           <AnimatePresence mode="wait" initial={false}>
             {confirmCancel ? (
               <motion.div
