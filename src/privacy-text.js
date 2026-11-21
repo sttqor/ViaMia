@@ -1,7 +1,7 @@
 // Политика конфиденциальности — для App Store / Google Play и экрана в профиле.
 // Меняете, что собираем (новый сервис, аналитика, push) — обновите текст и дату.
 // Адрес для магазинов: https://osh-explorer2.vercel.app/privacy
-export const PRIVACY_UPDATED = "2026-11-20";
+export const PRIVACY_UPDATED = "2026-11-21";
 export const SUPPORT_EMAIL = "viamiasupp@gmail.com";
 
 export const PRIVACY = {
@@ -22,7 +22,7 @@ export const PRIVACY = {
       },
       {
         h: "Чего мы не делаем",
-        p: ["Не продаём и не передаём данные рекламщикам. В приложении нет рекламы, трекеров и сторонней аналитики."],
+        p: ["Не продаём и не передаём данные рекламщикам. В приложении нет рекламы, трекеров и сторонней аналитики.", "Если приложение падает, отчёт об ошибке (модель телефона, версия системы, место сбоя в коде) уходит в Sentry — чтобы мы нашли и исправили баг. Имени, почты и телефона в отчёте нет."],
       },
       {
         h: "Где хранятся данные",
@@ -73,7 +73,7 @@ export const PRIVACY = {
       },
       {
         h: "What we don't do",
-        p: ["We don't sell data or share it with advertisers. There are no ads, trackers or third-party analytics."],
+        p: ["We don't sell data or share it with advertisers. There are no ads, trackers or third-party analytics.", "If the app crashes, an error report (device model, OS version, where in the code it failed) is sent to Sentry so we can fix the bug. It contains no name, email or phone number."],
       },
       {
         h: "Where data is stored",
