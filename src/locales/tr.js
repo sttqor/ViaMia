@@ -219,6 +219,8 @@ export default {
   "login.errEmail": "Bu adres hatalı görünüyor. Lütfen kontrol edin.",
   "login.errPhone": "Numaranın tamamı gerekli: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Kırgızistan'da böyle bir operatör kodu yok. Numarayı kontrol edin.",
+  "login.errSmsSoon": "SMS ile giriş yakında geliyor; şimdilik e-postayla giriş yapın.",
+  "detail.bookOnSite": "Sitesinden rezervasyon",
   "login.errSend": "Kod gönderilemedi. Bir dakika bekleyip tekrar deneyin.",
   "login.errCode": "Kod uyuşmadı. Rakamları kontrol edin veya yeni kod isteyin.",
   "login.errPassword": "Parola yanlış. Kodla giriş yapabilirsiniz.",

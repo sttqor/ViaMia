@@ -1397,6 +1397,9 @@ function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggleRoute,
           >
             <Ticker value={inRoute ? t("card.inRoute") : t("card.addRoute")} />
           </motion.button>
+        ) : !raw.agencyId && exp.url ? (
+          // у тура с сайта нет агентства в ViaMia — заявку некому принять, бронь на их сайте
+          <a className="cta" href={exp.url} target="_blank" rel="noopener noreferrer">{t("detail.bookOnSite")}</a>
         ) : (
           <motion.button className="cta" whileTap={TAP} onClick={() => onBook(raw)}>{t("detail.pickDate")}</motion.button>
         )}
