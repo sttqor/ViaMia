@@ -53,7 +53,7 @@ import { LoginScreen } from "./Login.jsx";
 import { LinkScreen, LoginMethods } from "./AccountMethods.jsx";
 import { prettyPhone } from "./phone";
 import { useAuth } from "./auth-context";
-import { twoGisPlace, twoGisRoute } from "./twogis";
+import { twoGisPlace } from "./twogis";
 import { ErrorBoundary, Loader, OfflineBanner } from "./Status.jsx";
 import { PrivacyScreen } from "./Privacy.jsx";
 import { SUPPORT_EMAIL } from "./privacy-text";
@@ -1354,9 +1354,6 @@ function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggleRoute,
         <MiniMap lat={exp.lat} lng={exp.lng} label={exp.place} />
         {exp.lat != null && exp.lng != null && (
           <div className="gis-actions mt-12">
-            <a className="cta ghost" href={twoGisRoute(exp.lat, exp.lng)} target="_blank" rel="noreferrer">
-              <RouteIcon size={16} /> {t("map.poi.route2gis")}
-            </a>
             <a className="cta ghost" href={twoGisPlace(exp.lat, exp.lng)} target="_blank" rel="noreferrer">
               <MapIcon size={16} /> {t("map.poi.open2gis")}
             </a>

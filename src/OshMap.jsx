@@ -39,7 +39,7 @@ import { distKm, fetchRoute, getPosition } from "./routing";
 import { primeSpeech } from "./navigation";
 import { Navigator } from "./Navigator";
 import { useSettings } from "./settings-context";
-import { distanceM, twoGisRoute, walkMinutes } from "./twogis";
+import { distanceM, twoGisPlace, walkMinutes } from "./twogis";
 import { cachedFetch, registerOshProtocol, toOsh } from "./offlineMap";
 import "./OshMap.css";
 
@@ -977,9 +977,6 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
                     <Navigation size={18} /> {t("nav.demo")}
                   </button>
                 )}
-                <a className="map-sheet-btn" href={twoGisRoute(route.stops)} target="_blank" rel="noreferrer" aria-label={t("map.poi.route2gis")}>
-                  <MapIcon size={16} /> 2ГИС
-                </a>
               </div>
             )}
           </motion.div>
@@ -1014,8 +1011,8 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
               >
                 <Route size={16} /> {t("map.poi.route")}
               </button>
-              <a className="map-sheet-btn" href={twoGisRoute(picked.lat, picked.lng)} target="_blank" rel="noreferrer" aria-label={t("map.poi.route2gis")}>
-                <MapIcon size={16} /> 2ГИС
+              <a className="map-sheet-btn" href={twoGisPlace(picked.lat, picked.lng)} target="_blank" rel="noreferrer">
+                <MapIcon size={16} /> {t("map.poi.open2gis")}
               </a>
               {picked.phone && (
                 <a className="map-sheet-btn" href={`tel:${picked.phone.split(/[;,]/)[0].replace(/\s/g, "")}`} aria-label={t("map.poi.call")}>
