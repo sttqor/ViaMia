@@ -211,6 +211,7 @@ export default {
   "login.errPhone": "请输入完整号码：+996 (XXX) XX-XX-XX。",
   "login.errOperator": "吉尔吉斯斯坦没有这个运营商号段，请检查号码。",
   "login.errSmsSoon": "短信登录即将开放，请先用邮箱登录。",
+  "detail.bookOnSite": "在其网站预订",
   "login.errSend": "验证码发送失败，请等一分钟后重试。",
   "login.errCode": "验证码不正确，请检查数字或重新获取。",
   "login.errPassword": "密码不正确，您也可以用验证码登录。",

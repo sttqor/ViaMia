@@ -220,6 +220,7 @@ export default {
   "login.errPhone": "번호를 끝까지 입력해 주세요: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "키르기스스탄에 없는 통신사 번호예요. 번호를 확인해 주세요.",
   "login.errSmsSoon": "SMS 로그인은 곧 열려요. 지금은 이메일로 로그인해 주세요.",
+  "detail.bookOnSite": "사이트에서 예약",
   "login.errSend": "코드를 보내지 못했어요. 1분 뒤에 다시 시도해 주세요.",
   "login.errCode": "코드가 맞지 않아요. 숫자를 확인하거나 새 코드를 요청해 주세요.",
   "login.errPassword": "비밀번호가 맞지 않아요. 코드로 로그인할 수 있어요.",
