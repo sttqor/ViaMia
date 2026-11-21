@@ -12,7 +12,7 @@ export const AGENCY_RU = {
 
   "ag.tab.tours": "Туры",
   "ag.tab.bookings": "Заявки",
-  "ag.tab.agency": "Агентство",
+  "ag.tab.agency": "Данные",
 
   "ag.intro.title": "Добро пожаловать",
   "ag.intro.text": "Расскажите об агентстве, и ваши туры увидят туристы в Оше.",
@@ -262,7 +262,7 @@ export const AGENCY_EN = {
 
   "ag.tab.tours": "Tours",
   "ag.tab.bookings": "Requests",
-  "ag.tab.agency": "Agency",
+  "ag.tab.agency": "Profile",
 
   "ag.intro.title": "Welcome",
   "ag.intro.text": "Tell us about your agency and tourists in Osh will see your tours.",
