@@ -45,6 +45,14 @@
 - Отчёты о падениях — Sentry (`@sentry/react` в `src/main.jsx`, включается ключом `VITE_SENTRY_DSN` в `.env` и Vercel).
 - Приложение для магазинов — Capacitor (`android/`, `ios/`, `capacitor.config.json`, `src/native.js`), облачная сборка — `codemagic.yaml`. После правок кода: `npm run build && npx cap sync`.
 
+## Мобильная версия на Expo (`mobile/`, в работе)
+Замена Capacitor после выпуска 15.12: React Native + Expo Router, тот же id `kg.viamia.app` — выйдет обновлением.
+- Общий код **не копируется**: туры, переводы, вход, api, `SettingsProvider`/`AuthProvider`/`ContentProvider` берутся из `../src` (`mobile/metro.config.js`: `lucide-react` → `lucide-react-native`, `./supabase` → `mobile/lib/supabase.js`, пакеты — из `mobile/node_modules`). В общем коде `document`/`window` — только с проверкой `typeof document`.
+- `localStorage` в телефоне — `expo-sqlite/localStorage/install` (`mobile/index.js`).
+- Экраны — `mobile/src/app/` (файл = экран), цвета — `useColors()` из `mobile/lib/theme.js` (значения из `design/tokens.css`).
+- Пакеты ставить `EXPO_OFFLINE=1 npx expo install …` (api.expo.dev в облаке закрыт). Запуск на телефоне: `cd mobile && npx expo start` → Expo Go.
+- Готово: каталог туров, экран тура, профиль со входом по коду и языком. Дальше: избранное/маршрут, бронь и билеты, карта (`@maplibre/maplibre-react-native`), навигатор, кабинет агентства, push.
+
 ## Дизайн (утверждённый стиль)
 Макет: https://claude.ai/artifact/7zUSk4KrLpTE7MsphuV2tK
 **Точная копия — в папке `design/`**: `tokens.css` (все переменные) и экраны `00-style.html` … `04-detail.html` с инлайн-стилями. Брать значения оттуда, не придумывать. Если макет обновится — пользователь положит новые файлы в `design/`.

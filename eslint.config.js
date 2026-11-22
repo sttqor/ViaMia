@@ -18,4 +18,9 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  // мобильная версия (Expo): metro.config.js — Node, process.env — переменные EXPO_PUBLIC_*
+  {
+    files: ['mobile/**/*.js'],
+    languageOptions: { globals: { ...globals.node } },
+  },
 ])

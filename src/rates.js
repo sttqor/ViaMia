@@ -85,6 +85,7 @@ export function useLiveRates() {
 
   useEffect(() => {
     const first = setTimeout(refresh, 0);
+    if (typeof document === "undefined") return () => clearTimeout(first); // мобильная версия (mobile/)
     const onVisible = () => {
       if (document.visibilityState === "visible") refresh();
     };
