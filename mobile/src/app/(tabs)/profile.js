@@ -5,7 +5,10 @@ import { useSettings } from "../../../../src/settings-context";
 import { authErrorKey, useAuth } from "../../../../src/auth-context";
 import { readLoginId, showLoginId, prettyPhone } from "../../../../src/phone";
 import { LANGUAGES } from "../../../../src/i18n";
+import { router } from "expo-router";
+import { ChevronRight, Heart } from "lucide-react-native";
 import { Button } from "../../../lib/ui";
+import { useStore } from "../../../lib/store";
 import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
 
 // профиль: вход по коду (как src/Login.jsx) и язык; остальное — следующим шагом
@@ -13,6 +16,7 @@ export default function ProfileScreen() {
   const { t, lang, setLang } = useSettings();
   const { enabled, user, sendCode, verifyCode, signOut } = useAuth();
   const c = useColors();
+  const { saved } = useStore();
   const [raw, setRaw] = useState("");
   const [id, setId] = useState(null); // куда отправили код
   const [code, setCode] = useState("");
@@ -99,6 +103,12 @@ export default function ProfileScreen() {
               <Text style={[muted, { fontSize: 13 }]}>{t("login.note")}</Text>
             </View>
           ) : null}
+
+          <Pressable onPress={() => router.push("/saved")} style={[card, { flexDirection: "row", alignItems: "center" }]}>
+            <Heart color={c.accent} size={20} />
+            <Text style={{ fontFamily: FONT.heavy, fontSize: 16, color: c.ink, flex: 1 }}>{t("profile.saved", { n: saved.size })}</Text>
+            <ChevronRight color={c.muted} size={20} />
+          </Pressable>
 
           <View style={card}>
             <Text style={{ fontFamily: FONT.heavy, fontSize: 16, color: c.ink }}>{t("profile.language")}</Text>

@@ -6,6 +6,7 @@ import { SettingsProvider } from "../../../src/SettingsProvider";
 import { AuthProvider } from "../../../src/AuthProvider";
 import { ContentProvider } from "../../../src/ContentProvider";
 import { useColors } from "../../lib/theme";
+import { StoreProvider } from "../../lib/store";
 
 function Screens() {
   const c = useColors();
@@ -24,7 +25,9 @@ export default function RootLayout() {
     <SettingsProvider>
       <AuthProvider>
         <ContentProvider>
-          <Screens />
+          <StoreProvider>
+            <Screens />
+          </StoreProvider>
         </ContentProvider>
       </AuthProvider>
     </SettingsProvider>

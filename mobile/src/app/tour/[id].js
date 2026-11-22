@@ -1,20 +1,23 @@
-import { ScrollView, Pressable, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { Image } from "expo-image";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BadgeCheck, Check, ChevronLeft, Clock, Globe, MapPin, Users } from "lucide-react-native";
+import { BadgeCheck, Check, Clock, Globe, MapPin, Users } from "lucide-react-native";
 import { useSettings } from "../../../../src/settings-context";
 import { useContent } from "../../../../src/content-context";
 import { durationMinutes } from "../../../../src/i18n";
 import { priceText } from "../../../../src/components/shared";
-import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
+import { FONT, RADIUS, useColors } from "../../../lib/theme";
+import { useStore } from "../../../lib/store";
+import { BackButton, Button, SaveButton } from "../../../lib/ui";
 
-// экран тура — как src/views/Detail.jsx; бронь, карта, избранное — следующим шагом
+// экран тура — как src/views/Detail.jsx; бронь и карта — следующим шагом
 export default function TourScreen() {
   const { id } = useLocalSearchParams();
   const { byId } = useContent();
   const { t, loc, money, plural, fmtDuration } = useSettings();
   const c = useColors();
+  const { saved, routeIds, toggleSave, toggleRoute } = useStore();
   const raw = byId(String(id));
   if (!raw) return null;
   const exp = loc(raw);
@@ -87,19 +90,18 @@ export default function TourScreen() {
           ) : null}
         </View>
       </ScrollView>
-      <SafeAreaView edges={["top"]} style={{ position: "absolute", left: 16 }}>
-        <Pressable
-          onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
-          accessibilityRole="button"
-          accessibilityLabel={t("common.back")}
-          style={{ width: H.iconBtn, height: H.iconBtn, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: c.card, borderWidth: 1, borderColor: c.line }}
-        >
-          <ChevronLeft color={c.ink} size={20} />
-        </Pressable>
+      <SafeAreaView edges={["top"]} style={{ position: "absolute", left: 16, right: 16, flexDirection: "row", justifyContent: "space-between" }}>
+        <BackButton />
+        <SaveButton saved={saved.has(raw.id)} onPress={() => toggleSave(raw.id)} />
       </SafeAreaView>
       <SafeAreaView edges={["bottom"]} style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: c.card, borderTopWidth: 1, borderColor: c.line }}>
-        <View style={{ padding: 16, flexDirection: "row", alignItems: "center" }}>
-          <Text style={{ fontFamily: FONT.heavy, fontSize: 18, color: c.ink }}>{priceText(raw, t, money)}</Text>
+        <View style={{ padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <Text style={{ fontFamily: FONT.heavy, fontSize: 18, color: c.ink, flex: 1 }}>{priceText(raw, t, money)}</Text>
+          <Button
+            secondary={routeIds.includes(raw.id)}
+            title={t(routeIds.includes(raw.id) ? "card.inRoute" : "card.addRoute")}
+            onPress={() => toggleRoute(raw.id)}
+          />
         </View>
       </SafeAreaView>
     </View>

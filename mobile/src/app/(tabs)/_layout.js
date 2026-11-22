@@ -1,9 +1,10 @@
 import { Tabs } from "expo-router";
-import { Sparkles, User } from "lucide-react-native";
+import { View } from "react-native";
+import { Route, Sparkles, User } from "lucide-react-native";
 import { useSettings } from "../../../../src/settings-context";
 import { FONT, useColors } from "../../../lib/theme";
 
-// вкладки — как TABS в src/App.jsx; карта и маршрут — следующим шагом
+// вкладки — как TABS в src/App.jsx; карта — следующим шагом
 export default function TabsLayout() {
   const { t } = useSettings();
   const c = useColors();
@@ -18,6 +19,18 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: t("nav.tours"), tabBarIcon: ({ color }) => <Sparkles color={color} size={22} /> }} />
+      <Tabs.Screen
+        name="route"
+        options={{
+          title: t("nav.route"),
+          // «Маршрут» выделен терракотовым кружком, как в TABS (accent: true)
+          tabBarIcon: () => (
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: c.accent, alignItems: "center", justifyContent: "center" }}>
+              <Route color="#FFFFFF" size={19} />
+            </View>
+          ),
+        }}
+      />
       <Tabs.Screen name="profile" options={{ title: t("nav.profile"), tabBarIcon: ({ color }) => <User color={color} size={22} /> }} />
     </Tabs>
   );

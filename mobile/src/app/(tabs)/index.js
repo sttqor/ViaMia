@@ -1,19 +1,17 @@
 import { useState } from "react";
 import { FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BadgeCheck, Search } from "lucide-react-native";
+import { Search } from "lucide-react-native";
 import { useSettings } from "../../../../src/settings-context";
 import { useContent } from "../../../../src/content-context";
 import { CATEGORIES } from "../../../../src/data";
-import { durationMinutes } from "../../../../src/i18n";
-import { priceText } from "../../../../src/components/shared";
+import { Empty, TourCard } from "../../../lib/ui";
 import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
 
 // каталог — та же логика, что в src/views/ToursView.jsx
 export default function ToursScreen() {
-  const { t, loc, money, fmtDuration, travelMode } = useSettings();
+  const { t, loc, travelMode } = useSettings();
   const { tours, selfTours } = useContent();
   const c = useColors();
   const [query, setQuery] = useState("");
@@ -72,35 +70,8 @@ export default function ToursScreen() {
         keyExtractor={(e) => e.id}
         ListHeaderComponent={header}
         contentContainerStyle={{ padding: 16, gap: 14 }}
-        ListEmptyComponent={
-          <View style={{ alignItems: "center", paddingVertical: 40, gap: 6 }}>
-            <Text style={{ fontFamily: FONT.bold, fontSize: 17, color: c.ink }}>{t("tours.emptyTitle")}</Text>
-            <Text style={{ fontFamily: FONT.ui, color: c.muted, textAlign: "center" }}>{t("tours.emptyText")}</Text>
-          </View>
-        }
-        renderItem={({ item }) => {
-          const e = loc(item);
-          return (
-            <Link href={`/tour/${encodeURIComponent(item.id)}`} asChild>
-              <Pressable style={{ borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, overflow: "hidden" }}>
-                <Image source={item.image} style={{ height: 180 }} contentFit="cover" transition={200} />
-                <View style={{ padding: 14, gap: 4 }}>
-                  <Text style={{ fontFamily: FONT.bold, fontSize: 12, color: c.muted }}>
-                    {[e.type, e.place, fmtDuration(durationMinutes(item.duration))].filter(Boolean).join(" · ")}
-                  </Text>
-                  <Text style={{ fontFamily: FONT.heavy, fontSize: 17, color: c.ink }}>{e.title}</Text>
-                  {item.agencyName ? (
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                      {item.agencyVerified && <BadgeCheck color={c.success} size={14} />}
-                      <Text style={{ fontFamily: FONT.ui, fontSize: 13, color: c.muted }}>{item.agencyName}</Text>
-                    </View>
-                  ) : null}
-                  <Text style={{ fontFamily: FONT.heavy, fontSize: 15, color: c.accent, marginTop: 4 }}>{priceText(item, t, money)}</Text>
-                </View>
-              </Pressable>
-            </Link>
-          );
-        }}
+        ListEmptyComponent={<Empty title={t("tours.emptyTitle")} text={t("tours.emptyText")} />}
+        renderItem={({ item }) => <TourCard item={item} onPress={() => router.push(`/tour/${encodeURIComponent(item.id)}`)} />}
       />
     </SafeAreaView>
   );
