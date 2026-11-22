@@ -9,12 +9,12 @@ import { Search } from "lucide-react-native";
 import { useSettings } from "../../../../src/settings-context";
 import { useContent } from "../../../../src/content-context";
 import { CATEGORIES } from "../../../../src/data";
-import { Empty, TourCard } from "../../../lib/ui";
+import { Empty, Segmented, TourCard } from "../../../lib/ui";
 import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
 
 // каталог — та же логика, что в src/views/ToursView.jsx
 export default function ToursScreen() {
-  const { t, loc, travelMode } = useSettings();
+  const { t, loc, travelMode, setTravelMode } = useSettings();
   const { tours, selfTours } = useContent();
   const c = useColors();
   const scroll = useRef(null);
@@ -39,6 +39,15 @@ export default function ToursScreen() {
     <View style={{ gap: 14, paddingBottom: 6 }}>
       <Text style={{ fontFamily: FONT.bold, fontSize: 12, letterSpacing: 1, color: c.muted }}>{t("tours.kicker")}</Text>
       <Text style={{ fontFamily: FONT.display, fontSize: 30, color: c.ink }}>{t("tours.title")}</Text>
+      <Segmented
+        label={t("mode.label")}
+        value={travelMode}
+        onChange={setTravelMode}
+        options={[
+          { value: "self", label: t("mode.self") },
+          { value: "guided", label: t("mode.guided") },
+        ]}
+      />
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, height: H.btn, paddingHorizontal: 14, borderRadius: RADIUS.btn, borderWidth: 1, borderColor: c.line, backgroundColor: c.card }}>
         <Search color={c.muted} size={18} />
         <TextInput

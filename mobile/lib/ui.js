@@ -153,3 +153,20 @@ export function BellButton() {
     </IconButton>
   );
 }
+
+// переключатель-«таблетка» (src/Segmented.jsx): options [{ value, label }]
+export function Segmented({ label, value, onChange, options }) {
+  const c = useColors();
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel={label} style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: RADIUS.chip, backgroundColor: c.bg2 }}>
+      {options.map((o) => {
+        const on = value === o.value;
+        return (
+          <Pressable key={o.value} onPress={() => onChange(o.value)} accessibilityRole="radio" accessibilityState={{ checked: on }} style={{ flex: 1, height: 36, borderRadius: RADIUS.chip, alignItems: "center", justifyContent: "center", backgroundColor: on ? c.solid : "transparent" }}>
+            <Text style={{ fontFamily: FONT.bold, color: on ? c.onSolid : c.ink }}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}

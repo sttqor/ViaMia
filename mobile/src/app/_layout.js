@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Splash } from "../../lib/Splash";
+import { Onboarding } from "../../lib/Onboarding";
+import { useSettings } from "../../../src/settings-context";
 import { StatusBar } from "expo-status-bar";
 import { useFonts, Manrope_500Medium, Manrope_700Bold, Manrope_800ExtraBold } from "@expo-google-fonts/manrope";
 import { PlayfairDisplay_700Bold } from "@expo-google-fonts/playfair-display";
@@ -14,10 +16,12 @@ import { StoreProvider } from "../../lib/store";
 function Screens() {
   const c = useColors();
   const [splash, setSplash] = useState(true);
+  const { travelMode, setTravelMode } = useSettings();
   return (
     <>
       <StatusBar style={c.dark ? "light" : "dark"} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg }, animation: "slide_from_right" }} />
+      {/* первый запуск: «сам или с гидом» — как в src/App.jsx */}
+      {travelMode === null && !splash ? <Onboarding onPick={setTravelMode} /> : <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg }, animation: "slide_from_right" }} />}
       {splash && <Splash bg={c.bg} onDone={() => setSplash(false)} />}
     </>
   );

@@ -11,7 +11,7 @@ import { deleteMyAccount, fetchAccountRoles } from "../../../../src/api";
 import { CURRENCIES, LANGUAGES } from "../../../../src/i18n";
 import { TABBAR_SPACE } from "../../../lib/TabBar";
 import { Image } from "expo-image";
-import { Button } from "../../../lib/ui";
+import { Button, Segmented } from "../../../lib/ui";
 import { LoginForm } from "../../../lib/LoginForm";
 import { useStore } from "../../../lib/store";
 import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
@@ -123,16 +123,12 @@ export default function ProfileScreen() {
 
           <View style={card}>
             <Text style={{ fontFamily: FONT.heavy, fontSize: 16, color: c.ink }}>{t("profile.theme")}</Text>
-            <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: RADIUS.chip, backgroundColor: c.bg2 }}>
-              {["light", "dark", "system"].map((v) => {
-                const on = theme === v;
-                return (
-                  <Pressable key={v} onPress={() => setTheme(v)} accessibilityState={{ selected: on }} style={{ flex: 1, height: 36, borderRadius: RADIUS.chip, alignItems: "center", justifyContent: "center", backgroundColor: on ? c.solid : "transparent" }}>
-                    <Text style={{ fontFamily: FONT.bold, color: on ? c.onSolid : c.ink }}>{t(`theme.${v}`)}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <Segmented
+              label={t("profile.theme")}
+              value={theme}
+              onChange={setTheme}
+              options={["light", "dark", "system"].map((v) => ({ value: v, label: t(`theme.${v}`) }))}
+            />
             {theme === "system" && <Text style={[muted, { fontSize: 12 }]}>{t("theme.systemNote")}</Text>}
           </View>
 
