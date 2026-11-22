@@ -1,32 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, ChevronUp, Clock, Compass, MapPin, MoreHorizontal, Route as RouteIcon, Trash2 } from "lucide-react";
-import { durationMinutes } from "../i18n";
+import { planRoute } from "../route-plan";
 import { useSettings } from "../settings-context";
 import { SPRING, EASE_OUT, TAP } from "../components/shared";
 import { Reveal, Ticker } from "../components/ui.jsx";
 
 // 2. МАРШРУТ: ЧИСТЫЙ ПЛАНИРОВЩИК (БЕЗ ВЫБОРА МЕСТ СНИЗУ)
-function minutesToClock(mins) {
-  const h = Math.floor(mins / 60) % 24;
-  const m = Math.round(mins % 60);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-
-// Расстояние между точками по прямой (км), с поправкой на улицы ×1.3
-function walkKm(a, b) {
-  const R = 6371;
-  const toRad = (d) => (d * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h)) * 1.3;
-}
-
-const WALK_KMH = 4.5;
-
 // Меню «…» у точки маршрута: выше / ниже / убрать.
 // Одна кнопка вместо трёх — карточка не перегружена, цель нажатия 44px.
 function PlaceMenu({ open, onToggle, onClose, canUp, canDown, onUp, onDown, onRemove }) {
@@ -91,29 +71,9 @@ export function RouteView({ items, setItems, onGoToTours, onNavigate }) {
   const [expandedId, setExpandedId] = useState(null);
   const [menuId, setMenuId] = useState(null);
 
-  const legs = useMemo(
-    () => items.map((item, i) => (i === 0 ? 0 : walkKm(items[i - 1], item))),
-    [items]
-  );
+  const { legs, totalKm, totalMin, times } = useMemo(() => planRoute(items), [items]);
 
   const fmtKm = (km) => t("unit.km", { n: km.toLocaleString(locale, { maximumFractionDigits: 1, minimumFractionDigits: 1 }) });
-
-  const totalKm = legs.reduce((a, b) => a + b, 0);
-  const totalMin = useMemo(() => {
-    const visit = items.reduce((a, it) => a + durationMinutes(it.duration), 0);
-    return visit + (totalKm / WALK_KMH) * 60;
-  }, [items, totalKm]);
-
-  const times = useMemo(() => {
-    const result = [];
-    let cursor = 9 * 60;
-    for (let i = 0; i < items.length; i++) {
-      cursor += (legs[i] / WALK_KMH) * 60;
-      result.push(minutesToClock(cursor));
-      cursor += durationMinutes(items[i].duration);
-    }
-    return result;
-  }, [items, legs]);
 
   const moveItem = (index, dir) => {
     const target = index + dir;

@@ -7,11 +7,13 @@ const LIGHT = {
   bg2: "#F1E9DD", line: "#E8E0D4", muted: "#6B6459", card: "#FFFFFF", success: "#1F6B45",
   successBg: "#E8F3EC", solid: "#1E2638", onSolid: "#FFFFFF", indigo: "#1E2638",
   glass: "rgba(255,255,255,0.82)", glassLens: "rgba(255,255,255,0.55)", hover: "rgba(30,38,56,0.07)",
+  accentGlow: "#FBEEE8", accentDark: "#B8431F", inkSoft: "#3A3F4D", muted2: "#9A9184",
 };
 const DARK = {
   ...LIGHT, ink: "#ede7dd", bg: "#12161f", bg2: "#232a38", line: "#2d3546", muted: "#a59d90",
   card: "#1a202c", success: "#6fcf97", successBg: "#1b3326", solid: "#3a4560",
   glass: "rgba(28,34,47,0.8)", glassLens: "rgba(255,255,255,0.1)", hover: "rgba(255,255,255,0.08)", dark: true,
+  accentGlow: "#3b2520", accentDark: "#f2906a", inkSoft: "#cdc6ba", muted2: "#7f786c",
 };
 
 export const RADIUS = { btn: 14, card: 20, chip: 999 };

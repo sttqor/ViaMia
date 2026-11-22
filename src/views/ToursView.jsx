@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { BadgeCheck, Search } from "lucide-react";
 import { CATEGORIES } from "../data";
+import { agenciesOf } from "../agencies";
 import { useContent } from "../content-context";
 import { useSettings } from "../settings-context";
 import { SPRING, inView } from "../components/shared";
@@ -9,29 +10,10 @@ import { ModeSwitch, ChipRow, ExperienceCard } from "../components/ui.jsx";
 
 // 3. ТУРЫ: два списка. «Сам» — бесплатные самостоятельные туры (в маршрут),
 // «с гидом» — туры агентств с бронью и сами агентства. Поиск и фильтры общие.
-function siteOf(url) {
-  try {
-    return new URL(url).origin;
-  } catch {
-    return null;
-  }
-}
-
 function AgencyBlock({ onPick }) {
   const { t, plural } = useSettings();
   const { tours } = useContent();
-  const agencies = useMemo(() => {
-    const map = new Map();
-    for (const x of tours) {
-      if (!x.agencyName) continue;
-      const a = map.get(x.agencyName) || { name: x.agencyName, count: 0, site: siteOf(x.url) };
-      a.count += 1;
-      if (x.agencyVerified) a.verified = true;
-      if (x.agencyLogo) a.logo = x.agencyLogo;
-      map.set(x.agencyName, a);
-    }
-    return [...map.values()].sort((x, y) => Number(!!y.verified) - Number(!!x.verified));
-  }, [tours]);
+  const agencies = useMemo(() => agenciesOf(tours), [tours]);
   if (agencies.length === 0) return null;
   return (
     <div className="agency-block">
