@@ -1,19 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { Linking, Pressable, ScrollView, Text, View } from "react-native";
-import { Image } from "expo-image";
-import { router } from "expo-router";
+import { Linking, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { router, useScrollToTop } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Speech from "expo-speech";
-import { ChevronRight, Droplets, Phone, Sunrise, Sunset, Wind } from "lucide-react-native";
-import { OSH, SOS, deg, toRussianSounds, updatedText, useOshWeather, weatherKind } from "../../../../src/home-data";
+import Animated, { FadeIn, FadeInDown, SlideInDown } from "react-native-reanimated";
+import { ChevronRight, Languages, Lightbulb, Map as MapIcon, Phone, X } from "lucide-react-native";
+import { OSH, SOS, toRussianSounds, useOshWeather } from "../../../../src/home-data";
 import { useSettings } from "../../../../src/settings-context";
-import { useContent } from "../../../../src/content-context";
-import { useScrollToTop } from "expo-router";
-import Animated, { FadeInDown } from "react-native-reanimated";
-import { BellButton } from "../../../lib/ui";
+import { BellButton, IconButton } from "../../../lib/ui";
 import { PhraseStack } from "../../../lib/PhraseStack";
 import { TABBAR_SPACE } from "../../../lib/TabBar";
+import { Weather } from "../../../lib/home/Weather";
+import { FactStory } from "../../../lib/home/FactStory";
 import { FONT, RADIUS, useColors } from "../../../lib/theme";
+
+const DANGER = "#C8102E";
 
 // голос для кыргызской фразы: ky → kk → ru (как useSpeak в src/HomeBlocks.jsx)
 let voicePick = null;
@@ -37,123 +38,72 @@ async function speakKy(text, onDone) {
   });
 }
 
-// главная — как src/views/HomeView.jsx: погода Оша, факты, фразы, SOS
+// главная — как src/views/HomeView.jsx: «Ош» и погода, сторис фактов, быстрые кнопки, фразы, SOS
 export default function HomeScreen() {
-  const { t, loc, locale } = useSettings();
+  const { t, locale } = useSettings();
+  const c = useColors();
   const scroll = useRef(null);
   useScrollToTop(scroll);
-  const { facts } = useContent();
-  const c = useColors();
   const weather = useOshWeather();
-  const wx = weather.data;
   const [now, setNow] = useState(() => new Date());
   const [speaking, setSpeaking] = useState(null);
   const [sosOpen, setSosOpen] = useState(false);
+  const [soon, setSoon] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30 * 1000);
     return () => clearInterval(id);
   }, []);
+  useEffect(() => {
+    if (!soon) return;
+    const id = setTimeout(() => setSoon(false), 2200);
+    return () => clearTimeout(id);
+  }, [soon]);
 
   const dateText = new Intl.DateTimeFormat(locale, { timeZone: OSH.tz, weekday: "long", day: "numeric", month: "long" }).format(now);
   const timeText = new Intl.DateTimeFormat(locale, { timeZone: OSH.tz, hour: "2-digit", minute: "2-digit" }).format(now);
-  const kind = wx ? weatherKind(wx.code, wx.isDay) : null;
-  const card = { padding: 16, borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, gap: 10 };
-  const small = { fontFamily: FONT.ui, fontSize: 13, color: c.muted };
-  const h2 = { fontFamily: FONT.heavy, fontSize: 18, color: c.ink };
+  const quick = [
+    { id: "translator", Icon: Languages, label: t("quick.translator"), soon: true, onPress: () => setSoon(true) },
+    { id: "tips", Icon: Lightbulb, label: t("quick.tips"), onPress: () => router.push("/tips") },
+    { id: "map", Icon: MapIcon, label: t("quick.map"), onPress: () => router.navigate("/map") },
+  ];
 
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView ref={scroll} contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: TABBAR_SPACE + 16 }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Animated.View entering={FadeInDown.duration(350)} style={{ flexDirection: "row", alignItems: "center" }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: FONT.display, fontSize: 40, color: c.ink }}>{t("home.city")}</Text>
-            <Text style={small}>{`${dateText} · ${timeText}`}</Text>
+            <Text style={{ fontFamily: FONT.display, fontSize: 40, lineHeight: 46, color: c.ink }}>{t("home.city")}</Text>
+            <Text style={{ fontFamily: FONT.bold, fontSize: 13, color: c.muted }}>{`${dateText.charAt(0).toUpperCase()}${dateText.slice(1)} · ${timeText}`}</Text>
           </View>
           <BellButton />
-        </View>
-
-        {/* погода */}
-        <Animated.View entering={FadeInDown.delay(60).springify()}>
-        <Pressable onPress={weather.refresh} accessibilityLabel={t("wx.refresh")} style={card}>
-          <Text style={small}>
-            {weather.failed ? t("wx.offline") : t("wx.now")}
-            {weather.at > 0 ? ` · ${updatedText(t, weather.at, now.getTime())}` : ""}
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            {kind && <kind.Icon color={c.accent} size={40} />}
-            <Text style={{ fontFamily: FONT.heavy, fontSize: 44, color: c.ink }}>{wx ? deg(wx.temp) : "—°"}</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: FONT.bold, fontSize: 15, color: c.ink }}>{kind ? t(`wx.c.${kind.key}`) : t("wx.loading")}</Text>
-              {wx && <Text style={small}>{t("wx.feels", { t: deg(wx.feels) })}</Text>}
-            </View>
-          </View>
-          {wx?.hours?.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }} accessibilityLabel={t("wx.hourly")}>
-              {wx.hours.map((h) => {
-                const k = weatherKind(h.code, h.isDay);
-                return (
-                  <View key={h.time} style={{ alignItems: "center", gap: 4 }}>
-                    <Text style={small}>{h.time.slice(11, 16)}</Text>
-                    <k.Icon color={c.ink} size={18} />
-                    <Text style={{ fontFamily: FONT.bold, color: c.ink }}>{deg(h.temp)}</Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 2, opacity: h.rain >= 20 ? 1 : 0.4 }}>
-                      <Droplets color={c.muted} size={10} />
-                      <Text style={{ fontFamily: FONT.ui, fontSize: 11, color: c.muted }}>{`${h.rain}%`}</Text>
-                    </View>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          )}
-          <View style={{ flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-            <Text style={small}>{wx ? t("wx.range", { max: deg(wx.max), min: deg(wx.min) }) : "—"}</Text>
-            {wx?.sun?.[0] && (
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                  <Sunrise color={c.muted} size={13} />
-                  <Text style={small}>{wx.sun[0].rise.slice(11, 16)}</Text>
-                </View>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                  <Sunset color={c.muted} size={13} />
-                  <Text style={small}>{wx.sun[0].set.slice(11, 16)}</Text>
-                </View>
-              </View>
-            )}
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <Wind color={c.muted} size={13} />
-              <Text style={small}>{wx ? t("wx.wind", { v: Math.round(wx.wind) }) : "—"}</Text>
-            </View>
-          </View>
-        </Pressable>
         </Animated.View>
 
-        {/* факты */}
-        {facts.length > 0 && (
-          <>
-            <Text style={h2}>{t("facts.title")}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-              {facts.map((raw, i) => {
-                const f = loc(raw);
-                return (
-                  <Animated.View key={raw.id} entering={FadeInDown.delay(140 + i * 60).springify()}>
-                  <Pressable onPress={() => router.push(`/fact/${encodeURIComponent(raw.id)}`)} style={{ width: 260, borderRadius: RADIUS.card, overflow: "hidden", backgroundColor: c.indigo }}>
-                    <Image source={f.image} style={{ height: 140, backgroundColor: c.bg2 }} contentFit="cover" />
-                    <View style={{ padding: 14, gap: 6 }}>
-                      {f.tag ? <Text style={{ alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, overflow: "hidden", backgroundColor: c.gold, fontFamily: FONT.bold, fontSize: 11, color: "#1E2638" }}>{f.tag}</Text> : null}
-                      <Text style={{ fontFamily: FONT.display, fontSize: 19, color: "#FFFFFF" }}>{f.title}</Text>
-                      <Text style={{ fontFamily: FONT.ui, fontSize: 13, lineHeight: 18, color: "#FFFFFF", opacity: 0.8 }} numberOfLines={3}>{f.short}</Text>
-                    </View>
-                  </Pressable>
-                  </Animated.View>
-                );
-              })}
-            </ScrollView>
-          </>
-        )}
+        <Weather weather={weather} now={now} />
+
+        <Animated.View entering={FadeInDown.delay(140).springify()}>
+          <FactStory />
+        </Animated.View>
+
+        {/* быстрые кнопки */}
+        <View style={{ flexDirection: "row", paddingTop: 4 }}>
+          {quick.map((q, i) => (
+            <Animated.View key={q.id} entering={FadeInDown.delay(200 + i * 60).springify()} style={{ flex: 1, alignItems: "center" }}>
+              <Pressable onPress={q.onPress} style={({ pressed }) => ({ alignItems: "center", gap: 8, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+                <View style={{ width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", backgroundColor: c.card, borderWidth: 1, borderColor: c.line }}>
+                  <q.Icon color={c.ink} size={22} />
+                  {q.soon && (
+                    <Text style={{ position: "absolute", top: -6, right: -10, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999, overflow: "hidden", backgroundColor: c.gold, fontFamily: FONT.heavy, fontSize: 11, color: "#1E2638" }}>{t("quick.soonBadge")}</Text>
+                  )}
+                </View>
+                <Text style={{ fontFamily: FONT.bold, fontSize: 13, color: c.ink }}>{q.label}</Text>
+              </Pressable>
+            </Animated.View>
+          ))}
+        </View>
 
         {/* фразы на кыргызском — стопка со свайпом */}
-        <Animated.View entering={FadeInDown.delay(240).springify()}>
+        <Animated.View entering={FadeInDown.delay(260).springify()}>
           <PhraseStack
             speaking={speaking}
             speak={(i, text) => {
@@ -164,23 +114,58 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* SOS */}
-        <Pressable onPress={() => setSosOpen((o) => !o)} style={[card, { flexDirection: "row", alignItems: "center" }]}>
-          <Text style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, overflow: "hidden", backgroundColor: c.accent, fontFamily: FONT.heavy, color: "#FFFFFF" }}>SOS</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: FONT.heavy, fontSize: 15, color: c.ink }}>{t("sos.cardTitle")}</Text>
-            <Text style={small}>{t("sos.cardText")}</Text>
+        <Pressable
+          onPress={() => setSosOpen(true)}
+          style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, minHeight: 76, paddingVertical: 14, paddingHorizontal: 16, borderRadius: RADIUS.card, backgroundColor: DANGER, shadowColor: DANGER, shadowOpacity: 0.28, shadowRadius: 13, shadowOffset: { width: 0, height: 10 }, elevation: 6, transform: [{ scale: pressed ? 0.98 : 1 }] })}
+        >
+          <View style={{ width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.22)" }}>
+            <View style={{ width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center", backgroundColor: "#FFFFFF" }}>
+              <Text style={{ fontFamily: FONT.heavy, fontSize: 15, letterSpacing: 0.6, color: DANGER }}>SOS</Text>
+            </View>
           </View>
-          <ChevronRight color={c.muted} size={20} style={{ transform: [{ rotate: sosOpen ? "90deg" : "0deg" }] }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: FONT.heavy, fontSize: 16, color: "#FFFFFF" }}>{t("sos.cardTitle")}</Text>
+            <Text style={{ fontFamily: FONT.ui, fontSize: 13, color: "rgba(255,255,255,0.88)" }}>{t("sos.cardText")}</Text>
+          </View>
+          <ChevronRight color="#FFFFFF" size={20} />
         </Pressable>
-        {sosOpen &&
-          SOS.map((s) => (
-            <Pressable key={s.num} onPress={() => Linking.openURL(`tel:${s.num}`)} style={[card, { flexDirection: "row", alignItems: "center", paddingVertical: 12 }]}>
-              <Text style={{ width: 48, fontFamily: FONT.heavy, fontSize: 18, color: c.accent }}>{s.num}</Text>
-              <Text style={{ flex: 1, fontFamily: FONT.ui, color: c.ink }}>{t(s.key)}</Text>
-              <Phone color={c.ink} size={16} />
-            </Pressable>
-          ))}
       </ScrollView>
+
+      {soon && (
+        <Animated.Text entering={FadeIn} style={{ position: "absolute", left: 16, right: 16, bottom: TABBAR_SPACE + 12, padding: 12, borderRadius: 14, overflow: "hidden", backgroundColor: c.indigo, color: "#FFFFFF", fontFamily: FONT.bold, textAlign: "center" }}>
+          {t("quick.soon")}
+        </Animated.Text>
+      )}
+
+      {/* лист SOS */}
+      <Modal visible={sosOpen} transparent animationType="fade" onRequestClose={() => setSosOpen(false)}>
+        <Pressable onPress={() => setSosOpen(false)} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(20,26,40,0.5)" }}>
+          <Animated.View entering={SlideInDown.springify().damping(32).stiffness(400)}>
+            <Pressable onPress={() => {}} accessibilityViewIsModal style={{ padding: 16, paddingBottom: 32, gap: 10, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: c.card }}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={{ flex: 1, fontFamily: FONT.heavy, fontSize: 18, color: c.ink }}>{t("sos.title")}</Text>
+                <IconButton label={t("facts.close")} onPress={() => setSosOpen(false)}>
+                  <X color={c.ink} size={18} />
+                </IconButton>
+              </View>
+              <Pressable onPress={() => Linking.openURL("tel:112")} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderRadius: RADIUS.card, backgroundColor: DANGER }}>
+                <Phone color="#FFFFFF" size={22} />
+                <View>
+                  <Text style={{ fontFamily: FONT.heavy, fontSize: 22, color: "#FFFFFF" }}>112</Text>
+                  <Text style={{ fontFamily: FONT.ui, color: "rgba(255,255,255,0.88)" }}>{t("sos.112")}</Text>
+                </View>
+              </Pressable>
+              {SOS.slice(1).map((s) => (
+                <Pressable key={s.num} onPress={() => Linking.openURL(`tel:${s.num}`)} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line }}>
+                  <Text style={{ width: 44, fontFamily: FONT.heavy, fontSize: 18, color: DANGER }}>{s.num}</Text>
+                  <Text style={{ flex: 1, fontFamily: FONT.ui, color: c.ink }}>{t(s.key)}</Text>
+                  <Phone color={c.ink} size={16} />
+                </Pressable>
+              ))}
+            </Pressable>
+          </Animated.View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }

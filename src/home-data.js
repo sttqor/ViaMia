@@ -165,3 +165,36 @@ export const PHRASES = [
 // кыргызского голоса почти нигде нет — для русского голоса ң ө ү меняем на близкие звуки
 export const toRussianSounds = (s) =>
   s.replace(/ң/g, "нг").replace(/Ң/g, "Нг").replace(/ө/g, "о").replace(/Ө/g, "О").replace(/ү/g, "у").replace(/Ү/g, "У");
+
+// Солнце для шапки: день или ночь, восход/закат, сколько до ближайшего, точка на дуге (viewBox 0 0 120 64).
+// Общая для сайта (OshHeader) и телефона.
+export function sunInfo(wx, now) {
+  const nowMin = minutesOf(
+    new Intl.DateTimeFormat("sv-SE", { timeZone: OSH.tz, hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+      .format(now)
+      .padStart(16, "0000-00-00T"),
+  );
+
+  // восход/закат на сегодня (если кэш с прошлого дня — берём «завтра» из него, это и есть сегодня)
+  const today = oshDay(now);
+  const sunToday = wx ? wx.sun.find((d) => d.rise.startsWith(today)) || wx.sun[0] : null;
+  const sunNext = wx ? wx.sun[wx.sun.indexOf(sunToday) + 1] : null;
+  const rise = sunToday ? minutesOf(sunToday.rise) : 0;
+  const set = sunToday ? minutesOf(sunToday.set) : 0;
+  const isDay = wx ? nowMin >= rise && nowMin < set : true;
+  const afterSet = wx ? nowMin >= set : false;
+  // после заката в строке — завтрашний рассвет
+  const shownRise = afterSet && sunNext ? sunNext.rise : sunToday?.rise;
+  // сколько осталось до ближайшего события
+  const untilMin = !wx ? 0 : isDay ? set - nowMin : afterSet ? 24 * 60 - nowMin + (sunNext ? minutesOf(sunNext.rise) : rise) : rise - nowMin;
+  // днём по дуге идёт солнце (восход → закат), ночью — луна (закат → рассвет)
+  const nightLen = 24 * 60 - set + rise;
+  const nightPassed = afterSet ? nowMin - set : 24 * 60 - set + nowMin;
+  const share = !wx ? 0 : isDay ? (nowMin - rise) / (set - rise) : nightPassed / nightLen;
+  const dayShare = Math.min(1, Math.max(0, share));
+  // угол от 180° (восход) до 0° (закат)
+  const a = Math.PI * (1 - dayShare);
+  const sx = 60 + 50 * Math.cos(a);
+  const sy = 58 - 50 * Math.sin(a);
+  return { isDay, sunToday, shownRise, untilMin, sx, sy };
+}
