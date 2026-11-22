@@ -1,11 +1,14 @@
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { BadgeCheck, ChevronLeft, Heart } from "lucide-react-native";
+import { BadgeCheck, Bell, ChevronLeft, Heart } from "lucide-react-native";
 import { useSettings } from "../../src/settings-context";
 import { durationMinutes } from "../../src/i18n";
 import { priceText } from "../../src/components/shared";
 import { useStore } from "./store";
+import { useAuth } from "../../src/auth-context";
+import { fetchEvents, subscribeEvents } from "../../src/booking/booking-api";
 import { FONT, H, RADIUS, useColors } from "./theme";
 
 // кнопка 48 / радиус 14: основная — терракота, вторичная — белая с рамкой
@@ -107,5 +110,46 @@ export function Empty({ title, text, action, onAction }) {
       <Text style={{ fontFamily: FONT.ui, color: c.muted, textAlign: "center", lineHeight: 20 }}>{text}</Text>
       {action ? <View style={{ marginTop: 8 }}><Button title={action} onPress={onAction} /></View> : null}
     </View>
+  );
+}
+
+// колокольчик с числом непрочитанных — живое обновление через Supabase Realtime (как EventsBell.jsx)
+export function BellButton() {
+  const { t } = useSettings();
+  const { user } = useAuth();
+  const c = useColors();
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    let off = false;
+    const load = () =>
+      fetchEvents()
+        .then((d) => !off && setUnread(d.filter((e) => !e.to_agency && !e.read_at).length))
+        .catch(() => {});
+    load();
+    const unsub = subscribeEvents(`bell-${user.id}`, load);
+    return () => {
+      off = true;
+      unsub();
+    };
+  }, [user]);
+
+  if (!user) return null;
+  return (
+    <IconButton
+      label={t("bell.title")}
+      onPress={() => {
+        setUnread(0);
+        router.push("/events");
+      }}
+    >
+      <Bell color={c.ink} size={18} />
+      {unread > 0 && (
+        <View style={{ position: "absolute", top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: c.accent, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontFamily: FONT.heavy, fontSize: 11, color: "#FFFFFF" }}>{unread}</Text>
+        </View>
+      )}
+    </IconButton>
   );
 }

@@ -10,6 +10,7 @@ import { fetchTrip } from "../../../../src/booking/booking-api";
 import { useStore } from "../../../lib/store";
 import { Screen } from "../../../lib/Screen";
 import { Button } from "../../../lib/ui";
+import { BookingChat } from "../../../lib/BookingChat";
 import { FONT, RADIUS, useColors } from "../../../lib/theme";
 
 const TZ = "Asia/Bishkek";
@@ -19,7 +20,7 @@ const tgLink = (tg) => {
   return v ? `https://t.me/${v}` : null;
 };
 
-// билет и «поездка» — как src/views/TicketView.jsx + src/booking/TripBlock.jsx; чат — следующим шагом
+// билет и «поездка» — как src/views/TicketView.jsx + src/booking/TripBlock.jsx
 export default function TicketScreen() {
   const { code } = useLocalSearchParams();
   const { t, loc, money, plural, fmtDate, locale } = useSettings();
@@ -167,6 +168,15 @@ export default function TicketScreen() {
             {phone && pill(Phone, t("trip.call"), `tel:${digits(phone)}`)}
           </View>
         </View>
+      ) : null}
+
+      {canTrip ? (
+        <View style={card}>
+          <Text style={h}>{t("chat.title")}</Text>
+          <BookingChat bookingId={booking.id} side="tourist" closed={["declined", "cancelled", "expired"].includes(status)} />
+        </View>
+      ) : booking.synced ? (
+        <Text style={{ fontFamily: FONT.ui, fontSize: 12, color: c.muted, textAlign: "center" }}>{t("trip.loginForChat")}</Text>
       ) : null}
 
       {cancelError && <Text style={{ fontFamily: FONT.bold, color: c.accent }}>{t("ticket.cancelError")}</Text>}

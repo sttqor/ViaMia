@@ -6,7 +6,7 @@ import { Search } from "lucide-react-native";
 import { useSettings } from "../../../../src/settings-context";
 import { useContent } from "../../../../src/content-context";
 import { CATEGORIES } from "../../../../src/data";
-import { Empty, TourCard } from "../../../lib/ui";
+import { BellButton, Empty, TourCard } from "../../../lib/ui";
 import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
 
 // каталог — та же логика, что в src/views/ToursView.jsx
@@ -32,7 +32,10 @@ export default function ToursScreen() {
 
   const header = (
     <View style={{ gap: 14, paddingBottom: 6 }}>
-      <Text style={{ fontFamily: FONT.bold, fontSize: 12, letterSpacing: 1, color: c.muted }}>{t("tours.kicker")}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
+        <Text style={{ fontFamily: FONT.bold, fontSize: 12, letterSpacing: 1, color: c.muted }}>{t("tours.kicker")}</Text>
+        <BellButton />
+      </View>
       <Text style={{ fontFamily: FONT.display, fontSize: 30, color: c.ink }}>{t("tours.title")}</Text>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, height: H.btn, paddingHorizontal: 14, borderRadius: RADIUS.btn, borderWidth: 1, borderColor: c.line, backgroundColor: c.card }}>
         <Search color={c.muted} size={18} />
