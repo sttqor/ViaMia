@@ -31,12 +31,13 @@ export async function saveAgency(userId, form, existingId) {
   return check(await supabase.from("agencies").insert({ ...row, owner_user_id: userId }).select().single());
 }
 
+// file — File из браузера или { name, type, body: ArrayBuffer } из телефона (mobile/lib/agency/files.js, уже сжат)
 // Документы видят только владелец и админ (приватный бакет)
 export async function uploadDoc(agencyId, file) {
   const f = await compressImage(file, 2400);
   const ext = (f.name.match(/\.\w+$/) || [".bin"])[0].toLowerCase();
   const path = `${agencyId}/${Date.now()}-${rand()}${ext}`;
-  check(await supabase.storage.from(DOCS).upload(path, f, { contentType: f.type }));
+  check(await supabase.storage.from(DOCS).upload(path, f.body || f, { contentType: f.type }));
   return path;
 }
 
@@ -67,7 +68,7 @@ export async function uploadPhoto(agencyId, file) {
   const f = await compressImage(file);
   const ext = (f.name.match(/\.\w+$/) || [".jpg"])[0].toLowerCase();
   const path = `${agencyId}/${Date.now()}-${rand()}${ext}`;
-  check(await supabase.storage.from(PHOTOS).upload(path, f, { contentType: f.type, cacheControl: "31536000" }));
+  check(await supabase.storage.from(PHOTOS).upload(path, f.body || f, { contentType: f.type, cacheControl: "31536000" }));
   return supabase.storage.from(PHOTOS).getPublicUrl(path).data.publicUrl;
 }
 

@@ -5,7 +5,7 @@ const MAX_SIDE = 1600;
 const QUALITY = 0.82;
 
 export async function compressImage(file, maxSide = MAX_SIDE) {
-  if (!file.type.startsWith("image/")) return file;
+  if (!file.type.startsWith("image/") || typeof document === "undefined") return file; // в телефоне сжимает mobile/lib/agency/files.js
   let bitmap;
   try {
     bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
