@@ -46,7 +46,7 @@ export default function RouteScreen() {
         <Text style={{ fontFamily: FONT.ui, fontSize: 15, lineHeight: 21, color: c.muted }}>{t("route.subtitle")}</Text>
 
         {items.length === 0 ? (
-          <Empty title={t("route.emptyTitle")} text={t("route.emptyText")} action={t("route.goTours")} onAction={() => router.navigate("/")} />
+          <Empty title={t("route.emptyTitle")} text={t("route.emptyText")} action={t("route.goTours")} onAction={() => router.navigate("/tours")} />
         ) : (
           <>
             <View style={{ flexDirection: "row", gap: 8 }}>
@@ -91,7 +91,7 @@ export default function RouteScreen() {
                 </View>
               );
             })}
-            <Button secondary title={t("route.addPlace")} onPress={() => router.navigate("/")} />
+            <Button secondary title={t("route.addPlace")} onPress={() => router.navigate("/tours")} />
           </>
         )}
       </ScrollView>

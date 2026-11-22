@@ -32,7 +32,7 @@ export default function SavedScreen() {
           </View>
         }
         ListEmptyComponent={
-          <Empty title={t("saved.emptyTitle")} text={t("saved.emptyText")} action={t("profile.seeTours")} onAction={() => router.navigate("/")} />
+          <Empty title={t("saved.emptyTitle")} text={t("saved.emptyText")} action={t("profile.seeTours")} onAction={() => router.navigate("/tours")} />
         }
         renderItem={({ item }) => <TourCard item={item} onPress={() => router.push(`/tour/${encodeURIComponent(item.id)}`)} />}
       />

@@ -45,7 +45,7 @@ export default function ProfileScreen() {
             {bookings.length === 0 ? (
               <>
                 <Text style={muted}>{t("profile.noTickets")}</Text>
-                <Button title={t("profile.seeTours")} onPress={() => router.navigate("/")} />
+                <Button title={t("profile.seeTours")} onPress={() => router.navigate("/tours")} />
               </>
             ) : (
               bookings.map((b) => {

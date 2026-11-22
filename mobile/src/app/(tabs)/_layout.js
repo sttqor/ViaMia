@@ -1,10 +1,10 @@
 import { Tabs } from "expo-router";
 import { View } from "react-native";
-import { Map as MapIcon, Route, Sparkles, User } from "lucide-react-native";
+import { Compass, Map as MapIcon, Route, Sparkles, User } from "lucide-react-native";
 import { useSettings } from "../../../../src/settings-context";
 import { FONT, useColors } from "../../../lib/theme";
 
-// вкладки — как TABS в src/App.jsx (главная — следующим шагом)
+// вкладки — как TABS в src/App.jsx
 export default function TabsLayout() {
   const { t } = useSettings();
   const c = useColors();
@@ -18,7 +18,7 @@ export default function TabsLayout() {
         tabBarLabelStyle: { fontFamily: FONT.bold, fontSize: 11 },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: t("nav.tours"), tabBarIcon: ({ color }) => <Sparkles color={color} size={22} /> }} />
+      <Tabs.Screen name="index" options={{ title: t("nav.home"), tabBarIcon: ({ color }) => <Compass color={color} size={22} /> }} />
       <Tabs.Screen name="map" options={{ title: t("nav.map"), tabBarIcon: ({ color }) => <MapIcon color={color} size={22} /> }} />
       <Tabs.Screen
         name="route"
@@ -32,6 +32,7 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="tours" options={{ title: t("nav.tours"), tabBarIcon: ({ color }) => <Sparkles color={color} size={22} /> }} />
       <Tabs.Screen name="profile" options={{ title: t("nav.profile"), tabBarIcon: ({ color }) => <User color={color} size={22} /> }} />
     </Tabs>
   );
