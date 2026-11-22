@@ -50,8 +50,8 @@
 - Общий код **не копируется**: туры, переводы, вход, api, `SettingsProvider`/`AuthProvider`/`ContentProvider` берутся из `../src` (`mobile/metro.config.js`: `lucide-react` → `lucide-react-native`, `./supabase` → `mobile/lib/supabase.js`, пакеты — из `mobile/node_modules`). В общем коде `document`/`window` — только с проверкой `typeof document`.
 - `localStorage` в телефоне — `expo-sqlite/localStorage/install` (`mobile/index.js`).
 - Экраны — `mobile/src/app/` (файл = экран), цвета — `useColors()` из `mobile/lib/theme.js` (значения из `design/tokens.css`).
-- Пакеты ставить `EXPO_OFFLINE=1 npx expo install …` (api.expo.dev в облаке закрыт). Запуск на телефоне: `cd mobile && npx expo start` → Expo Go.
-- Готово: каталог туров, экран тура, вход по коду, язык, избранное и маршрут (`mobile/lib/store.js` — тот же ключ `osh-guide-v1` и `useAccountSync`), бронь (`book/[id]`), билет и «поездка» с чатом (`ticket/[code]`, `lib/BookingChat.js`), «мои поездки», колокольчик (`BellButton` → `events`). Дальше: карта (`@maplibre/maplibre-react-native`), навигатор, кабинет агентства, push.
+- Пакеты ставить `EXPO_OFFLINE=1 npx expo install …` (api.expo.dev в облаке закрыт). Карта — нативный модуль, в Expo Go не работает: нужна dev-сборка (`npx eas-cli@latest build --profile development`, `mobile/eas.json`), потом `npx expo start`.
+- Готово: каталог туров, экран тура, вход по коду, язык, избранное и маршрут (`mobile/lib/store.js` — тот же ключ `osh-guide-v1` и `useAccountSync`), бронь (`book/[id]`), билет и «поездка» с чатом (`ticket/[code]`, `lib/BookingChat.js`), «мои поездки», колокольчик (`BellButton` → `events`), карта (`(tabs)/map.js`, `@maplibre/maplibre-react-native`; стиль и категории — общий `src/mapStyle.js`). Дальше: маршрут на карте и навигатор, главная, кабинет агентства, push.
 
 ## Дизайн (утверждённый стиль)
 Макет: https://claude.ai/artifact/7zUSk4KrLpTE7MsphuV2tK

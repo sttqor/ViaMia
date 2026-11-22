@@ -26,7 +26,14 @@
       "expo-router",
       "expo-sqlite",
       "expo-image",
-      "expo-font"
+      "expo-font",
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "ViaMia показывает, где вы на карте Оша, и ведёт по маршруту."
+        }
+      ]
     ],
     "scheme": "viamia",
     "backgroundColor": "#FAF6F0",

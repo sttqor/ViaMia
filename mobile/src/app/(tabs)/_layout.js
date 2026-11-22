@@ -1,10 +1,10 @@
 import { Tabs } from "expo-router";
 import { View } from "react-native";
-import { Route, Sparkles, User } from "lucide-react-native";
+import { Map as MapIcon, Route, Sparkles, User } from "lucide-react-native";
 import { useSettings } from "../../../../src/settings-context";
 import { FONT, useColors } from "../../../lib/theme";
 
-// вкладки — как TABS в src/App.jsx; карта — следующим шагом
+// вкладки — как TABS в src/App.jsx (главная — следующим шагом)
 export default function TabsLayout() {
   const { t } = useSettings();
   const c = useColors();
@@ -19,6 +19,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: t("nav.tours"), tabBarIcon: ({ color }) => <Sparkles color={color} size={22} /> }} />
+      <Tabs.Screen name="map" options={{ title: t("nav.map"), tabBarIcon: ({ color }) => <MapIcon color={color} size={22} /> }} />
       <Tabs.Screen
         name="route"
         options={{
