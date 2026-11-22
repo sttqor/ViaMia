@@ -14,6 +14,7 @@ import { useSettings } from "../../../../src/settings-context";
 import { useContent } from "../../../../src/content-context";
 import { Button, IconButton } from "../../../lib/ui";
 import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
+import { TABBAR_SPACE } from "../../../lib/TabBar";
 
 const CAT = Object.fromEntries(MAP_CATS.map((c) => [c.id, c]));
 const point = (lng, lat, props) => ({ type: "Feature", id: props.id, geometry: { type: "Point", coordinates: [lng, lat] }, properties: props });
@@ -117,7 +118,7 @@ export default function MapScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       {style && (
-        <Map style={{ flex: 1 }} mapStyle={style} logo={false} attributionPosition={{ bottom: 8, left: 8 }} onPress={() => setPicked(null)}>
+        <Map style={{ flex: 1 }} mapStyle={style} logo={false} attributionPosition={{ bottom: TABBAR_SPACE, left: 8 }} onPress={() => setPicked(null)}>
           <Camera ref={camera} initialViewState={{ center: [CITY.lng, CITY.lat], zoom: 13.5 }} />
           <GeoJSONSource id="pois" data={data} onPress={onPress}>
             {/* shortcut: метки — цветные кружки без значков; значки категорий — через <Images>, когда будет время */}
@@ -184,20 +185,20 @@ export default function MapScreen() {
         </View>
       </SafeAreaView>
 
-      <View style={{ position: "absolute", right: 16, bottom: picked ? 200 : 24 }}>
+      <View style={{ position: "absolute", right: 16, bottom: TABBAR_SPACE + (picked ? 190 : 12) }}>
         <IconButton label={t("map.locate")} onPress={locate}>
           <LocateFixed color={c.ink} size={20} />
         </IconButton>
       </View>
 
       {locateError && (
-        <Text style={{ position: "absolute", left: 16, right: 72, bottom: 30, padding: 10, borderRadius: 12, overflow: "hidden", backgroundColor: c.indigo, color: "#FFFFFF", fontFamily: FONT.bold }}>
+        <Text style={{ position: "absolute", left: 16, right: 72, bottom: TABBAR_SPACE + 18, padding: 10, borderRadius: 12, overflow: "hidden", backgroundColor: c.indigo, color: "#FFFFFF", fontFamily: FONT.bold }}>
           {t("map.locateError")}
         </Text>
       )}
 
       {picked && pickedCat && (
-        <View style={{ position: "absolute", left: 12, right: 12, bottom: 12, padding: 16, gap: 10, borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card }}>
+        <View style={{ position: "absolute", left: 12, right: 12, bottom: TABBAR_SPACE + 4, padding: 16, gap: 10, borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: pickedCat.color }}>
               <pickedCat.Icon color="#FFFFFF" size={18} />

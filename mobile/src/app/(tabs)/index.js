@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Speech from "expo-speech";
-import { ChevronRight, Droplets, Phone, Sunrise, Sunset, Volume2, Wind } from "lucide-react-native";
-import { fallbackOf } from "../../../../src/i18n";
-import { OSH, PHRASES, SOS, deg, toRussianSounds, updatedText, useOshWeather, weatherKind } from "../../../../src/home-data";
+import { ChevronRight, Droplets, Phone, Sunrise, Sunset, Wind } from "lucide-react-native";
+import { OSH, SOS, deg, toRussianSounds, updatedText, useOshWeather, weatherKind } from "../../../../src/home-data";
 import { useSettings } from "../../../../src/settings-context";
 import { useContent } from "../../../../src/content-context";
-import { BellButton, IconButton } from "../../../lib/ui";
+import { useScrollToTop } from "expo-router";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { BellButton } from "../../../lib/ui";
+import { PhraseStack } from "../../../lib/PhraseStack";
+import { TABBAR_SPACE } from "../../../lib/TabBar";
 import { FONT, RADIUS, useColors } from "../../../lib/theme";
 
 // голос для кыргызской фразы: ky → kk → ru (как useSpeak в src/HomeBlocks.jsx)
@@ -36,7 +39,9 @@ async function speakKy(text, onDone) {
 
 // главная — как src/views/HomeView.jsx: погода Оша, факты, фразы, SOS
 export default function HomeScreen() {
-  const { t, loc, lang, locale } = useSettings();
+  const { t, loc, locale } = useSettings();
+  const scroll = useRef(null);
+  useScrollToTop(scroll);
   const { facts } = useContent();
   const c = useColors();
   const weather = useOshWeather();
@@ -59,7 +64,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: c.bg }}>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 32 }}>
+      <ScrollView ref={scroll} contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: TABBAR_SPACE + 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: FONT.display, fontSize: 40, color: c.ink }}>{t("home.city")}</Text>
@@ -69,6 +74,7 @@ export default function HomeScreen() {
         </View>
 
         {/* погода */}
+        <Animated.View entering={FadeInDown.delay(60).springify()}>
         <Pressable onPress={weather.refresh} accessibilityLabel={t("wx.refresh")} style={card}>
           <Text style={small}>
             {weather.failed ? t("wx.offline") : t("wx.now")}
@@ -120,16 +126,18 @@ export default function HomeScreen() {
             </View>
           </View>
         </Pressable>
+        </Animated.View>
 
         {/* факты */}
         {facts.length > 0 && (
           <>
             <Text style={h2}>{t("facts.title")}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-              {facts.map((raw) => {
+              {facts.map((raw, i) => {
                 const f = loc(raw);
                 return (
-                  <Pressable key={raw.id} onPress={() => router.push(`/fact/${encodeURIComponent(raw.id)}`)} style={{ width: 260, borderRadius: RADIUS.card, overflow: "hidden", backgroundColor: c.indigo }}>
+                  <Animated.View key={raw.id} entering={FadeInDown.delay(140 + i * 60).springify()}>
+                  <Pressable onPress={() => router.push(`/fact/${encodeURIComponent(raw.id)}`)} style={{ width: 260, borderRadius: RADIUS.card, overflow: "hidden", backgroundColor: c.indigo }}>
                     <Image source={f.image} style={{ height: 140, backgroundColor: c.bg2 }} contentFit="cover" />
                     <View style={{ padding: 14, gap: 6 }}>
                       {f.tag ? <Text style={{ alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, overflow: "hidden", backgroundColor: c.gold, fontFamily: FONT.bold, fontSize: 11, color: "#1E2638" }}>{f.tag}</Text> : null}
@@ -137,35 +145,23 @@ export default function HomeScreen() {
                       <Text style={{ fontFamily: FONT.ui, fontSize: 13, lineHeight: 18, color: "#FFFFFF", opacity: 0.8 }} numberOfLines={3}>{f.short}</Text>
                     </View>
                   </Pressable>
+                  </Animated.View>
                 );
               })}
             </ScrollView>
           </>
         )}
 
-        {/* фразы на кыргызском */}
-        <Text style={h2}>{t("phrase.kicker")}</Text>
-        {PHRASES.map((p, i) => {
-          const translation = (lang !== "ky" && p[lang]) || p[fallbackOf(lang)];
-          const sound = p.tr[lang] || p.tr[fallbackOf(lang)];
-          return (
-            <View key={p.ky} style={[card, { flexDirection: "row", alignItems: "center" }]}>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={{ fontFamily: FONT.heavy, fontSize: 17, color: c.ink }}>{p.ky}</Text>
-                <Text style={small}>{`[${sound}] · ${translation}`}</Text>
-              </View>
-              <IconButton
-                label={t("phrase.listen")}
-                onPress={() => {
-                  setSpeaking(i);
-                  speakKy(p.ky, () => setSpeaking((s) => (s === i ? null : s)));
-                }}
-              >
-                <Volume2 color={speaking === i ? c.accent : c.ink} size={20} />
-              </IconButton>
-            </View>
-          );
-        })}
+        {/* фразы на кыргызском — стопка со свайпом */}
+        <Animated.View entering={FadeInDown.delay(240).springify()}>
+          <PhraseStack
+            speaking={speaking}
+            speak={(i, text) => {
+              setSpeaking(i);
+              speakKy(text, () => setSpeaking((s) => (s === i ? null : s)));
+            }}
+          />
+        </Animated.View>
 
         {/* SOS */}
         <Pressable onPress={() => setSosOpen((o) => !o)} style={[card, { flexDirection: "row", alignItems: "center" }]}>

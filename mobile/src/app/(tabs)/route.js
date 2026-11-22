@@ -1,4 +1,8 @@
+import { useRef } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { useScrollToTop } from "expo-router";
+import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
+import { TABBAR_SPACE } from "../../../lib/TabBar";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react-native";
@@ -17,6 +21,8 @@ export default function RouteScreen() {
   const { t, loc, fmtDuration, locale } = useSettings();
   const { routeItems: items, setRouteIds } = useStore();
   const c = useColors();
+  const scroll = useRef(null);
+  useScrollToTop(scroll);
 
   const legs = items.map((it, i) => (i === 0 ? 0 : walkKm(items[i - 1], it)));
   const totalKm = legs.reduce((a, b) => a + b, 0);
@@ -40,7 +46,7 @@ export default function RouteScreen() {
 
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: c.bg }}>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
+      <ScrollView ref={scroll} contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: TABBAR_SPACE + 16 }}>
         <Text style={{ fontFamily: FONT.bold, fontSize: 12, letterSpacing: 1, color: c.muted }}>{t("route.kicker")}</Text>
         <Text style={{ fontFamily: FONT.display, fontSize: 30, color: c.ink }}>{t("route.title")}</Text>
         <Text style={{ fontFamily: FONT.ui, fontSize: 15, lineHeight: 21, color: c.muted }}>{t("route.subtitle")}</Text>
@@ -58,7 +64,7 @@ export default function RouteScreen() {
             {items.map((raw, i) => {
               const e = loc(raw);
               return (
-                <View key={raw.id} style={{ gap: 6 }}>
+                <Animated.View key={raw.id} style={{ gap: 6 }} entering={FadeInDown.delay(i * 60).springify()} layout={LinearTransition.springify()}>
                   {i > 0 && (
                     <Text style={{ fontFamily: FONT.ui, fontSize: 13, color: c.muted, marginLeft: 44 }}>
                       {t("route.leg", { dist: fmtKm(legs[i]) })}
@@ -88,7 +94,7 @@ export default function RouteScreen() {
                       <Trash2 color={c.accent} size={18} />
                     </IconButton>
                   </View>
-                </View>
+                </Animated.View>
               );
             })}
             <Button secondary title={t("route.addPlace")} onPress={() => router.navigate("/tours")} />

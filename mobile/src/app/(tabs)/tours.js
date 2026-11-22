@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useScrollToTop } from "expo-router";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { TABBAR_SPACE } from "../../../lib/TabBar";
 import { FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +17,8 @@ export default function ToursScreen() {
   const { t, loc, travelMode } = useSettings();
   const { tours, selfTours } = useContent();
   const c = useColors();
+  const scroll = useRef(null);
+  useScrollToTop(scroll);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
 
@@ -66,12 +71,17 @@ export default function ToursScreen() {
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: c.bg }}>
       <FlatList
+        ref={scroll}
         data={list}
         keyExtractor={(e) => e.id}
         ListHeaderComponent={header}
-        contentContainerStyle={{ padding: 16, gap: 14 }}
+        contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: TABBAR_SPACE + 16 }}
         ListEmptyComponent={<Empty title={t("tours.emptyTitle")} text={t("tours.emptyText")} />}
-        renderItem={({ item }) => <TourCard item={item} onPress={() => router.push(`/tour/${encodeURIComponent(item.id)}`)} />}
+        renderItem={({ item, index }) => (
+          <Animated.View entering={FadeInDown.delay(Math.min(index, 6) * 60).springify()}>
+            <TourCard item={item} onPress={() => router.push(`/tour/${encodeURIComponent(item.id)}`)} />
+          </Animated.View>
+        )}
       />
     </SafeAreaView>
   );
