@@ -1,6 +1,6 @@
 import { ScrollView, Text, View } from "react-native";
 import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BadgeCheck, Check, Clock, Globe, MapPin, Users } from "lucide-react-native";
 import { useSettings } from "../../../../src/settings-context";
@@ -11,7 +11,7 @@ import { FONT, RADIUS, useColors } from "../../../lib/theme";
 import { useStore } from "../../../lib/store";
 import { BackButton, Button, SaveButton } from "../../../lib/ui";
 
-// экран тура — как src/views/Detail.jsx; бронь и карта — следующим шагом
+// экран тура — как src/views/Detail.jsx; карта — следующим шагом
 export default function TourScreen() {
   const { id } = useLocalSearchParams();
   const { byId } = useContent();
@@ -103,6 +103,11 @@ export default function TourScreen() {
             onPress={() => toggleRoute(raw.id)}
           />
         </View>
+        {!self && (
+          <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
+            <Button title={t("detail.pickDate")} onPress={() => router.push(`/book/${encodeURIComponent(raw.id)}`)} />
+          </View>
+        )}
       </SafeAreaView>
     </View>
   );

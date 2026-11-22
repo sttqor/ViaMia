@@ -51,7 +51,7 @@
 - `localStorage` в телефоне — `expo-sqlite/localStorage/install` (`mobile/index.js`).
 - Экраны — `mobile/src/app/` (файл = экран), цвета — `useColors()` из `mobile/lib/theme.js` (значения из `design/tokens.css`).
 - Пакеты ставить `EXPO_OFFLINE=1 npx expo install …` (api.expo.dev в облаке закрыт). Запуск на телефоне: `cd mobile && npx expo start` → Expo Go.
-- Готово: каталог туров, экран тура, вход по коду, язык, избранное и маршрут (`mobile/lib/store.js` — тот же ключ `osh-guide-v1` и `useAccountSync`). Дальше: бронь и билеты, карта (`@maplibre/maplibre-react-native`), навигатор, кабинет агентства, push.
+- Готово: каталог туров, экран тура, вход по коду, язык, избранное и маршрут (`mobile/lib/store.js` — тот же ключ `osh-guide-v1` и `useAccountSync`), бронь (`book/[id]`), билет и «поездка» без чата (`ticket/[code]`), «мои поездки». Дальше: чат и колокольчик, карта (`@maplibre/maplibre-react-native`), навигатор, кабинет агентства, push.
 
 ## Дизайн (утверждённый стиль)
 Макет: https://claude.ai/artifact/7zUSk4KrLpTE7MsphuV2tK

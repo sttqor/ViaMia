@@ -1,51 +1,23 @@
-import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSettings } from "../../../../src/settings-context";
-import { authErrorKey, useAuth } from "../../../../src/auth-context";
-import { readLoginId, showLoginId, prettyPhone } from "../../../../src/phone";
+import { useAuth } from "../../../../src/auth-context";
+import { prettyPhone } from "../../../../src/phone";
 import { LANGUAGES } from "../../../../src/i18n";
 import { router } from "expo-router";
-import { ChevronRight, Heart } from "lucide-react-native";
+import { ChevronRight, Heart, Ticket } from "lucide-react-native";
+import { Image } from "expo-image";
 import { Button } from "../../../lib/ui";
+import { LoginForm } from "../../../lib/LoginForm";
 import { useStore } from "../../../lib/store";
 import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
 
-// профиль: вход по коду (как src/Login.jsx) и язык; остальное — следующим шагом
+// профиль: аккаунт, поездки, избранное, язык
 export default function ProfileScreen() {
-  const { t, lang, setLang } = useSettings();
-  const { enabled, user, sendCode, verifyCode, signOut } = useAuth();
+  const { t, lang, setLang, loc, fmtDate, plural } = useSettings();
+  const { enabled, user, signOut } = useAuth();
   const c = useColors();
-  const { saved } = useStore();
-  const [raw, setRaw] = useState("");
-  const [id, setId] = useState(null); // куда отправили код
-  const [code, setCode] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-
-  const run = async (fn, fallback) => {
-    setBusy(true);
-    setErr("");
-    try {
-      await fn();
-    } catch (e) {
-      setErr(t(authErrorKey(e, fallback)));
-    } finally {
-      setBusy(false);
-    }
-  };
-  const send = () => {
-    const r = readLoginId(raw);
-    if (r.error) return setErr(t(r.error));
-    run(async () => {
-      await sendCode(r.id);
-      setId(r.id);
-      setCode("");
-    });
-  };
-  const verify = () => run(() => verifyCode(id, code.trim()), "login.errCode");
-
-  const input = { height: H.btn, borderRadius: RADIUS.btn, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, paddingHorizontal: 14, fontFamily: FONT.ui, fontSize: 16, color: c.ink };
+  const { saved, bookings } = useStore();
   const card = { padding: 16, borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, gap: 12 };
   const muted = { fontFamily: FONT.ui, fontSize: 14, lineHeight: 20, color: c.muted };
 
@@ -62,47 +34,37 @@ export default function ProfileScreen() {
               <Button secondary title={t("login.out")} onPress={signOut} />
             </View>
           ) : enabled ? (
-            <View style={card}>
-              <Text style={{ fontFamily: FONT.heavy, fontSize: 18, color: c.ink }}>{t(id ? "login.codeTitle" : "login.heroTitle")}</Text>
-              <Text style={muted}>
-                {id ? t(id.phone ? "login.codeTextPhone" : "login.codeTextEmail", { target: showLoginId(id) }) : t("login.heroText")}
-              </Text>
-              {id ? (
-                <TextInput
-                  value={code}
-                  onChangeText={setCode}
-                  keyboardType="number-pad"
-                  textContentType="oneTimeCode"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  style={[input, { letterSpacing: 6, textAlign: "center", fontFamily: FONT.heavy }]}
-                />
-              ) : (
-                <TextInput
-                  value={raw}
-                  onChangeText={setRaw}
-                  placeholder={t("login.idPlaceholder")}
-                  placeholderTextColor={c.muted}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="email-address"
-                  style={input}
-                />
-              )}
-              {err ? <Text style={{ fontFamily: FONT.bold, color: c.accent }}>{err}</Text> : null}
-              {id ? (
-                <>
-                  <Button title={t(busy ? "login.checking" : "login.signIn")} onPress={verify} disabled={busy || code.trim().length < 6} />
-                  <Pressable onPress={() => (setId(null), setErr(""))}>
-                    <Text style={{ fontFamily: FONT.bold, color: c.ink, textAlign: "center" }}>{t("login.changeId")}</Text>
-                  </Pressable>
-                </>
-              ) : (
-                <Button title={t(busy ? "login.sending" : "login.send")} onPress={send} disabled={busy} />
-              )}
-              <Text style={[muted, { fontSize: 13 }]}>{t("login.note")}</Text>
-            </View>
+            <LoginForm />
           ) : null}
+
+          <View style={card}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Ticket color={c.accent} size={18} />
+              <Text style={{ fontFamily: FONT.heavy, fontSize: 16, color: c.ink }}>{t("profile.tickets", { n: bookings.length })}</Text>
+            </View>
+            {bookings.length === 0 ? (
+              <>
+                <Text style={muted}>{t("profile.noTickets")}</Text>
+                <Button title={t("profile.seeTours")} onPress={() => router.navigate("/")} />
+              </>
+            ) : (
+              bookings.map((b) => {
+                const e = loc(b.exp);
+                const st = b.status || "pending";
+                return (
+                  <Pressable key={b.code} onPress={() => router.push(`/ticket/${b.code}`)} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                    <Image source={e.image} style={{ width: 52, height: 52, borderRadius: 12, backgroundColor: c.bg2 }} contentFit="cover" />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontFamily: FONT.heavy, fontSize: 15, color: c.ink }} numberOfLines={1}>{e.title}</Text>
+                      <Text style={{ fontFamily: FONT.ui, fontSize: 12, color: c.muted }}>{`${fmtDate(b.date)} · ${plural("pl.guests", b.guests)} · ${b.code}`}</Text>
+                      <Text style={{ fontFamily: FONT.bold, fontSize: 12, color: st === "confirmed" || st === "done" ? c.success : c.muted }}>{t(`trip.status.${st}`)}</Text>
+                    </View>
+                    <ChevronRight color={c.muted} size={18} />
+                  </Pressable>
+                );
+              })
+            )}
+          </View>
 
           <Pressable onPress={() => router.push("/saved")} style={[card, { flexDirection: "row", alignItems: "center" }]}>
             <Heart color={c.accent} size={20} />
