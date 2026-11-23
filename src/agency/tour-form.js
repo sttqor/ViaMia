@@ -67,6 +67,9 @@ export function toRow(f, status) {
   };
 }
 
+// цена введена, но не число («abc») — иначе тихо сохранится как «по запросу». пусто — по запросу, как раньше
+export const badPrice = (f) => !f.onRequest && String(f.price).trim() !== "" && !Number.isFinite(Number(String(f.price).replace(",", ".")));
+
 // Что должно быть в туре, чтобы турист понял, за что платит и куда идти.
 // Без этого тур не уходит на проверку (черновик сохранить можно всегда).
 export function checklist(f) {

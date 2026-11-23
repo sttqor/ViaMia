@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Stack, router } from "expo-router";
+import { AppState } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Splash } from "../../lib/Splash";
 import { Onboarding } from "../../lib/Onboarding";
@@ -10,6 +11,7 @@ import { PlayfairDisplay_700Bold } from "@expo-google-fonts/playfair-display";
 import { SettingsProvider } from "../../../src/SettingsProvider";
 import { AuthProvider } from "../../../src/AuthProvider";
 import { ContentProvider } from "../../../src/ContentProvider";
+import { refreshRates } from "../../../src/rates";
 import { useColors } from "../../lib/theme";
 import { StoreProvider } from "../../lib/store";
 import { RolesProvider, useRoles } from "../../lib/roles";
@@ -25,6 +27,11 @@ function Screens() {
     if (router.canDismiss()) router.dismissAll();
     router.replace(home);
   }, [home]);
+  // вернулись в приложение — курсы валют обновятся, если кэш устарел (как visibilitychange в вебе)
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (s) => s === "active" && refreshRates());
+    return () => sub.remove();
+  }, []);
   return (
     <>
       <StatusBar style={c.dark ? "light" : "dark"} />

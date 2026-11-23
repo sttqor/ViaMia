@@ -7,8 +7,9 @@ import { useSettings } from "../../../../../src/settings-context";
 import { fetchGuides, removePhoto, saveGuide, uploadPhoto } from "../../../../../src/agency/agency-api";
 import { Button } from "../../../../lib/ui";
 import { FONT, useColors } from "../../../../lib/theme";
-import { AgencyGate } from "../../../../lib/agency/Gate";
+import { AgencyGate, NoAgency } from "../../../../lib/agency/Gate";
 import { pickImages } from "../../../../lib/agency/files";
+import { useLeaveGuard } from "../../../../lib/agency/useLeaveGuard";
 import { AgScreen, Card, Chip, Field, Input, Toggle, Txt } from "../../../../lib/agency/ui";
 
 // гид агентства: добавить / изменить — как GuideForm в src/agency/GuidesTab.jsx. id = "new" — новый
@@ -17,7 +18,7 @@ const EMPTY = { name: "", photo_url: "", langs: "", phone: "", show_phone: false
 export default function GuideScreen() {
   const { id } = useLocalSearchParams();
   const { t } = useSettings();
-  return <AgencyGate title={t("ag.tab.guides")}>{({ agency }) => (agency ? <Loader agency={agency} id={String(id)} /> : null)}</AgencyGate>;
+  return <AgencyGate title={t("ag.tab.guides")}>{({ agency }) => (agency ? <Loader agency={agency} id={String(id)} /> : <NoAgency />)}</AgencyGate>;
 }
 
 function Loader({ agency, id }) {
@@ -46,7 +47,9 @@ function Loader({ agency, id }) {
 function GuideForm({ agency, guide }) {
   const { t } = useSettings();
   const c = useColors();
-  const [f, setF] = useState(() => (guide ? { ...guide, langs: (guide.langs || []).join(", "), phone: guide.phone || "", photo_url: guide.photo_url || "" } : EMPTY));
+  const [start] = useState(() => (guide ? { ...guide, langs: (guide.langs || []).join(", "), phone: guide.phone || "", photo_url: guide.photo_url || "" } : EMPTY));
+  const [f, setF] = useState(start);
+  const allowLeave = useLeaveGuard(JSON.stringify(f) !== JSON.stringify(start));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const set = (k) => (v) => setF((x) => ({ ...x, [k]: v }));
@@ -84,6 +87,7 @@ function GuideForm({ agency, guide }) {
         },
         guide?.id
       );
+      allowLeave();
       router.back();
     } catch (err) {
       console.warn(err);

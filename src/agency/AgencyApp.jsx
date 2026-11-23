@@ -431,7 +431,7 @@ function ToursTab({ agency, onEdit }) {
   useEffect(() => {
     let off = false;
     fetchMyTours(agency.id)
-      .then((d) => !off && setTours(d))
+      .then((d) => !off && (setTours(d), setError(false)))
       .catch((err) => {
         console.warn("Кабинет: туры", err);
         if (!off) setError(true);
@@ -445,6 +445,7 @@ function ToursTab({ agency, onEdit }) {
     try {
       const fresh = await setMyTourStatus(row.id, status);
       setTours((list) => list.map((x) => (x.id === row.id ? fresh : x)));
+      setError(false);
     } catch (err) {
       console.warn(err);
       setError(true);

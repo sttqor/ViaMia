@@ -12,6 +12,7 @@ import { durationMinutes } from "../../../../src/i18n";
 import { twoGisPlace } from "../../../../src/twogis";
 import { FONT, RADIUS, useColors } from "../../../lib/theme";
 import { useStore } from "../../../lib/store";
+import { Screen } from "../../../lib/Screen";
 import { BackButton, Button, ModeLabel, SaveButton, StarRow } from "../../../lib/ui";
 
 const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
@@ -34,7 +35,7 @@ export default function TourScreen() {
   const heroStyle = useAnimatedStyle(() => ({ transform: [{ scale: zoom.value }] }));
 
   const raw = byId(String(id));
-  if (!raw) return null;
+  if (!raw) return <Screen title={t("common.nothing")} />;
   const exp = loc(raw);
   const self = !!raw.selfGuided;
   const inRoute = routeIds.includes(raw.id);

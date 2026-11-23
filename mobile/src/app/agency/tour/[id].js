@@ -6,11 +6,12 @@ import { Check, Circle, ImagePlus, X } from "lucide-react-native";
 import { useSettings } from "../../../../../src/settings-context";
 import { CATEGORIES } from "../../../../../src/data";
 import { fetchMyTours, removePhoto, saveTour, uploadPhoto } from "../../../../../src/agency/agency-api";
-import { LANGS, MAX_PHOTOS, checklist, fromRow, toRow } from "../../../../../src/agency/tour-form";
+import { LANGS, MAX_PHOTOS, badPrice, checklist, fromRow, toRow } from "../../../../../src/agency/tour-form";
 import { Button } from "../../../../lib/ui";
 import { FONT, RADIUS, useColors } from "../../../../lib/theme";
-import { AgencyGate } from "../../../../lib/agency/Gate";
+import { AgencyGate, NoAgency } from "../../../../lib/agency/Gate";
 import { pickImages } from "../../../../lib/agency/files";
+import { useLeaveGuard } from "../../../../lib/agency/useLeaveGuard";
 import { PickMap } from "../../../../lib/agency/PickMap";
 import { AgScreen, Banner, Card, Chip, Chips, Field, Input, StatusBadge, Title, Toggle, Txt } from "../../../../lib/agency/ui";
 
@@ -18,7 +19,7 @@ import { AgScreen, Banner, Card, Chip, Chips, Field, Input, StatusBadge, Title, 
 export default function TourScreen() {
   const { id } = useLocalSearchParams();
   const { t } = useSettings();
-  return <AgencyGate title={t("ag.tour.edit")}>{({ agency }) => (agency ? <Loader agency={agency} id={String(id)} /> : null)}</AgencyGate>;
+  return <AgencyGate title={t("ag.tour.edit")}>{({ agency }) => (agency ? <Loader agency={agency} id={String(id)} /> : <NoAgency />)}</AgencyGate>;
 }
 
 function Loader({ agency, id }) {
@@ -47,7 +48,9 @@ function Loader({ agency, id }) {
 function Editor({ agency, tour }) {
   const { t, loc, money } = useSettings();
   const c = useColors();
-  const [f, setF] = useState(() => fromRow(tour));
+  const [start] = useState(() => fromRow(tour));
+  const [f, setF] = useState(start);
+  const allowLeave = useLeaveGuard(JSON.stringify(f) !== JSON.stringify(start));
   const [busy, setBusy] = useState(null); // null | "draft" | "review" | "photo"
   const [error, setError] = useState(null);
   const [showChecks, setShowChecks] = useState(false);
@@ -84,6 +87,7 @@ function Editor({ agency, tour }) {
 
   async function save(status) {
     if (f.title.trim().length < 3) return setError("ag.tour.errTitle");
+    if (badPrice(f)) return setError("ag.tour.errPrice");
     if (status === "review" && !ready) {
       setShowChecks(true);
       return setError("ag.tour.errChecklist");
@@ -92,6 +96,7 @@ function Editor({ agency, tour }) {
     setError(null);
     try {
       await saveTour(agency.id, toRow(f, status), tour?.id);
+      allowLeave();
       router.back();
     } catch (err) {
       console.warn("Тур не сохранился", err);

@@ -17,7 +17,7 @@ export function GuidesTab({ agency }) {
   useEffect(() => {
     let off = false;
     fetchGuides(agency.id)
-      .then((d) => !off && setList(d))
+      .then((d) => !off && (setList(d), setError(false)))
       .catch(() => !off && setError(true));
     return () => {
       off = true;
@@ -43,6 +43,7 @@ export function GuidesTab({ agency }) {
     try {
       await deleteGuide(g);
       setList((l) => l.filter((x) => x.id !== g.id));
+      setError(false);
     } catch (err) {
       console.warn(err);
       setError(true);

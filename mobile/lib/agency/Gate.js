@@ -41,6 +41,17 @@ export function LogoutButton() {
   );
 }
 
+// агентство ещё не заведено — с внутреннего экрана кабинета ведём на его главную (там форма регистрации)
+export function NoAgency() {
+  const { t } = useSettings();
+  return (
+    <Screen title={t("ag.brand")}>
+      <Txt kind="muted">{t("common.nothing")}</Txt>
+      <Button title={t("ag.brand")} onPress={() => router.replace("/agency")} />
+    </Screen>
+  );
+}
+
 // общий вход в кабинет: нет сервера / вход / загрузка агентства / ошибка → children({ agency, setAgency, who, tick })
 export function AgencyGate({ title, children }) {
   const { t } = useSettings();

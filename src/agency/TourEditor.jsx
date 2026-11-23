@@ -4,7 +4,7 @@ import { useSettings } from "../settings-context";
 import { CATEGORIES } from "../data";
 import { removePhoto, saveTour, uploadPhoto } from "./agency-api";
 import { AgencyHeader, Field, StatusBadge } from "./ui";
-import { LANGS, MAX_PHOTOS, checklist, fromRow, toRow } from "./tour-form";
+import { LANGS, MAX_PHOTOS, badPrice, checklist, fromRow, toRow } from "./tour-form";
 
 const PickMap = lazy(() => import("../OshMap").then((m) => ({ default: m.PickMap })));
 
@@ -50,6 +50,10 @@ export function TourEditor({ agency, tour, onClose, onSaved }) {
   async function save(status) {
     if (f.title.trim().length < 3) {
       setError("ag.tour.errTitle");
+      return;
+    }
+    if (badPrice(f)) {
+      setError("ag.tour.errPrice");
       return;
     }
     if (status === "review" && !ready) {

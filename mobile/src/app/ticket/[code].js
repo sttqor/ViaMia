@@ -43,7 +43,7 @@ export default function TicketScreen() {
     };
   }, [booking?.id, canTrip, booking?.status]);
 
-  if (!booking) return null;
+  if (!booking) return <Screen title={t("common.nothing")} />;
   const exp = loc(booking.exp);
   const status = trip?.status || booking.status;
   const meetAt = trip?.meet_at || booking.meetAt;

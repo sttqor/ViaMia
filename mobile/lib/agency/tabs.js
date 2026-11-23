@@ -115,6 +115,7 @@ export function ToursTab({ agency, tick }) {
     try {
       const fresh = await setMyTourStatus(row.id, status);
       setTours((list) => list.map((x) => (x.id === row.id ? fresh : x)));
+      setError(false);
     } catch (err) {
       console.warn(err);
       setError(true);
@@ -186,6 +187,7 @@ export function GuidesTab({ agency, tick }) {
       try {
         await deleteGuide(g);
         setList((l) => l.filter((x) => x.id !== g.id));
+        setError(false);
       } catch (err) {
         console.warn(err);
         setError(true);

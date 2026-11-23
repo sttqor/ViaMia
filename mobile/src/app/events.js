@@ -33,11 +33,14 @@ export default function EventsScreen() {
   };
   const open = (bookingId) => {
     const b = bookings.find((x) => x.id === bookingId);
+    // брони нет в списке на телефоне — «мои поездки» в профиле
     if (b) router.push(`/ticket/${b.code}`);
+    else router.navigate("/profile");
   };
 
   return (
     <Screen title={t("bell.title")}>
+      {user && events === null && <Text style={{ fontFamily: FONT.ui, color: c.muted, textAlign: "center", paddingVertical: 24 }}>{t("chat.loading")}</Text>}
       {events?.length === 0 && <Text style={{ fontFamily: FONT.ui, color: c.muted, textAlign: "center", paddingVertical: 24 }}>{t("bell.empty")}</Text>}
       {events?.map((e) => (
         <Pressable key={e.id} onPress={() => open(e.booking_id)} style={{ padding: 14, gap: 4, borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card }}>

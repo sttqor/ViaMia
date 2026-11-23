@@ -8,7 +8,7 @@ import { fetchAgencyBooking, fetchGuides, updateBooking } from "../../../../../s
 import { BookingChat } from "../../../../lib/BookingChat";
 import { Button } from "../../../../lib/ui";
 import { FONT, useColors } from "../../../../lib/theme";
-import { AgencyGate } from "../../../../lib/agency/Gate";
+import { AgencyGate, NoAgency } from "../../../../lib/agency/Gate";
 import { AgScreen, Card, Chip, Chips, Field, Input, KV, Row, StatusBadge, Title, Txt } from "../../../../lib/agency/ui";
 import { readTime, timeOsh, todayOsh } from "../../../../lib/agency/time";
 
@@ -27,7 +27,7 @@ function contactHref(c) {
 export default function BookingScreen() {
   const { id } = useLocalSearchParams();
   const { t } = useSettings();
-  return <AgencyGate title={t("ag.tab.bookings")}>{({ agency }) => (agency ? <Loader agency={agency} id={String(id)} /> : null)}</AgencyGate>;
+  return <AgencyGate title={t("ag.tab.bookings")}>{({ agency }) => (agency ? <Loader agency={agency} id={String(id)} /> : <NoAgency />)}</AgencyGate>;
 }
 
 function Loader({ agency, id }) {

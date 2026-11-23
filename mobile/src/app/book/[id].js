@@ -36,7 +36,7 @@ export default function BookScreen() {
   const [tried, setTried] = useState(false);
   const nameRef = useRef(null);
   const contactRef = useRef(null);
-  if (!raw) return null;
+  if (!raw) return <Screen title={t("common.nothing")} />;
 
   const exp = loc(raw);
   const total = exp.price == null ? null : exp.price * guests; // USD; null — цена по запросу

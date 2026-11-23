@@ -8,6 +8,7 @@ import { Button, IconButton } from "../ui";
 import { FONT, useColors } from "../theme";
 import { Card, Chip, Field, Input, Title, Txt } from "./ui";
 import { openDoc, pickDocs, pickImages } from "./files";
+import { useLeaveGuard } from "./useLeaveGuard";
 
 // форма организации — как AgencyForm в src/agency/AgencyApp.jsx
 const EMPTY = { name: "", legal_name: "", inn: "", license_no: "", address: "", phone: "", telegram: "", email: "", website: "", about: "", logo_url: "", doc_paths: [] };
@@ -17,13 +18,15 @@ export function AgencyForm({ userId, agency, onSaved }) {
   const createdId = useRef(null); // id агентства, созданного прошлой (неудачной) попыткой
   const { t } = useSettings();
   const c = useColors();
-  const [form, setForm] = useState(() => ({ ...EMPTY, ...Object.fromEntries(Object.entries(agency || {}).filter(([, v]) => v != null)) }));
+  const [start] = useState(() => ({ ...EMPTY, ...Object.fromEntries(Object.entries(agency || {}).filter(([, v]) => v != null)) }));
+  const [form, setForm] = useState(start);
   const [newDocs, setNewDocs] = useState([]); // выбранные, ещё не загруженные
   const [logoFile, setLogoFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [tried, setTried] = useState(false);
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
+  const allowLeave = useLeaveGuard(newDocs.length > 0 || !!logoFile || JSON.stringify(form) !== JSON.stringify(start));
 
   const inn = form.inn.replace(/\D/g, "");
   const problems = {
@@ -62,6 +65,7 @@ export function AgencyForm({ userId, agency, onSaved }) {
       }
       for (const p of droppedDocs) removeDoc(p).catch(() => {});
       setDroppedDocs([]);
+      allowLeave();
       onSaved(saved);
     } catch (err) {
       console.warn("Кабинет: не сохранилось агентство", err);

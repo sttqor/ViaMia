@@ -3,6 +3,14 @@
 -- Запуск: Supabase → SQL Editor → вставить файл целиком → Run.
 -- Потом так же запустить supabase/seed.sql (туры и факты из data.js).
 -- Скрипт можно запускать повторно — он ничего не ломает.
+--
+-- !!! ВНИМАНИЕ: поверх этой схемы стоят более строгие правила из
+-- !!!   playbooks/agency-cabinet/toolbox/01-agency.sql        (модерация агентств и туров)
+-- !!!   playbooks/booking-notifications/toolbox/01-booking.sql (бронь, гиды, чат)
+-- !!! Они переопределяют здесь: booking_fill(), agencies_read, права на колонки agencies,
+-- !!! tours_read, права на колонки booking_requests. Эти места ниже помечены «⚠ toolbox»
+-- !!! и выполняются ТОЛЬКО на чистой базе (пока нет таблиц public.admins / public.guides),
+-- !!! чтобы повторный запуск схемы не ослабил живую базу. Менять их — в toolbox-файлах.
 -- ═══════════════════════════════════════════════════════════════
 
 -- ── Агентства ──────────────────────────────────────────────────
@@ -121,6 +129,10 @@ create trigger tours_touch before update on public.tours
   for each row execute function public.touch_updated_at();
 
 -- Заявка: agency_id и сумма берутся из тура, а не от клиента; статус всегда pending
+-- ⚠ toolbox: строже версия в 01-agency.sql (только проверенные агентства) — здесь только на чистой базе
+do $do$ begin
+  if to_regclass('public.admins') is null then
+    execute $f$
 create or replace function public.booking_fill() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare t public.tours;
@@ -139,6 +151,9 @@ begin
   end if;
   return new;
 end $$;
+    $f$;
+  end if;
+end $do$;
 
 drop trigger if exists booking_fill on public.booking_requests;
 create trigger booking_fill before insert on public.booking_requests
@@ -179,8 +194,13 @@ create trigger profiles_touch before update on public.profiles
 
 -- Агентства: все видят карточку агентства; владелец создаёт и правит своё.
 -- Поле verified владелец менять не может (права на колонки ниже).
-drop policy if exists agencies_read on public.agencies;
-create policy agencies_read on public.agencies for select using (true);
+-- ⚠ toolbox: в 01-agency.sql видны только проверенные агентства — здесь только на чистой базе
+do $do$ begin
+  if to_regclass('public.admins') is null then
+    drop policy if exists agencies_read on public.agencies;
+    create policy agencies_read on public.agencies for select using (true);
+  end if;
+end $do$;
 
 drop policy if exists agencies_insert_own on public.agencies;
 create policy agencies_insert_own on public.agencies for insert to authenticated
@@ -190,15 +210,25 @@ drop policy if exists agencies_update_own on public.agencies;
 create policy agencies_update_own on public.agencies for update to authenticated
   using (owner_user_id = auth.uid()) with check (owner_user_id = auth.uid());
 
-revoke update on public.agencies from anon, authenticated;
-grant update (name, phone, telegram, logo_url) on public.agencies to authenticated;
+-- ⚠ toolbox: в 01-agency.sql список колонок шире (реквизиты, документы, статус) — здесь только на чистой базе
+do $do$ begin
+  if to_regclass('public.admins') is null then
+    revoke update on public.agencies from anon, authenticated;
+    grant update (name, phone, telegram, logo_url) on public.agencies to authenticated;
+  end if;
+end $do$;
 
 -- Туры: туристы видят только опубликованные; агентство видит и меняет только свои.
-drop policy if exists tours_read on public.tours;
-create policy tours_read on public.tours for select using (
-  published
-  or agency_id in (select id from public.agencies where owner_user_id = auth.uid())
-);
+-- ⚠ toolbox: в 01-agency.sql туристам видны туры только проверенных агентств — здесь только на чистой базе
+do $do$ begin
+  if to_regclass('public.admins') is null then
+    drop policy if exists tours_read on public.tours;
+    create policy tours_read on public.tours for select using (
+      published
+      or agency_id in (select id from public.agencies where owner_user_id = auth.uid())
+    );
+  end if;
+end $do$;
 
 drop policy if exists tours_write_own on public.tours;
 create policy tours_write_own on public.tours for all to authenticated
@@ -228,8 +258,13 @@ create policy booking_update_agency on public.booking_requests for update to aut
   using (agency_id in (select id from public.agencies where owner_user_id = auth.uid()))
   with check (agency_id in (select id from public.agencies where owner_user_id = auth.uid()));
 
-revoke update on public.booking_requests from anon, authenticated;
-grant update (status) on public.booking_requests to authenticated;
+-- ⚠ toolbox: в 01-booking.sql агентство меняет ещё гида, время встречи, комментарий, причину — здесь только на чистой базе
+do $do$ begin
+  if to_regclass('public.guides') is null then
+    revoke update on public.booking_requests from anon, authenticated;
+    grant update (status) on public.booking_requests to authenticated;
+  end if;
+end $do$;
 
 -- ── обновление существующей базы (можно запускать повторно) ─────────────────
 alter table public.tours drop constraint if exists tours_category_check;

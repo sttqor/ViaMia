@@ -41,7 +41,13 @@ function TopPhrase({ phrase, onGone, speaking, onSpeak }) {
         x.set(withTiming(dir * 420, { duration: 240 }, () => runOnJS(onGone)()));
       } else x.set(withSpring(0, SPRING));
     });
-  const tap = Gesture.Tap().onEnd(() => runOnJS(setFlipped)((f) => !f));
+  // кнопка озвучки (44 + отступ 16 справа и снизу) — её Pressable сам ловит нажатие, карточку не переворачиваем
+  const size = useSharedValue({ w: 0, h: 0 });
+  const tap = Gesture.Tap().onEnd((e) => {
+    const { w, h } = size.value;
+    if (e.x > w - 68 && e.y > h - 68) return;
+    runOnJS(setFlipped)((f) => !f);
+  });
 
   const card = useAnimatedStyle(() => ({
     transform: [
@@ -55,7 +61,7 @@ function TopPhrase({ phrase, onGone, speaking, onSpeak }) {
 
   return (
     <GestureDetector gesture={Gesture.Exclusive(pan, tap)}>
-      <Animated.View style={[styles.card, { zIndex: STACK }, card]}>
+      <Animated.View style={[styles.card, { zIndex: STACK }, card]} onLayout={(e) => size.set({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
         <LinearGradient colors={["#1E2638", "#2f3754"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         <Animated.View style={[StyleSheet.absoluteFill, glow]}>
           <LinearGradient colors={["#2f3754", c.accent, c.gold]} locations={[0, 0.6, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
