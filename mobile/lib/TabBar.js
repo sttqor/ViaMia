@@ -4,12 +4,13 @@ import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
+import { EASE_IN_OUT, EASE_OUT } from "./motion";
 import { FONT, useColors } from "./theme";
 
 const NAV_H = 62;
 const PAD = 4;
-const SPRING = { stiffness: 400, damping: 32 };
+const MOVE = { duration: 280, easing: EASE_IN_OUT };
 
 // нижняя панель как в iOS 26 (src/TabBar.jsx): стеклянная капсула, «линза» под выбранной вкладкой,
 // линзу можно тянуть пальцем, повторный тап — наверх (tabPress → useScrollToTop).
@@ -22,10 +23,12 @@ export function TabBar({ state, descriptors, navigation, tabs }) {
   const slot = width ? (width - PAD * 2) / n : 0;
   const x = useSharedValue(0);
   const pressed = useSharedValue(0);
+  const stretch = useSharedValue(1);
 
   useEffect(() => {
-    x.set(withSpring(state.index * slot, SPRING));
-  }, [state.index, slot, x]);
+    x.set(withTiming(state.index * slot, MOVE));
+    stretch.set(withSequence(withTiming(1.12, { duration: 140, easing: EASE_OUT }), withTiming(1, { duration: 140, easing: EASE_IN_OUT })));
+  }, [state.index, slot, x, stretch]);
 
   const go = (i) => {
     const route = state.routes[i];
@@ -41,22 +44,22 @@ export function TabBar({ state, descriptors, navigation, tabs }) {
   const pan = Gesture.Pan()
     .activeOffsetX([-8, 8])
     .onBegin(() => {
-      pressed.set(withSpring(1, SPRING));
+      pressed.set(withTiming(1, { duration: 150, easing: EASE_OUT }));
     })
     .onUpdate((e) => {
       x.set(Math.max(0, Math.min((n - 1) * slot, e.x - PAD - slot / 2)));
     })
     .onEnd((e) => {
       const i = clampIdx(e.x);
-      x.set(withSpring(i * slot, SPRING));
+      x.set(withTiming(i * slot, MOVE));
       runOnJS(go)(i);
     })
     .onFinalize(() => {
-      pressed.set(withSpring(0, SPRING));
+      pressed.set(withTiming(0, { duration: 120, easing: EASE_OUT }));
     });
 
   const lens = useAnimatedStyle(() => ({
-    transform: [{ translateX: x.value }, { scale: 1 + pressed.value * 0.06 }],
+    transform: [{ translateX: x.value }, { scaleX: stretch.value }, { scale: 1 + pressed.value * 0.06 }],
     backgroundColor: pressed.value > 0.5 ? c.glassLens : c.hover,
   }));
 

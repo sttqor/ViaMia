@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { FadeIn, FadeOut, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import Animated, { FadeIn, FadeOut, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { Volume2 } from "lucide-react-native";
 import { fallbackOf } from "../../src/i18n";
 import { PHRASES } from "../../src/home-data";
 import { useSettings } from "../../src/settings-context";
 import { FONT, RADIUS, useColors } from "./theme";
+import { EASE_OUT } from "./motion";
 
 const STACK = 3; // сколько карточек видно
-const SPRING = { stiffness: 400, damping: 32 };
 const dayIndex = () => {
   const now = new Date();
   return Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
@@ -24,7 +24,7 @@ function TopPhrase({ phrase, onGone, speaking, onSpeak }) {
   const x = useSharedValue(0);
   const enter = useSharedValue(0);
   useEffect(() => {
-    enter.set(withSpring(1, SPRING));
+    enter.set(withTiming(1, { duration: 280, easing: EASE_OUT }));
   }, [enter]);
   const translation = (lang !== "ky" && phrase[lang]) || phrase[fallbackOf(lang)];
   const sound = `[${phrase.tr[lang] || phrase.tr[fallbackOf(lang)]}]`;
@@ -39,7 +39,7 @@ function TopPhrase({ phrase, onGone, speaking, onSpeak }) {
       if (Math.abs(e.translationX) > 90 || Math.abs(e.velocityX) > 600) {
         const dir = e.translationX < 0 ? -1 : 1;
         x.set(withTiming(dir * 420, { duration: 240 }, () => runOnJS(onGone)()));
-      } else x.set(withSpring(0, SPRING));
+      } else x.set(withTiming(0, { duration: 240, easing: EASE_OUT })); // назад без отскока
     });
   // кнопка озвучки (44 + отступ 16 справа и снизу) — её Pressable сам ловит нажатие, карточку не переворачиваем
   const size = useSharedValue({ w: 0, h: 0 });

@@ -17,7 +17,7 @@ import { BackButton, Button, ModeLabel, SaveButton, StarRow } from "../../../lib
 
 const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
 // текст появляется по очереди (STAGGER / RISE в src/components/shared.js)
-const rise = (i) => FadeInDown.duration(350).delay(80 + i * 60).easing(EASE_OUT);
+const rise = (i) => FadeInDown.duration(320).delay(80 + i * 30).easing(EASE_OUT);
 
 // экран тура — как src/views/Detail.jsx; мини-карту заменяет кнопка «Открыть в 2ГИС»
 export default function TourScreen() {
@@ -155,7 +155,7 @@ export default function TourScreen() {
       </SafeAreaView>
 
       <Animated.View
-        entering={SlideInDown.springify().stiffness(400).damping(32).delay(150)}
+        entering={SlideInDown.duration(320).easing(EASE_OUT).delay(150)}
         style={{ position: "absolute", left: 0, right: 0, bottom: 0, overflow: "hidden", borderTopWidth: 1, borderColor: c.line }}
       >
         <BlurView intensity={40} tint={c.dark ? "dark" : "light"} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />

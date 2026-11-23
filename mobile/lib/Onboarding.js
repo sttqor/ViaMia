@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, { FadeInDown, useAnimatedStyle, withSpring } from "react-native-reanimated";
+import Animated, { FadeInDown, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { Compass, Users } from "lucide-react-native";
 import { useSettings } from "../../src/settings-context";
 import { FONT, RADIUS, useColors } from "./theme";
+import { EASE_OUT, enter } from "./motion";
 
-const SPRING = { stiffness: 400, damping: 32 };
 
 function Card({ o, i, picked, onPress }) {
   const c = useColors();
   const isPicked = picked === o.id;
   const anim = useAnimatedStyle(() => ({
-    opacity: withSpring(!picked || isPicked ? 1 : 0.35, SPRING),
-    transform: [{ scale: withSpring(isPicked ? 1.02 : 1, SPRING) }],
+    opacity: withTiming(!picked || isPicked ? 1 : 0.35, { duration: 220, easing: EASE_OUT }),
+    transform: [{ scale: withTiming(isPicked ? 1.02 : 1, { duration: 220, easing: EASE_OUT }) }],
   }));
   return (
-    <Animated.View entering={FadeInDown.delay(140 + i * 80).springify()} style={anim}>
+    <Animated.View entering={enter(140 + i * 60)} style={anim}>
       <Pressable
         onPress={onPress}
         accessibilityRole="radio"

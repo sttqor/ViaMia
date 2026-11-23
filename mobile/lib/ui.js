@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
+import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
+import { EASE_IN_OUT, EASE_OUT } from "./motion";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { BadgeCheck, Bell, ChevronLeft, Heart, Star } from "lucide-react-native";
@@ -176,7 +177,7 @@ export function SaveButton({ saved, onPress }) {
   return (
     <Pressable
       onPress={() => {
-        if (!saved) s.set(withSequence(withTiming(0.5, { duration: 0 }), withSpring(1, { stiffness: 520, damping: 14 })));
+        if (!saved) s.set(withSequence(withTiming(1.22, { duration: 140, easing: EASE_OUT }), withTiming(1, { duration: 180, easing: EASE_IN_OUT }))); // пульс подтверждения
         onPress();
       }}
       accessibilityRole="button"
@@ -254,7 +255,7 @@ export function BellButton() {
   );
 }
 
-// переключатель в стиле iOS (src/Segmented.jsx): ползунок переезжает с пружиной. options [{ value, label }]
+// переключатель в стиле iOS (src/Segmented.jsx): ползунок переезжает (ease-in-out, растяжение в пути). options [{ value, label }]
 export function Segmented({ label, value, onChange, options }) {
   const c = useColors();
   const [w, setW] = useState(0);
@@ -262,12 +263,16 @@ export function Segmented({ label, value, onChange, options }) {
   const x = useSharedValue(0);
   const slot = w / options.length;
   const lastSlot = useRef(0);
+  const stretch = useSharedValue(1);
   useEffect(() => {
-    // первый замер ширины — сразу на место, дальше — пружиной
-    x.set(lastSlot.current === slot ? withSpring(idx * slot, { stiffness: 520, damping: 38 }) : idx * slot);
+    // первый замер ширины — сразу на место, дальше — ease-in-out, в пути ползунок вытянут на 12%
+    if (lastSlot.current === slot) {
+      x.set(withTiming(idx * slot, { duration: 280, easing: EASE_IN_OUT }));
+      stretch.set(withSequence(withTiming(1.12, { duration: 140, easing: EASE_OUT }), withTiming(1, { duration: 140, easing: EASE_IN_OUT })));
+    } else x.set(idx * slot);
     lastSlot.current = slot;
-  }, [idx, slot, x]);
-  const thumb = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
+  }, [idx, slot, x, stretch]);
+  const thumb = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }, { scaleX: stretch.value }] }));
   return (
     <View accessibilityRole="radiogroup" accessibilityLabel={label} style={{ padding: 3, borderRadius: RADIUS.chip, backgroundColor: c.card, borderWidth: 1, borderColor: c.line }}>
       <View style={{ flexDirection: "row" }} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
@@ -298,8 +303,8 @@ export function ChipRow({ items, value, onChange }) {
   useEffect(() => {
     if (!box) return;
     const first = width.get() === 0;
-    x.set(first ? box.x : withSpring(box.x, { stiffness: 400, damping: 32 }));
-    width.set(first ? box.width : withSpring(box.width, { stiffness: 400, damping: 32 }));
+    x.set(first ? box.x : withTiming(box.x, { duration: 280, easing: EASE_IN_OUT }));
+    width.set(first ? box.width : withTiming(box.width, { duration: 280, easing: EASE_IN_OUT }));
   }, [box, x, width]);
   const thumb = useAnimatedStyle(() => ({ width: width.value, transform: [{ translateX: x.value }] }));
   return (

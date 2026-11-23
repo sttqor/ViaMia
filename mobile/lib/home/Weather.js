@@ -1,11 +1,12 @@
 import { ScrollView, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle, G, Path } from "react-native-svg";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { Cloud, Droplets, RefreshCw, Sunrise, Sunset, Wind } from "lucide-react-native";
 import { deg, sunInfo, updatedText, weatherKind } from "../../../src/home-data";
 import { useSettings } from "../../../src/settings-context";
 import { FONT, RADIUS, useColors } from "../theme";
+import { enter } from "../motion";
 
 // карточка погоды — как .wx в src/HomeBlocks.jsx/.css: днём тёплый градиент (--wx-day), ночью индиго,
 // справа дуга солнца (ночью — луна), почасовой прогноз, внизу диапазон и ветер
@@ -24,7 +25,7 @@ export function Weather({ weather, now }) {
   const Icon = kind?.Icon || Cloud;
 
   return (
-    <Animated.View entering={FadeInDown.delay(60).springify()} style={{ borderRadius: RADIUS.card, overflow: "hidden", borderWidth: night ? 0 : 1, borderColor: c.line }}>
+    <Animated.View entering={enter(60)} style={{ borderRadius: RADIUS.card, overflow: "hidden", borderWidth: night ? 0 : 1, borderColor: c.line }}>
       <LinearGradient colors={grad} locations={[0, 0.55, 1]} start={{ x: 0, y: 0 }} end={{ x: 0.85, y: 1 }} style={StyleSheet.absoluteFill} />
       <View style={{ padding: 16, gap: 12 }}>
         {/* сейчас в Оше · обновлено … */}
@@ -90,7 +91,7 @@ export function Weather({ weather, now }) {
             {wx.hours.map((h, i) => {
               const k = weatherKind(h.code, h.isDay);
               return (
-                <Animated.View key={h.time} entering={FadeInDown.delay(120 + i * 30)} style={{ width: 52, alignItems: "center", gap: 4, paddingVertical: 8, borderRadius: 14, backgroundColor: night ? "rgba(255,255,255,0.08)" : c.glassLens }}>
+                <Animated.View key={h.time} entering={enter(120 + i * 30, 220)} style={{ width: 52, alignItems: "center", gap: 4, paddingVertical: 8, borderRadius: 14, backgroundColor: night ? "rgba(255,255,255,0.08)" : c.glassLens }}>
                   <Text style={txt(11, 700, { opacity: 0.7 })}>{h.time.slice(11, 16)}</Text>
                   <k.Icon color={icon} size={18} strokeWidth={1.9} />
                   <Text style={txt(13, 800)}>{deg(h.temp)}</Text>

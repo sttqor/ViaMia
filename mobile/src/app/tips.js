@@ -7,6 +7,7 @@ import { TIP_TOPICS, TIPS } from "../../../src/tips-data";
 import { useSettings } from "../../../src/settings-context";
 import { Screen } from "../../lib/Screen";
 import { FONT, H, RADIUS, useColors } from "../../lib/theme";
+import { EASE_IN_OUT, enterRow } from "../../lib/motion";
 
 const topicOf = (id) => TIP_TOPICS.find((x) => x.id === id) || TIP_TOPICS[0];
 const dayIndex = () => {
@@ -78,7 +79,7 @@ export default function TipsScreen() {
         const isOpen = open.has(tip.id);
         const tag = tagStyle[tip.kind] || tagStyle.do;
         return (
-          <Animated.View key={tip.id} entering={FadeInDown.delay(Math.min(i, 8) * 40)} layout={LinearTransition.springify()} style={{ borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, overflow: "hidden" }}>
+          <Animated.View key={tip.id} entering={enterRow(i)} layout={LinearTransition.duration(280).easing(EASE_IN_OUT)} style={{ borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card, overflow: "hidden" }}>
             <Pressable onPress={() => toggle(tip.id)} accessibilityState={{ expanded: isOpen }} style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 72, paddingVertical: 12, paddingHorizontal: 14 }}>
               <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: isOpen ? c.accent : c.bg2 }}>
                 <Icon color={isOpen ? "#FFFFFF" : c.ink} size={20} />

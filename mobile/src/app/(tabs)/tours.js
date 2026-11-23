@@ -12,9 +12,10 @@ import { agenciesOf } from "../../../../src/agencies";
 import { TABBAR_SPACE } from "../../../lib/TabBar";
 import { ChipRow, Segmented, TourCard } from "../../../lib/ui";
 import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
+import { EASE_OUT } from "../../../lib/motion";
 
 // появление карточки: лёгкий подъём, задержка по кругу из 6 (inView в src/components/shared.js)
-const rise = (i) => FadeInDown.duration(300).delay((i % 6) * 50);
+const rise = (i) => FadeInDown.duration(300).delay((i % 6) * 30).easing(EASE_OUT);
 
 // агентства под списком «с гидом» — как AgencyBlock в src/views/ToursView.jsx
 function AgencyBlock({ onPick }) {
@@ -120,7 +121,7 @@ export default function ToursScreen() {
 
         <View key={`${travelMode}-${active}-${q}`} style={{ paddingHorizontal: 16, paddingBottom: 20, marginTop: 4, gap: 14 }}>
           {list.length === 0 && (
-            <Animated.View entering={ZoomIn.springify().stiffness(400).damping(32)} style={{ alignItems: "center", gap: 6, padding: 24, borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card }}>
+            <Animated.View entering={ZoomIn.duration(200).easing(EASE_OUT)} style={{ alignItems: "center", gap: 6, padding: 24, borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card }}>
               <Search color={c.ink} size={32} />
               <Text style={{ fontFamily: FONT.heavy, fontSize: 15, color: c.ink }}>{t("tours.emptyTitle")}</Text>
               <Text style={{ fontFamily: FONT.ui, fontSize: 13, color: c.muted, textAlign: "center" }}>{t("tours.emptyText")}</Text>

@@ -11,8 +11,9 @@ import { TABBAR_SPACE } from "../../../lib/TabBar";
 import { useStore } from "../../../lib/store";
 import { Button, Ticker } from "../../../lib/ui";
 import { FONT, RADIUS, useColors } from "../../../lib/theme";
+import { EASE_IN_OUT } from "../../../lib/motion";
 
-const SPRING_LAYOUT = LinearTransition.springify().stiffness(400).damping(32);
+const SPRING_LAYOUT = LinearTransition.duration(280).easing(EASE_IN_OUT); // перестановка — ease-in-out, без отскока
 
 // пунктир между точками (в RN у одной стороны рамки dashed не рисуется)
 function DashedLine({ color }) {
@@ -140,7 +141,7 @@ export default function RouteScreen() {
 
           {items.length === 0 ? (
             <Animated.View entering={FadeInDown.duration(300)} style={{ alignItems: "center", paddingVertical: 36, paddingHorizontal: 20, borderRadius: RADIUS.card, borderWidth: 1, borderColor: c.line, backgroundColor: c.card }}>
-              <Animated.View entering={ZoomIn.springify().stiffness(260).damping(16).delay(100)}>
+              <Animated.View entering={FadeIn.duration(280).delay(100)}>
                 <Compass color={c.accent} size={40} />
               </Animated.View>
               <Text style={{ fontFamily: FONT.heavy, fontSize: 17, color: c.ink, marginTop: 12, marginBottom: 6 }}>{t("route.emptyTitle")}</Text>

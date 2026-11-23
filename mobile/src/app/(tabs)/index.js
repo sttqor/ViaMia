@@ -13,6 +13,7 @@ import { TABBAR_SPACE } from "../../../lib/TabBar";
 import { Weather } from "../../../lib/home/Weather";
 import { FactStory } from "../../../lib/home/FactStory";
 import { FONT, RADIUS, useColors } from "../../../lib/theme";
+import { EASE_OUT, enter } from "../../../lib/motion";
 
 const DANGER = "#C8102E";
 
@@ -94,14 +95,14 @@ export default function HomeScreen() {
 
         <Weather weather={weather} now={now} />
 
-        <Animated.View entering={FadeInDown.delay(140).springify()}>
+        <Animated.View entering={enter(120)}>
           <FactStory />
         </Animated.View>
 
         {/* быстрые кнопки */}
         <View style={{ flexDirection: "row", paddingTop: 4 }}>
           {quick.map((q, i) => (
-            <Animated.View key={q.id} entering={FadeInDown.delay(200 + i * 60).springify()} style={{ flex: 1, alignItems: "center" }}>
+            <Animated.View key={q.id} entering={enter(180 + i * 30)} style={{ flex: 1, alignItems: "center" }}>
               <Pressable onPress={q.onPress} style={({ pressed }) => ({ alignItems: "center", gap: 8, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
                 <View style={{ width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", backgroundColor: c.card, borderWidth: 1, borderColor: c.line }}>
                   <q.Icon color={c.ink} size={22} />
@@ -116,7 +117,7 @@ export default function HomeScreen() {
         </View>
 
         {/* фразы на кыргызском — стопка со свайпом */}
-        <Animated.View entering={FadeInDown.delay(260).springify()}>
+        <Animated.View entering={enter(240)}>
           <PhraseStack
             speaking={speaking}
             speak={(i, text) => {
@@ -153,7 +154,7 @@ export default function HomeScreen() {
       {/* лист SOS */}
       <Modal visible={sosOpen} transparent animationType="fade" onRequestClose={() => setSosOpen(false)}>
         <Pressable onPress={() => setSosOpen(false)} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(20,26,40,0.5)" }}>
-          <Animated.View entering={SlideInDown.springify().damping(32).stiffness(400)}>
+          <Animated.View entering={SlideInDown.duration(280).easing(EASE_OUT)}>
             <Pressable onPress={() => {}} accessibilityViewIsModal style={{ padding: 16, paddingBottom: 32, gap: 10, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: c.card }}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Text style={{ flex: 1, fontFamily: FONT.heavy, fontSize: 18, color: c.ink }}>{t("sos.title")}</Text>

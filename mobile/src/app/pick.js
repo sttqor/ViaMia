@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import Animated, { ZoomIn } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { Check, Search } from "lucide-react-native";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName } from "../../../src/i18n";
 import { useSettings } from "../../../src/settings-context";
@@ -52,7 +52,7 @@ export default function PickScreen() {
             {it.symbol && it.symbol !== it.code ? <Text style={{ fontFamily: FONT.ui, color: c.muted }}>{it.symbol}</Text> : null}
             <Text style={{ fontFamily: FONT.heavy, color: c.muted }}>{it.code.toUpperCase()}</Text>
             {active === it.code && (
-              <Animated.View entering={ZoomIn.springify()}>
+              <Animated.View entering={FadeIn.duration(180)}>
                 <Check color={c.accent} size={18} />
               </Animated.View>
             )}

@@ -3,7 +3,7 @@ import { Linking, Pressable, ScrollView, Switch, Text, View } from "react-native
 import { Image } from "expo-image";
 import { router, useScrollToTop } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { Bell, Building2, ChevronRight, DollarSign, Globe, Heart, HelpCircle, LogOut, Moon, ShieldCheck, Ticket, Trash2, User } from "lucide-react-native";
 import { useSettings } from "../../../../src/settings-context";
 import { useAuth } from "../../../../src/auth-context";
@@ -17,6 +17,7 @@ import { useStore } from "../../../lib/store";
 import { BellButton, Button, Segmented } from "../../../lib/ui";
 import { TABBAR_SPACE } from "../../../lib/TabBar";
 import { FONT, RADIUS, useColors } from "../../../lib/theme";
+import { enterRow } from "../../../lib/motion";
 
 const DANGER = "#C8102E";
 
@@ -70,7 +71,7 @@ export default function ProfileScreen() {
   const label = { fontFamily: FONT.heavy, fontSize: 15, color: c.ink };
   const divider = <View style={{ height: 1, backgroundColor: c.line }} />;
   const blocks = [];
-  const block = (key, el) => blocks.push(<Animated.View key={key} entering={FadeInDown.delay(blocks.length * 50).springify()}>{el}</Animated.View>);
+  const block = (key, el) => blocks.push(<Animated.View key={key} entering={enterRow(blocks.length)}>{el}</Animated.View>);
 
   block(
     "account",
