@@ -7,14 +7,14 @@ import { FONT, H, RADIUS, useColors } from "../theme";
 // общие куски кабинета агентства и модерации — как src/agency/ui.jsx + классы agency.css
 
 // как lib/Screen.js, плюс подпись под заголовком (кто вошёл), кнопка справа и нижняя панель (footer)
-export function AgScreen({ title, sub, right, footer, children }) {
+export function AgScreen({ title, sub, right, footer, children, root }) {
   const c = useColors();
   return (
     <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1, backgroundColor: c.bg }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <BackButton />
+            {!root && <BackButton />}
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: FONT.heavy, fontSize: 18, color: c.ink }} numberOfLines={1}>{title}</Text>
               {typeof sub === "string" ? <Text style={{ fontFamily: FONT.ui, fontSize: 12, color: c.muted }} numberOfLines={1}>{sub}</Text> : sub}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { LogOut } from "lucide-react-native";
 import { useSettings } from "../../../src/settings-context";
 import { useAuth } from "../../../src/auth-context";
@@ -28,7 +28,14 @@ export function LogoutButton() {
   const { signOut } = useAuth();
   const c = useColors();
   return (
-    <IconButton label={t("login.out")} onPress={signOut}>
+    <IconButton
+      label={t("login.out")}
+      onPress={async () => {
+        await signOut();
+        if (router.canDismiss()) router.dismissAll();
+        router.replace("/");
+      }}
+    >
       <LogOut color={c.ink} size={18} />
     </IconButton>
   );

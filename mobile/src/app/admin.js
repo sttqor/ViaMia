@@ -10,6 +10,10 @@ import { LoginForm } from "../../lib/LoginForm";
 import { Button } from "../../lib/ui";
 import { FONT, useColors } from "../../lib/theme";
 import { LogoutButton } from "../../lib/agency/Gate";
+import { useRoles } from "../../lib/roles";
+import { router } from "expo-router";
+import { Building2 } from "lucide-react-native";
+import { IconButton } from "../../lib/ui";
 import { openDoc } from "../../lib/agency/files";
 import { AgScreen, Banner, Card, Chip, Chips, Field, Input, KV, Row, StatusBadge, Title, Txt } from "../../lib/agency/ui";
 
@@ -21,6 +25,8 @@ export default function AdminScreen() {
   const [check, setCheck] = useState({ for: null, admin: false });
   const admin = user && check.for === user.id ? check.admin : null;
   const [tab, setTab] = useState("agencies");
+  const roles = useRoles();
+  const c = useColors();
 
   useEffect(() => {
     if (!user) return;
@@ -37,7 +43,18 @@ export default function AdminScreen() {
   if (!enabled) return <AgScreen title={title}><Banner><Txt>{t("ag.noBackend")}</Txt></Banner></AgScreen>;
   if (!user) return <AgScreen title={title}><LoginForm /></AgScreen>;
   const who = user.email || prettyPhone(user.phone);
-  const screen = (children) => <AgScreen title={title} sub={who} right={<LogoutButton />}>{children}</AgScreen>;
+  // у админа со своим агентством — переход в его кабинет
+  const right = (
+    <>
+      {roles.agency && (
+        <IconButton label={t("ag.brand")} onPress={() => router.push("/agency")}>
+          <Building2 color={c.ink} size={18} />
+        </IconButton>
+      )}
+      <LogoutButton />
+    </>
+  );
+  const screen = (children) => <AgScreen root={roles.home === "/admin"} title={title} sub={who} right={right}>{children}</AgScreen>;
 
   if (admin === null) return screen(<Txt kind="muted">{t("ag.loading")}</Txt>);
   if (!admin) {
@@ -47,7 +64,7 @@ export default function AdminScreen() {
           <Txt>{t("adm.deniedAs", { who })}</Txt>
           <Txt>{t("adm.deniedHint")}</Txt>
         </Banner>
-        <Button title={t("adm.switchAccount")} onPress={signOut} />
+        <Button title={t("adm.switchAccount")} onPress={() => signOut().then(() => router.replace("/"))} />
       </>
     );
   }

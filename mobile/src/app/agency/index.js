@@ -5,6 +5,7 @@ import { AgencyGate, LogoutButton } from "../../../lib/agency/Gate";
 import { AgencyForm } from "../../../lib/agency/AgencyForm";
 import { AgencyInfo, AgencyStatus, BookingsTab, GuidesTab, Intro, ToursTab } from "../../../lib/agency/tabs";
 import { AgScreen, Chips } from "../../../lib/agency/ui";
+import { useRoles } from "../../../lib/roles";
 
 // кабинет турагентства — как src/agency/AgencyApp.jsx:
 // вход → данные организации и документы → проверка админом → туры, заявки, гиды
@@ -16,19 +17,25 @@ function Cabinet({ agency, setAgency, who, tick, user }) {
   const { t } = useSettings();
   const [tab, setTab] = useState("bookings");
   const [bkBadge, setBkBadge] = useState(0); // новые заявки + непрочитанные сообщения
+  const roles = useRoles();
+  const root = roles.home === "/agency"; // это рабочий экран агентства — «назад» в туристическое приложение нет
   const edit = () => router.push("/agency/edit");
+  const saved = (a) => {
+    setAgency(a);
+    roles.refresh(); // заявка подана — дальше аккаунт открывается в кабинете
+  };
 
   if (!agency) {
     return (
-      <AgScreen title={t("ag.brand")} sub={who} right={<LogoutButton />}>
+      <AgScreen root={root} title={t("ag.brand")} sub={who} right={<LogoutButton />}>
         <Intro />
-        <AgencyForm userId={user.id} agency={null} onSaved={setAgency} />
+        <AgencyForm userId={user.id} agency={null} onSaved={saved} />
       </AgScreen>
     );
   }
 
   return (
-    <AgScreen title={agency.name} sub={who} right={<LogoutButton />}>
+    <AgScreen root={root} title={agency.name} sub={who} right={<LogoutButton />}>
       <Chips
         value={tab}
         onChange={setTab}

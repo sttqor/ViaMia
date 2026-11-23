@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Stack } from "expo-router";
+import { useEffect, useState } from "react";
+import { Stack, router } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Splash } from "../../lib/Splash";
 import { Onboarding } from "../../lib/Onboarding";
@@ -12,16 +12,24 @@ import { AuthProvider } from "../../../src/AuthProvider";
 import { ContentProvider } from "../../../src/ContentProvider";
 import { useColors } from "../../lib/theme";
 import { StoreProvider } from "../../lib/store";
+import { RolesProvider, useRoles } from "../../lib/roles";
 
 function Screens() {
   const c = useColors();
   const [splash, setSplash] = useState(true);
   const { travelMode, setTravelMode } = useSettings();
+  const { home } = useRoles();
+  // агентство и админ работают в своём кабинете: туристические вкладки им не показываем
+  useEffect(() => {
+    if (!home) return;
+    if (router.canDismiss()) router.dismissAll();
+    router.replace(home);
+  }, [home]);
   return (
     <>
       <StatusBar style={c.dark ? "light" : "dark"} />
       {/* первый запуск: «сам или с гидом» — как в src/App.jsx */}
-      {travelMode === null && !splash ? <Onboarding onPick={setTravelMode} /> : <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg }, animation: "slide_from_right" }} />}
+      {travelMode === null && !splash && !home ? <Onboarding onPick={setTravelMode} /> : <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg }, animation: "slide_from_right" }} />}
       {splash && <Splash bg={c.bg} onDone={() => setSplash(false)} />}
     </>
   );
@@ -36,7 +44,9 @@ export default function RootLayout() {
       <AuthProvider>
         <ContentProvider>
           <StoreProvider>
-            <Screens />
+            <RolesProvider>
+              <Screens />
+            </RolesProvider>
           </StoreProvider>
         </ContentProvider>
       </AuthProvider>

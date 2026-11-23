@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Linking, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router, useScrollToTop } from "expo-router";
@@ -8,7 +8,8 @@ import { Bell, Building2, ChevronRight, DollarSign, Globe, Heart, HelpCircle, Lo
 import { useSettings } from "../../../../src/settings-context";
 import { useAuth } from "../../../../src/auth-context";
 import { useContent } from "../../../../src/content-context";
-import { deleteMyAccount, fetchAccountRoles } from "../../../../src/api";
+import { deleteMyAccount } from "../../../../src/api";
+import { useRoles } from "../../../lib/roles";
 import { LANGUAGES, currencySymbol } from "../../../../src/i18n";
 import { priceText } from "../../../../src/components/shared";
 import { prettyPhone } from "../../../../src/phone";
@@ -46,21 +47,10 @@ export default function ProfileScreen() {
   const c = useColors();
   const scroll = useRef(null);
   useScrollToTop(scroll);
-  const [roles, setRoles] = useState({ agency: null, admin: false, for: null });
   const [del, setDel] = useState({ ask: false, busy: false, err: null });
   const [helpOpen, setHelpOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    let off = false;
-    fetchAccountRoles(user.id)
-      .then((r) => !off && setRoles({ ...r, for: user.id }))
-      .catch(() => {});
-    return () => {
-      off = true;
-    };
-  }, [user]);
-  const my = user && roles.for === user.id ? roles : { agency: null, admin: false };
+  const my = useRoles();
   const savedRaw = allTours.filter((e) => saved.has(e.id));
   const currentLang = LANGUAGES.find((l) => l.code === lang);
 
