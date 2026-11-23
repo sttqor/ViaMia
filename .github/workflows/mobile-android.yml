@@ -1,9 +1,8 @@
 # Сборка Expo-версии (mobile/) в apk для Android — без аккаунта Expo.
 # Готовый файл: вкладка Actions → последний запуск → Artifacts → viamia-android.
 name: mobile-android
+# запуск вручную: Actions → mobile-android → Run workflow (выбрать ветку)
 on:
-  push:
-    paths: ["mobile/**", "src/**", ".github/workflows/mobile-android.yml"]
   workflow_dispatch:
 
 jobs:
