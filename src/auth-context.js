@@ -4,7 +4,8 @@ export const AuthContext = createContext(null);
 
 // Аккаунт: enabled (настроен ли Supabase), user, hasPassword,
 // sendCode / verifyCode / signInWithPassword — вход по почте или телефону,
-// setPassword, startLink / confirmLink — привязать второй способ входа, signOut.
+// setPassword, startLink / confirmLink — привязать второй способ входа, signOut,
+// signInWithProvider("google" | "apple") — вход через Google / Apple.
 // «id» везде — { email } или { phone: "+996…" }.
 export function useAuth() {
   const value = useContext(AuthContext);

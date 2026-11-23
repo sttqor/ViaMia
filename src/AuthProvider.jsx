@@ -11,8 +11,27 @@ import { supabase } from "./supabase";
 // { email } | { phone } → тип кода для verifyOtp
 const otpType = (id, change) => (id.phone ? (change ? "phone_change" : "sms") : change ? "email_change" : "email");
 
-export function AuthProvider({ children }) {
+// Вход через Google / Apple. На сайте — переход к провайдеру и обратно на эту же страницу
+// (supabase-js сам подхватит сессию из адреса). Телефон передаёт свой способ (mobile/lib/oauth.js).
+async function webOAuth(provider) {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: window.location.origin + window.location.pathname },
+  });
+  if (error) throw error;
+}
+
+export function AuthProvider({ children, oauth = webOAuth }) {
   const [user, setUser] = useState(null);
+  // какие входы через Google / Apple включены в Supabase — выключенные кнопки не показываем
+  const [providers, setProviders] = useState({});
+  useEffect(() => {
+    if (!supabase) return;
+    fetch(`${supabase.supabaseUrl}/auth/v1/settings`, { headers: { apikey: supabase.supabaseKey } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((s) => s?.external && setProviders({ google: !!s.external.google, apple: !!s.external.apple }))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!supabase) return;
@@ -81,8 +100,10 @@ export function AuthProvider({ children }) {
       startLink,
       confirmLink,
       signOut,
+      signInWithProvider: oauth,
+      providers,
     }),
-    [user, sendCode, verifyCode, signInWithPassword, setPassword, startLink, confirmLink, signOut]
+    [user, sendCode, verifyCode, signInWithPassword, setPassword, startLink, confirmLink, signOut, oauth, providers]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

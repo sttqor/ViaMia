@@ -15,6 +15,7 @@ import { refreshRates } from "../../../src/rates";
 import { useColors } from "../../lib/theme";
 import { StoreProvider } from "../../lib/store";
 import { RolesProvider, useRoles } from "../../lib/roles";
+import { signInWithProvider } from "../../lib/oauth";
 
 function Screens() {
   const c = useColors();
@@ -48,7 +49,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
     <SettingsProvider>
-      <AuthProvider>
+      <AuthProvider oauth={signInWithProvider}>
         <ContentProvider>
           <StoreProvider>
             <RolesProvider>

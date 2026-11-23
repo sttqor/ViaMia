@@ -135,3 +135,37 @@ Gmail — около 500 писем в день и может попадать �
 3. Ввести код → в профиле появится «Ваш аккаунт» и почта.
 4. Добавить место в избранное, выйти — избранное с устройства исчезает.
    Войти снова — возвращается из аккаунта. Это и значит, что вход настоящий.
+
+## Вход через Google и Apple
+
+Кнопки «Войти через Google / Apple» есть на сайте и в приложении (`src/AuthParts.jsx` → `OAuthButtons`, `mobile/lib/OAuthButtons.js`, `mobile/lib/oauth.js`).
+Показываются **только те, что включены в Supabase** (приложение спрашивает `/auth/v1/settings`), так что недоделанная настройка не сломает экран входа.
+
+### 0. Адреса возврата (один раз)
+Supabase → Authentication → URL Configuration → Redirect URLs, добавить:
+- `https://osh-explorer2.vercel.app/**` — сайт;
+- `viamia://**` — приложение (вход через браузер возвращается на `viamia://auth`);
+- `exp+viamia://**` — тестовая dev-сборка.
+
+### 1. Google (бесплатно, ~15 минут)
+1. console.cloud.google.com → создать проект «ViaMia».
+2. APIs & Services → OAuth consent screen: External, название ViaMia, почта поддержки, логотип, политика `https://osh-explorer2.vercel.app/privacy`. Нажать Publish (иначе войдут только тестовые почты).
+3. Credentials → Create credentials → OAuth client ID → **Web application**.
+   Authorized redirect URIs: `https://wksvdvqxixyjguvbcqza.supabase.co/auth/v1/callback`.
+4. Скопировать Client ID и Client secret → Supabase → Authentication → Sign In / Providers → **Google** → Enable, вставить, Save.
+
+### 2. Apple (нужен аккаунт Apple Developer, 99 $/год)
+Если в приложении есть вход через Google, App Store требует и «Войти через Apple» (правило 4.8).
+1. developer.apple.com → Certificates, IDs & Profiles → Identifiers → App ID `kg.viamia.app` → включить **Sign In with Apple**.
+2. Identifiers → «+» → **Services IDs** → например `kg.viamia.web` → включить Sign In with Apple → Configure:
+   Domains: `wksvdvqxixyjguvbcqza.supabase.co`, Return URLs: `https://wksvdvqxixyjguvbcqza.supabase.co/auth/v1/callback`.
+3. Keys → «+» → включить Sign In with Apple → скачать `.p8` (скачивается один раз!), записать Key ID и Team ID.
+4. Supabase → Providers → **Apple** → Enable:
+   - Client IDs: `kg.viamia.app,kg.viamia.web` (первый — нативный вход на айфоне, второй — сайт и android);
+   - Secret Key: сгенерировать из `.p8` (в окне Supabase есть ссылка на генератор). **Ключ живёт 6 месяцев** — поставить напоминание.
+
+### Как это работает
+- Сайт: переход к Google / Apple и обратно на ту же страницу, сессию подхватывает supabase-js.
+- Айфон + Apple: нативное окно Apple → `signInWithIdToken` (с nonce).
+- Android и Google на айфоне: защищённое окно браузера → `viamia://auth?code=…` → `exchangeCodeForSession` (PKCE).
+- Новый человек через Google / Apple получает обычный аккаунт; профиль создаёт тот же триггер `handle_new_user`, слияние избранного и маршрута работает так же.

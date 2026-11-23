@@ -8,7 +8,7 @@ const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 // сессия — в localStorage (expo-sqlite, см. index.js), переживает перезапуск
 export const supabase =
   url && anonKey
-    ? createClient(url, anonKey, { auth: { storage: globalThis.localStorage, detectSessionInUrl: false } })
+    ? createClient(url, anonKey, { auth: { storage: globalThis.localStorage, detectSessionInUrl: false, flowType: "pkce" } })
     : null;
 
 // в фоне токен не обновляем, при возврате — снова

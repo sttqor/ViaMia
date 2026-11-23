@@ -4,6 +4,7 @@ import { useSettings } from "../../src/settings-context";
 import { authErrorKey, useAuth } from "../../src/auth-context";
 import { readLoginId, showLoginId } from "../../src/phone";
 import { Button } from "./ui";
+import { OAuthButtons } from "./OAuthButtons";
 import { FONT, H, RADIUS, useColors } from "./theme";
 
 // вход или регистрация по коду (как src/Login.jsx); note — пояснение над формой (например, в брони)
@@ -49,6 +50,7 @@ export function LoginForm({ note }) {
       <Text style={muted}>
         {id ? t(id.phone ? "login.codeTextPhone" : "login.codeTextEmail", { target: showLoginId(id) }) : t("login.heroText")}
       </Text>
+      {!id && <OAuthButtons onError={(key) => setErr(key ? t(key) : "")} />}
       {id ? (
         <TextInput
           value={code}

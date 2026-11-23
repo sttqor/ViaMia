@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronLeft, Lock, UserRound } from "lucide-react";
 import { authErrorKey, useAuth } from "./auth-context";
-import { CodeStep, ErrorNote, IdField, PasswordField } from "./AuthParts";
+import { CodeStep, ErrorNote, IdField, OAuthButtons, PasswordField } from "./AuthParts";
 import { prettyPhone, readLoginId, showLoginId } from "./phone";
 import { useSettings } from "./settings-context";
 
@@ -154,6 +154,7 @@ export function LoginScreen({ onBack }) {
               </span>
               <h2>{t("login.heroTitle")}</h2>
               <p className="muted">{t("login.heroText")}</p>
+              <OAuthButtons onError={setError} />
               <IdField
                 value={raw}
                 placeholder={t("login.idPlaceholder")}
