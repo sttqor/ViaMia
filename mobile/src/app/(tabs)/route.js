@@ -74,7 +74,7 @@ function PlaceMenu({ open, onToggle, canUp, canDown, onUp, onDown, onRemove }) {
 // маршрут дня — как src/views/RouteView.jsx: итоги, таймлайн со временем, меню «…», навигация
 export default function RouteScreen() {
   const { t, loc, plural, fmtDuration, locale } = useSettings();
-  const { routeItems: items, setRouteIds } = useStore();
+  const { routeItems: items, routeIds, setRouteIds } = useStore();
   const c = useColors();
   const insets = useSafeAreaInsets();
   const scroll = useRef(null);
@@ -85,13 +85,15 @@ export default function RouteScreen() {
   const { legs, totalKm, totalMin, times } = planRoute(items);
   const fmtKm = (km) => t("unit.km", { n: km.toLocaleString(locale, { maximumFractionDigits: 1, minimumFractionDigits: 1 }) });
 
-  const ids = items.map((x) => x.id);
+  // меняем полный список id: туров, которых пока нет в каталоге (он ещё из кэша), не теряем
   const move = (i, d) => {
-    const next = [...ids];
-    [next[i], next[i + d]] = [next[i + d], next[i]];
+    const a = routeIds.indexOf(items[i].id);
+    const b = routeIds.indexOf(items[i + d].id);
+    const next = [...routeIds];
+    [next[a], next[b]] = [next[b], next[a]];
     setRouteIds(next);
   };
-  const remove = (id) => setRouteIds(ids.filter((x) => x !== id));
+  const remove = (id) => setRouteIds(routeIds.filter((x) => x !== id));
   const act = (fn) => () => {
     fn();
     setMenuId(null);
@@ -207,7 +209,7 @@ export default function RouteScreen() {
               <Animated.View layout={SPRING_LAYOUT} style={{ marginTop: 16 }}>
                 <Button
                   title={t("route.navigate", { stops: plural("pl.stops", items.length) })}
-                  onPress={() => router.navigate({ pathname: "/map", params: { nav: "1", ids: ids.join(",") } })}
+                  onPress={() => router.navigate({ pathname: "/map", params: { nav: "1", ids: items.map((x) => x.id).join(",") } })}
                 />
               </Animated.View>
             </>

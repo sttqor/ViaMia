@@ -34,7 +34,8 @@
           "locationWhenInUsePermission": "ViaMia показывает, где вы на карте Оша, и ведёт по маршруту."
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-localization"
     ],
     "scheme": "viamia",
     "backgroundColor": "#FAF6F0",

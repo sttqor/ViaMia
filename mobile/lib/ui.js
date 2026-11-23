@@ -233,7 +233,7 @@ export function BellButton() {
       off = true;
       unsub();
     };
-  }, [user]);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- новый объект user при обновлении токена — не повод переподписываться
 
   if (!user) return null;
   return (

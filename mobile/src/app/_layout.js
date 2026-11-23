@@ -36,8 +36,8 @@ function Screens() {
 }
 
 export default function RootLayout() {
-  const [fontsReady] = useFonts({ Manrope_500Medium, Manrope_700Bold, Manrope_800ExtraBold, PlayfairDisplay_700Bold });
-  if (!fontsReady) return null; // заставка висит, пока грузятся шрифты
+  const [fontsReady, fontsError] = useFonts({ Manrope_500Medium, Manrope_700Bold, Manrope_800ExtraBold, PlayfairDisplay_700Bold });
+  if (!fontsReady && !fontsError) return null; // заставка висит, пока грузятся шрифты
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
     <SettingsProvider>

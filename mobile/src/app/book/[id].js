@@ -26,8 +26,11 @@ export default function BookScreen() {
   const dates = useMemo(() => upcomingDates(), []);
   const [date, setDate] = useState(dates[1]?.key || dates[0].key);
   const [guests, setGuests] = useState(2);
-  const [name, setName] = useState(account?.name || "");
-  const [contact, setContact] = useState(account?.contact || "");
+  // null — человек ещё не трогал поле: подставляем из аккаунта (он мог прийти позже — вошли прямо в форме)
+  const [nameRaw, setName] = useState(null);
+  const [contactRaw, setContact] = useState(null);
+  const name = nameRaw ?? account?.name ?? "";
+  const contact = contactRaw ?? account?.contact ?? "";
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
   const [tried, setTried] = useState(false);

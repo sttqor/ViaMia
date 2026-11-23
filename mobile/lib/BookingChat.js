@@ -41,7 +41,7 @@ export function BookingChat({ bookingId, side, closed = false }) {
     setError(false);
     try {
       const m = await sendMessage(bookingId, body);
-      setList((l) => (l.some((x) => x.id === m.id) ? l : [...l, m]));
+      setList((l) => ((l || []).some((x) => x.id === m.id) ? l : [...(l || []), m]));
       setText("");
     } catch (err) {
       console.warn(err);

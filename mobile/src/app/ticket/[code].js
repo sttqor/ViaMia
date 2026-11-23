@@ -61,7 +61,7 @@ export default function TicketScreen() {
     setCancelling(true);
     setCancelError(false);
     try {
-      if (booking.synced) await cancelBookingRequest(booking.code);
+      if (booking.synced && !(await cancelBookingRequest(booking.code))) throw new Error("not cancellable");
       setBookings((b) => b.filter((x) => x.code !== booking.code));
       router.back();
     } catch (err) {

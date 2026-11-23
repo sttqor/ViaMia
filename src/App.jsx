@@ -208,7 +208,7 @@ function AppScreens() {
   }
 
   async function cancelBooking(entry) {
-    if (entry.synced) await cancelBookingRequest(entry.code);
+    if (entry.synced && !(await cancelBookingRequest(entry.code))) throw new Error("not cancellable"); // уже сгорела или отклонена
     setBookings((b) => b.filter((x) => x.code !== entry.code));
     setTicket(null);
   }

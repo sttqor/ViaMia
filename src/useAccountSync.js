@@ -76,10 +76,12 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
     })();
     return () => {
       cancelled = true;
+      // прервали до конца слияния — следующий запуск эффекта должен попробовать снова
+      if (readyFor.current !== uid) pulledFor.current = null;
     };
     // слияние — один раз на вход; остальные зависимости — стабильные сеттеры
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, byId]);
+  }, [user?.id, byId]);
 
   // Агентство подтвердило / назначило гида / ответило — брони обновляются сразу (Supabase Realtime)
   useEffect(() => {
@@ -92,7 +94,7 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
         .catch(() => {});
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, byId]);
+  }, [user?.id, byId]);
 
   // Изменения уходят в аккаунт с задержкой, чтобы не писать на каждый тап
   useEffect(() => {
