@@ -104,7 +104,7 @@ export function SavedView({ saved, routeItems, onBack, onOpen, onToggleSave, onT
                   key={exp.id}
                   layout
                   initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0, transition: { duration: 0.35, delay: Math.min(index, 6) * 0.05, ease: EASE_OUT } }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: 0.35, delay: Math.min(index, 6) * 0.03, ease: EASE_OUT } }}
                   exit={{ opacity: 0, x: -60, scale: 0.94, transition: { duration: 0.25, ease: "easeIn" } }}
                   transition={{ layout: SPRING }}
                 >

@@ -133,9 +133,15 @@
     transition: background .2s ease, box-shadow .2s ease;
 }
 
-.story-bars span.on {
+/* заливка полоски — маска слева направо */
+.story-bars span {
+    overflow: hidden;
+}
+.story-bars span i {
+    display: block;
+    height: 100%;
     background: var(--on-dark);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+    transform-origin: left center;
 }
 
 .story-kicker {
@@ -198,7 +204,7 @@
 
 .fact2-hero {
     position: relative;
-    height: 180px;
+    height: 300px;
     overflow: hidden;
     background: linear-gradient(135deg, #e9d9c3, #d9b99a);
 }
@@ -218,7 +224,7 @@
 .fact2-hero-fade {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 35%, rgba(20, 30, 50, .85) 100%);
+    background: linear-gradient(180deg, rgba(20, 26, 40, .45) 0%, rgba(20, 26, 40, 0) 25%, rgba(20, 26, 40, .2) 50%, rgba(20, 26, 40, .92) 100%);
 }
 
 .fact2-close {
@@ -236,15 +242,98 @@
 }
 
 .fact2-hero-text h2 {
-    margin: 6px 0 0;
-    font-size: var(--fs-xl);
-    font-weight: 900;
-    letter-spacing: -.4px;
-    line-height: 1.15;
+    margin: 10px 0 0;
+    font-family: var(--display);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.12;
+}
+.fact2-hero-text p {
+    margin: 8px 0 0;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: rgba(255, 255, 255, .86);
 }
 
 .fact2-body {
-    padding: 14px 16px 18px;
+    padding: 20px 18px 22px;
+}
+/* первый абзац — крупнее, как вступление */
+.fact2-body p.fact2-lead {
+    font-size: var(--fs-md);
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--ink);
+}
+/* «Коротко о главном» — тёмная карточка с золотыми номерами (всегда тёмная → --indigo) */
+.fact2-points {
+    margin: 6px 0 16px;
+    padding: 16px;
+    border-radius: var(--radius-card);
+    background: var(--indigo);
+    color: var(--on-dark);
+}
+.fact2-points h3 {
+    margin: 0 0 12px;
+    font-family: inherit;
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--gold);
+}
+.fact2-points ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 12px;
+}
+.fact2-points li {
+    display: flex;
+    gap: 12px;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+}
+.fact2-num {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--gold);
+    color: var(--indigo);
+    font-size: var(--fs-xs);
+    font-weight: 800;
+}
+/* связанный тур */
+.fact2-tour {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin: 0 0 12px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background: var(--card);
+    color: var(--ink);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.fact2-tour img {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    object-fit: cover;
+    background: var(--sand-100);
+}
+.fact2-tour .grow {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .fact2-body p {

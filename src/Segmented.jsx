@@ -23,7 +23,7 @@ export function Segmented({ options, value, onChange, label }) {
               <motion.span
                 layoutId={`seg-thumb-${id}`}
                 className="seg-thumb"
-                transition={{ type: "spring", stiffness: 520, damping: 38 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.28 }}
               />
             )}
             <span className="seg-label">{o.label}</span>

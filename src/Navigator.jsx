@@ -10,7 +10,7 @@ import { fetchRoute } from "./routing";
 import { useSettings } from "./settings-context";
 import "./Navigator.css";
 
-const SPRING = { type: "spring", stiffness: 400, damping: 32 };
+const SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 const MUTE_KEY = "osh-nav-muted";
 // пороги голосовых подсказок до манёвра, метров (последний — «сейчас»)
 const VOICE_AT = { foot: [120, 15], car: [500, 150, 30] };

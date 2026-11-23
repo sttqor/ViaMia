@@ -6,7 +6,7 @@ import { CodeStep, ErrorNote, IdField, PasswordField } from "./AuthParts";
 import { prettyPhone, readLoginId, showLoginId } from "./phone";
 import { useSettings } from "./settings-context";
 
-const SPRING = { type: "spring", stiffness: 400, damping: 32 };
+const SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 const EASE_OUT = [0.22, 1, 0.36, 1];
 const SLIDE = (dir) => ({
   initial: { opacity: 0, x: 24 * dir },

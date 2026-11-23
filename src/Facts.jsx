@@ -6,6 +6,10 @@ import { useContent } from "./content-context";
 import { useSettings } from "./settings-context";
 import "./Facts.css";
 
+// лесенка 30 мс, появление — ease-out без отскока (правила «20 ways»)
+const SETTLE = { hidden: {}, show: { transition: { staggerChildren: 0.03, delayChildren: 0.06 } } };
+const RISE_IN = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } } };
+
 // Тур для кнопки и мини-карты берётся из поля `expId` факта (см. data.js).
 // Если его нет, кнопка ведёт на вкладку из fact.linkTab.
 
@@ -14,15 +18,24 @@ function FactHero({ fact, onClose }) {
     const [loaded, setLoaded] = useState(false);
     return (
         <div className="fact2-hero">
-            <img src={fact.image} alt="" className={loaded ? "loaded" : ""} onLoad={() => setLoaded(true)} />
+            <motion.img
+                src={fact.image}
+                alt=""
+                className={loaded ? "loaded" : ""}
+                onLoad={() => setLoaded(true)}
+                initial={{ scale: 1.08 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+            />
             <div className="fact2-hero-fade" />
             <button className="icon-btn fact2-close" onClick={onClose} aria-label={t("facts.close")}>
                 <ChevronDown size={20} />
             </button>
-            <div className="fact2-hero-text">
-                <span className="fact-tag">{fact.tag}</span>
-                <h2>{fact.title}</h2>
-            </div>
+            <motion.div className="fact2-hero-text" variants={SETTLE} initial="hidden" animate="show">
+                <motion.span variants={RISE_IN} className="fact-tag">{fact.tag}</motion.span>
+                <motion.h2 variants={RISE_IN}>{fact.title}</motion.h2>
+                {fact.short && <motion.p variants={RISE_IN}>{fact.short}</motion.p>}
+            </motion.div>
         </div>
     );
 }
@@ -86,7 +99,7 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 32, stiffness: 320 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.32 }}
                 drag="y"
                 dragControls={controls}
                 dragListener={false}
@@ -111,20 +124,25 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
                             transition={{ duration: 0.18 }}
                         >
                             <FactHero fact={fact} onClose={onClose} />
-                            <div className="fact2-body">
-                                {(fact.body || []).map((p) => (
-                                    <p key={p}>{p}</p>
+                            <motion.div className="fact2-body" variants={SETTLE} initial="hidden" animate="show">
+                                {(fact.body || []).map((p, i) => (
+                                    <motion.p key={p} variants={RISE_IN} className={i === 0 ? "fact2-lead" : undefined}>
+                                        {p}
+                                    </motion.p>
                                 ))}
 
                                 {fact.points?.length > 0 && (
-                                    <>
+                                    <motion.div variants={RISE_IN} className="fact2-points">
                                         <h3>{t("facts.summary")}</h3>
-                                        <ul>
-                                            {fact.points.map((p) => (
-                                                <li key={p}>{p}</li>
+                                        <ol>
+                                            {fact.points.map((p, i) => (
+                                                <li key={p}>
+                                                    <span className="fact2-num">{i + 1}</span>
+                                                    <span>{p}</span>
+                                                </li>
                                             ))}
-                                        </ul>
-                                    </>
+                                        </ol>
+                                    </motion.div>
                                 )}
 
                                 {exp && MiniMap && (
@@ -134,12 +152,22 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
                                     </div>
                                 )}
 
-                                {(expRaw || fact.linkTab) && fact.linkLabel && (
-                                    <button className="cta" onClick={() => (expRaw ? onOpenExp(expRaw) : onGoTo(fact.linkTab))}>
-                                        {fact.linkLabel} →
-                                    </button>
+                                {expRaw && (
+                                    <motion.button variants={RISE_IN} whileTap={{ scale: 0.97 }} className="fact2-tour" onClick={() => onOpenExp(expRaw)}>
+                                        <img src={exp.image} alt="" />
+                                        <span className="grow">
+                                            <b>{exp.title}</b>
+                                            <span className="muted t-xs">{exp.place}</span>
+                                        </span>
+                                        <ChevronRight size={18} />
+                                    </motion.button>
                                 )}
-                            </div>
+                                {(expRaw || fact.linkTab) && fact.linkLabel && (
+                                    <motion.button variants={RISE_IN} whileTap={{ scale: 0.97 }} className="cta" onClick={() => (expRaw ? onOpenExp(expRaw) : onGoTo(fact.linkTab))}>
+                                        {fact.linkLabel} →
+                                    </motion.button>
+                                )}
+                            </motion.div>
                         </motion.div>
                     </AnimatePresence>
                 </div>
@@ -161,7 +189,7 @@ function FactSheet({ index, setIndex, onClose, onOpenExp, onGoTo, MiniMap }) {
                                     <motion.span
                                         layoutId="fact-dot"
                                         className="fact2-dot-thumb"
-                                        transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                                        transition={{ type: "spring", bounce: 0, duration: 0.32 }}
                                     />
                                 )}
                             </button>
@@ -191,8 +219,8 @@ function StorySlide({ dir, children, ...drag }) {
             style={{ pointerEvents: isPresent ? "auto" : "none", zIndex: isPresent ? 1 : 0 }}
             initial={{ opacity: 0, x: 32 * dir }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 36 }}
+            exit={{ opacity: 0, transition: { duration: 0.22 } }}
+            transition={{ type: "spring", bounce: 0, duration: 0.32 }}
             drag={isPresent ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.18}
@@ -261,19 +289,25 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
                                 aria-label={t("facts.next")}
                                 disabled={current === facts.length - 1}
                             />
-                            <div className="story-text">
-                                <span className="fact-tag">{f.tag}</span>
-                                <h2>{f.title}</h2>
-                                <p>{f.short}</p>
-                                <motion.button className="story-read" whileTap={{ scale: 0.96 }} onClick={() => setIndex(current)}>
+                            <motion.div className="story-text" variants={SETTLE} initial="hidden" animate="show">
+                                <motion.span variants={RISE_IN} className="fact-tag">{f.tag}</motion.span>
+                                <motion.h2 variants={RISE_IN}>{f.title}</motion.h2>
+                                <motion.p variants={RISE_IN}>{f.short}</motion.p>
+                                <motion.button variants={RISE_IN} className="story-read" whileTap={{ scale: 0.97 }} onClick={() => setIndex(current)}>
                                     {t("facts.read")} <ChevronRight size={16} />
                                 </motion.button>
-                            </div>
+                            </motion.div>
                         </StorySlide>
                     </AnimatePresence>
                     <div className="story-bars">
                         {facts.map((x, i) => (
-                            <span key={x.id} className={i <= current ? "on" : ""} />
+                            <span key={x.id}>
+                                <motion.i
+                                    initial={false}
+                                    animate={{ scaleX: i <= current ? 1 : 0 }}
+                                    transition={{ duration: i === current ? 0.42 : 0.18, ease: [0.22, 1, 0.36, 1] }}
+                                />
+                            </span>
                         ))}
                     </div>
                     <span className="story-kicker">{t("facts.kicker")} · {current + 1}/{facts.length}</span>

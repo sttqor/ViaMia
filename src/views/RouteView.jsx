@@ -143,7 +143,7 @@ export function RouteView({ items, setItems, onGoToTours, onNavigate }) {
               className="ico"
               initial={{ rotate: -90, scale: 0.6 }}
               animate={{ rotate: 0, scale: 1 }}
-              transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.1 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.32, delay: 0.1 }}
             >
               <Compass size={40} color="var(--terracotta)" />
             </motion.span>

@@ -36,7 +36,7 @@ export function TicketView({ booking, onClose, onCancel, onNavigate }) {
           className="ticket"
           initial={{ opacity: 0, y: 28, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.1 }}
+          transition={{ type: "spring", bounce: 0, duration: 0.42, delay: 0.1 }}
         >
           <img className="ticket-cover" src={exp.image} alt="" />
           <span className="orn-band ticket-orn" aria-hidden="true" />

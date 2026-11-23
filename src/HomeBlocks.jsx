@@ -22,7 +22,7 @@ import { useSettings } from "./settings-context";
 import { Toast } from "./Toast";
 import "./HomeBlocks.css";
 
-const SPRING = { type: "spring", stiffness: 400, damping: 32 };
+const SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 // Текущее время в Оше, обновляется раз в минуту
 function useOshNow() {
   const [now, setNow] = useState(() => new Date());
@@ -218,7 +218,7 @@ export function QuickActions({ onGoTo, onOpenTips }) {
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.3, delay: i * 0.05, ease: "easeOut" }}
+          transition={{ duration: 0.3, delay: i * 0.03, ease: "easeOut" }}
           whileTap={{ scale: 0.94 }}
           onClick={it.onClick}
         >

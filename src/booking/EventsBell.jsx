@@ -68,7 +68,7 @@ export function EventsBell({ onOpen }) {
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
-                transition={{ type: "spring", stiffness: 400, damping: 36 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.32 }}
               >
                 <div className="row between mb-8">
                   <b className="t-lg">{t("bell.title")}</b>

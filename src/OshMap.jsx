@@ -36,7 +36,7 @@ maplibregl.setWorkerUrl(workerUrl);
 // тайлы, шрифты и значки — через кэш (карта Оша работает без интернета)
 registerOshProtocol(maplibregl);
 
-const SPRING = { type: "spring", stiffness: 400, damping: 32 };
+const SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 const SHEET = { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 24 }, transition: SPRING };
 
 // ── категории и метки ────────────────────────────────────────────
