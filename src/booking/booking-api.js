@@ -31,11 +31,15 @@ export async function markChatRead(bookingId) {
   check(await supabase.rpc("mark_chat_read", { p_booking: bookingId }));
 }
 
+// Своя тема на каждую подписку: supabase.channel() с той же темой отдаёт уже подписанный канал,
+// и .on() на нём бросает исключение (колокольчик на двух вкладках, двойное открытие чата).
+const topic = (name) => `${name}-${Math.random().toString(36).slice(2)}`;
+
 // Новые сообщения сразу (Supabase Realtime, видны только разрешённые RLS строки). Возвращает отписку.
 export function subscribeMessages(bookingId, onMessage) {
   if (!supabase) return () => {};
   const ch = supabase
-    .channel(`chat-${bookingId}`)
+    .channel(topic(`chat-${bookingId}`))
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "booking_messages", filter: `booking_id=eq.${bookingId}` },
@@ -69,7 +73,7 @@ export async function markEventsRead() {
 export function subscribeEvents(key, onEvent) {
   if (!supabase) return () => {};
   const ch = supabase
-    .channel(`events-${key}`)
+    .channel(topic(`events-${key}`))
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "booking_events" }, (p) => onEvent(p.new))
     .subscribe();
   return () => supabase.removeChannel(ch);

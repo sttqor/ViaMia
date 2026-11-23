@@ -155,6 +155,8 @@ export async function fetchAccountRoles(userId) {
     supabase.from("agencies").select("name, status").eq("owner_user_id", userId).maybeSingle(),
     supabase.rpc("is_admin"),
   ]);
+  // сбой сети ≠ «нет агентства»: иначе агентство откроется как турист
+  if (agency.error || admin.error) throw agency.error || admin.error;
   return { agency: agency.data || null, admin: Boolean(admin.data) };
 }
 

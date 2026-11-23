@@ -204,7 +204,7 @@ function ToursReview() {
   const r = useReview(reviewTour, "published");
   const shown = (list || []).filter((x) => filter === "all" || x.status === filter);
   const link = (url, label) => (
-    <Pressable onPress={() => Linking.openURL(url)}>
+    <Pressable onPress={() => Linking.openURL(/^https?:/i.test(url) ? url : `https://${url}`).catch(() => {})}>
       <Text style={{ fontFamily: FONT.bold, fontSize: 14, color: c.accent, textDecorationLine: "underline" }} numberOfLines={1}>{label}</Text>
     </Pressable>
   );
@@ -226,7 +226,7 @@ function ToursReview() {
           {x.agency && x.agency.status !== "approved" ? <Txt kind="reason">{t("adm.agencyNotApproved")}</Txt> : null}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {x.images.map((u) => (
-              <Pressable key={u} onPress={() => Linking.openURL(u)}>
+              <Pressable key={u} onPress={() => Linking.openURL(u).catch(() => {})}>
                 <Image source={u} style={{ width: 96, height: 96, borderRadius: 14, backgroundColor: c.bg2 }} contentFit="cover" />
               </Pressable>
             ))}

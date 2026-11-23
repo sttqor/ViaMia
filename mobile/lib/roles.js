@@ -16,11 +16,16 @@ export function RolesProvider({ children }) {
   useEffect(() => {
     if (!user) return;
     let off = false;
+    let retry;
     fetchAccountRoles(user.id)
       .then((r) => !off && setState({ ...r, for: user.id }))
-      .catch(() => !off && setState({ agency: null, admin: false, for: user.id }));
+      .catch(() => {
+        // не знаем роли — не решаем за человека, пробуем снова
+        if (!off) retry = setTimeout(() => setTick((x) => x + 1), 5000);
+      });
     return () => {
       off = true;
+      clearTimeout(retry);
     };
   }, [user, tick]);
 

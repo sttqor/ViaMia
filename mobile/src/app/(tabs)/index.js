@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Linking, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { AppState, Linking, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { router, useScrollToTop } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Speech from "expo-speech";
@@ -53,6 +53,19 @@ export default function HomeScreen() {
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30 * 1000);
     return () => clearInterval(id);
+  }, []);
+  // вернулись в приложение — свежие время и погода (на сайте это visibilitychange)
+  const refreshWx = useRef(weather.refresh);
+  useEffect(() => {
+    refreshWx.current = weather.refresh;
+  });
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (st) => {
+      if (st !== "active") return;
+      setNow(new Date());
+      refreshWx.current();
+    });
+    return () => sub.remove();
   }, []);
   useEffect(() => {
     if (!soon) return;

@@ -118,6 +118,11 @@ export async function fetchAgencyBookings(agencyId) {
   );
 }
 
+// одна заявка — для экрана заявки (в списке только 200 последних)
+export async function fetchAgencyBooking(id) {
+  return check(await supabase.from("booking_requests").select("*, tour:tours(title, images)").eq("id", id).maybeSingle());
+}
+
 export async function setBookingStatus(id, status) {
   check(await supabase.from("booking_requests").update({ status }).eq("id", id));
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,7 +8,7 @@ import { Clock, LocateFixed, Map as MapIcon, Phone, Search, X } from "lucide-rea
 import PLACES from "../../../../src/places-osm.json";
 import { CITY } from "../../../../src/data";
 import { fallbackOf } from "../../../../src/i18n";
-import { MAP_CATS, PALETTE, recolor } from "../../../../src/mapStyle";
+import { C_CULTURE, MAP_CATS, PALETTE, recolor } from "../../../../src/mapStyle";
 import { distanceM, twoGisPlace, walkMinutes } from "../../../../src/twogis";
 import { useSettings } from "../../../../src/settings-context";
 import { useContent } from "../../../../src/content-context";
@@ -16,6 +16,7 @@ import { Button, IconButton } from "../../../lib/ui";
 import { FONT, H, RADIUS, useColors } from "../../../lib/theme";
 import { TABBAR_SPACE } from "../../../lib/TabBar";
 
+const ATTRIBUTION = { bottom: TABBAR_SPACE, left: 8 };
 const CAT = Object.fromEntries(MAP_CATS.map((c) => [c.id, c]));
 const point = (lng, lat, props) => ({ type: "Feature", id: props.id, geometry: { type: "Point", coordinates: [lng, lat] }, properties: props });
 const styles = new globalThis.Map(); // стиль OpenFreeMap по теме — грузим один раз
@@ -34,6 +35,7 @@ export default function MapScreen() {
   const [picked, setPicked] = useState(null); // место или тур
   const [me, setMe] = useState(null); // [lng, lat]
   const [locateError, setLocateError] = useState(false);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
     let off = false;
@@ -49,7 +51,13 @@ export default function MapScreen() {
     return () => {
       off = true;
     };
-  }, [theme, lang]);
+  }, [theme, lang, retry]);
+
+  useEffect(() => {
+    if (!locateError) return;
+    const id = setTimeout(() => setLocateError(false), 3000);
+    return () => clearTimeout(id);
+  }, [locateError]);
 
   const placeName = (p) => (fallbackOf(lang) === "ru" ? p.name : p.name_en || p.name) || t("map.poi.noName");
   const font = useMemo(() => {
@@ -100,25 +108,29 @@ export default function MapScreen() {
   }
 
   function onPress(e) {
-    const f = e.nativeEvent.features?.[0];
+    e.stopPropagation?.(); // иначе нажатие всплывает до <Map onPress> и карточка сразу закрывается
+    const fs = e.nativeEvent.features || [];
+    const f = fs.reduce((best, x) => (!best || (x.properties.prio ?? 9) < (best.properties.prio ?? 9) ? x : best), null);
     if (!f) return;
     const id = f.properties.id;
     const tour = f.properties.cat === "tours" ? byId(id) : null;
     setPicked(tour ? { ...tour, cat: "tours", tour: true } : PLACES.find((p) => p.id === id));
   }
 
+  const closePicked = useCallback(() => setPicked(null), []);
   const dist = (p) => {
     const m = distanceM(me, [p.lng, p.lat]);
     const d = m < 1000 ? t("map.m", { n: Math.round(m / 10) * 10 }) : t("map.km", { n: (m / 1000).toLocaleString(locale, { maximumFractionDigits: 1 }) });
     return `${d} · ${t("map.walk", { n: walkMinutes(m) })}`;
   };
   const pickedCat = picked && CAT[picked.cat];
+  const styleJson = useMemo(() => style && JSON.stringify(style), [style]);
   const color = ["match", ["get", "cat"], ...MAP_CATS.flatMap((x) => [x.id, x.color]), "#6B6459"];
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       {style && (
-        <Map style={{ flex: 1 }} mapStyle={style} logo={false} attributionPosition={{ bottom: TABBAR_SPACE, left: 8 }} onPress={() => setPicked(null)}>
+        <Map style={{ flex: 1 }} mapStyle={styleJson} logo={false} attributionPosition={ATTRIBUTION} onPress={closePicked}>
           <Camera ref={camera} initialViewState={{ center: [CITY.lng, CITY.lat], zoom: 13.5 }} />
           <GeoJSONSource id="pois" data={data} onPress={onPress}>
             {/* shortcut: метки — цветные кружки без значков; значки категорий — через <Images>, когда будет время */}
@@ -157,6 +169,7 @@ export default function MapScreen() {
           <MapIcon color={c.ink} size={32} />
           <Text style={{ fontFamily: FONT.heavy, fontSize: 17, color: c.ink }}>{t("map.failedTitle")}</Text>
           <Text style={{ fontFamily: FONT.ui, color: c.muted, textAlign: "center" }}>{t("map.failedText")}</Text>
+          <Button secondary title={t("ag.retry")} onPress={() => (setFailed(false), setRetry((x) => x + 1))} />
         </View>
       )}
 
@@ -176,7 +189,7 @@ export default function MapScreen() {
                   accessibilityState={{ selected: on }}
                   style={{ height: H.chip, borderRadius: RADIUS.chip, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: on ? c.solid : c.card, borderWidth: 1, borderColor: on ? c.solid : c.line }}
                 >
-                  {x.Icon && <x.Icon color={on ? c.onSolid : x.color} size={14} />}
+                  {x.Icon && <x.Icon color={on ? c.onSolid : x.color === C_CULTURE ? c.ink : x.color} size={14} />}
                   <Text style={{ fontFamily: FONT.bold, fontSize: 13, color: on ? c.onSolid : c.ink }}>{t(`map.cat.${x.id}`)}</Text>
                 </Pressable>
               );

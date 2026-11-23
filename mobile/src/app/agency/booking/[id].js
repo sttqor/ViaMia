@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Linking, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Phone } from "lucide-react-native";
+import { subscribeEvents } from "../../../../../src/booking/booking-api";
 import { useSettings } from "../../../../../src/settings-context";
-import { fetchAgencyBookings, fetchGuides, updateBooking } from "../../../../../src/agency/agency-api";
+import { fetchAgencyBooking, fetchGuides, updateBooking } from "../../../../../src/agency/agency-api";
 import { BookingChat } from "../../../../lib/BookingChat";
 import { Button } from "../../../../lib/ui";
 import { FONT, useColors } from "../../../../lib/theme";
@@ -32,15 +33,18 @@ export default function BookingScreen() {
 function Loader({ agency, id }) {
   const { t } = useSettings();
   const [b, setB] = useState(undefined);
+  const [live, setLive] = useState(0);
+  // турист мог отменить или написать, пока карточка открыта — перечитываем по событиям, как список в вебе
+  useEffect(() => subscribeEvents(`agency-bk-${id}`, (e) => e?.booking_id === id && setLive((x) => x + 1)), [id]);
   useEffect(() => {
     let off = false;
-    fetchAgencyBookings(agency.id)
-      .then((d) => !off && setB(d.find((x) => x.id === id) || null))
+    fetchAgencyBooking(id)
+      .then((d) => !off && setB(d || null))
       .catch(() => !off && setB(null));
     return () => {
       off = true;
     };
-  }, [agency.id, id]);
+  }, [id, live]);
   if (b === undefined) return <AgScreen title={t("ag.tab.bookings")}><Txt kind="muted">{t("ag.loading")}</Txt></AgScreen>;
   if (!b) return <AgScreen title={t("ag.tab.bookings")}><Txt kind="error">{t("ag.loadError")}</Txt></AgScreen>;
   return <Detail agency={agency} booking={b} onChanged={(row) => setB((x) => ({ ...x, ...row }))} />;

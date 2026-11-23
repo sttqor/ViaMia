@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { BadgeCheck, FileText, LogOut, Plus, Send, Trash2, Upload } from "lucide-react";
 import { useAuth } from "../auth-context";
 import { useSettings } from "../settings-context";
@@ -224,6 +224,8 @@ function AgencyStatus({ agency, onEdit }) {
 const EMPTY_AGENCY = { name: "", legal_name: "", inn: "", license_no: "", address: "", phone: "", telegram: "", email: "", website: "", about: "", logo_url: "", doc_paths: [] };
 
 function AgencyForm({ userId, agency, onSaved }) {
+  const [droppedDocs, setDroppedDocs] = useState([]);
+  const createdId = useRef(null); // id агентства, созданного прошлой (неудачной) попыткой
   const { t } = useSettings();
   const [form, setForm] = useState(() => ({ ...EMPTY_AGENCY, ...Object.fromEntries(Object.entries(agency || {}).filter(([, v]) => v != null)) }));
   const [newDocs, setNewDocs] = useState([]); // File[] до сохранения
@@ -262,7 +264,9 @@ function AgencyForm({ userId, agency, onSaved }) {
       };
       if (!base.telegram || base.telegram === "@") base.telegram = null;
       // новое агентство: сначала строка (нужен id для папки с файлами), потом файлы
-      let saved = await saveAgency(userId, { ...base, doc_paths: form.doc_paths }, agency?.id);
+      // строка уже создана прошлой попыткой (упала загрузка файла) — дописываем в неё, а не создаём вторую
+      let saved = await saveAgency(userId, { ...base, doc_paths: form.doc_paths }, agency?.id || createdId.current);
+      createdId.current = saved.id;
       const paths = [...form.doc_paths];
       for (const f of newDocs) paths.push(await uploadDoc(saved.id, f));
       let logo = form.logo_url || null;
@@ -270,6 +274,8 @@ function AgencyForm({ userId, agency, onSaved }) {
       if (paths.length !== form.doc_paths.length || logo !== (form.logo_url || null)) {
         saved = await saveAgency(userId, { doc_paths: paths, logo_url: logo }, saved.id);
       }
+      for (const p of droppedDocs) removeDoc(p).catch(() => {});
+      setDroppedDocs([]);
       onSaved(saved);
     } catch (err) {
       console.warn("Кабинет: не сохранилось агентство", err);
@@ -279,10 +285,12 @@ function AgencyForm({ userId, agency, onSaved }) {
     }
   }
 
-  async function dropSavedDoc(path) {
+  // из хранилища файл уходит только после сохранения: ушли без сохранения — в базе ссылка на живой файл
+  function dropSavedDoc(path) {
     setForm((f) => ({ ...f, doc_paths: f.doc_paths.filter((p) => p !== path) }));
-    removeDoc(path).catch(() => {});
+    setDroppedDocs((d) => [...d, path]);
   }
+
 
   return (
     <form className="card ag-panel" onSubmit={submit} noValidate>

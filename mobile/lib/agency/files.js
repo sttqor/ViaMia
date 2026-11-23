@@ -34,8 +34,10 @@ export async function pickImages({ multiple = false, limit = 1 } = {}) {
 export async function pickDocs(limit) {
   const res = await DocumentPicker.getDocumentAsync({ type: ["image/*", "application/pdf"], multiple: true, copyToCacheDirectory: true });
   if (res.canceled) return [];
-  const ok = res.assets.filter((a) => !a.size || a.size <= MAX_DOC).slice(0, limit);
-  return Promise.all(ok.map((a) => prepare({ uri: a.uri, name: a.name, type: a.mimeType }, 2400)));
+  // некоторые провайдеры на Android не отдают mimeType — берём по расширению; бакет принимает только фото и PDF
+  const typeOf = (a) => a.mimeType || (/\.pdf$/i.test(a.name || "") ? "application/pdf" : /\.(jpe?g|png|webp|heic|heif)$/i.test(a.name || "") ? "image/jpeg" : null);
+  const ok = res.assets.filter((a) => (!a.size || a.size <= MAX_DOC) && typeOf(a)).slice(0, limit);
+  return Promise.all(ok.map((a) => prepare({ uri: a.uri, name: a.name, type: typeOf(a) }, 2400)));
 }
 
 // документ из приватного бакета — по временной ссылке в браузере телефона
