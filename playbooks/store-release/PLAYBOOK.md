@@ -35,7 +35,11 @@
 | 9 | почта для кодов входа: Brevo SMTP в Supabase (Authentication → Emails → SMTP), отправитель viamiasupp@gmail.com | ⏳ делает пользователь, потом проверить вход |
 | 10 | пользователь: аккаунты apple/google, 12 тестеров (google-тест начать до 1.12), отправка на проверку | ⏳ (делает пользователь) |
 | 11 | sentry — отчёты о падениях, ключ в .env и vercel | ✅ 21.11, проверено |
-| потом | push, оплата, 10 языков, react native | ❌ не сейчас |
+| 12 | **решение 22.11: react native (expo) вместо capacitor** — `mobile/`, тот же id `kg.viamia.app`, общий код из `src/` | ✅ код / ⏳ проверка на телефоне |
+| 13 | сборка apk без аккаунта expo: `.github/workflows/mobile-android.yml` (вручную: Actions → Run workflow → Artifacts) | ✅ |
+| 14 | вход через Google / Apple (App Store требует Apple, если есть Google) — `supabase/auth-setup.md` | ✅ код / ⏳ ключи в Google Cloud, Apple, Supabase |
+| 15 | iOS-сборка Expo: EAS (`mobile/eas.json`) или codemagic — нужен аккаунт apple | ⏳ |
+| потом | push, оплата, 10 языков | ❌ не сейчас |
 
 ## правила
 - перед правками `npm run lint`, после — `npm run build`; строки только через `t()`, ключи в ru и en.
