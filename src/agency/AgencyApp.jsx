@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { BadgeCheck, FileText, LogOut, Plus, Send, Trash2, Upload } from "lucide-react";
 import { useAuth } from "../auth-context";
+import { useRoles } from "../roles-context";
 import { useSettings } from "../settings-context";
 import { LoginScreen } from "../Login";
 import { Segmented } from "../Segmented";
@@ -32,6 +33,7 @@ export default function AgencyApp({ onExit }) {
   const exit = onExit === null ? undefined : onExit || (() => window.location.assign("/"));
   const { t } = useSettings();
   const { enabled, user, signOut } = useAuth();
+  const { refresh: refreshRoles } = useRoles();
   const [agency, setAgency] = useState(undefined); // undefined — грузится, null — ещё не зарегистрировано
   const [loadError, setLoadError] = useState(false);
   const [tab, setTab] = useState("bookings");
@@ -115,6 +117,7 @@ export default function AgencyApp({ onExit }) {
             agency={agency}
             onSaved={(a) => {
               setAgency(a);
+              refreshRoles(); // анкета подана — с этой минуты кабинет и есть приложение этого аккаунта
               setEditingAgency(false);
               window.scrollTo(0, 0);
             }}
