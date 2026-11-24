@@ -7,7 +7,7 @@
 - Код: GitHub `sttqor/ViaMia`, ветка `main` → Vercel сам выкладывает на https://osh-explorer2.vercel.app
 - Стек: Vite + React 19 (JS), Supabase (проект «ViaMia»: база, вход, файлы, realtime), MapLibre, Capacitor 8 (android/ios), Sentry.
 - **Новое приложение на Expo / React Native — `mobile/`** (22–24.11): общий код берёт из `src/` (туры, переводы, вход, api), экраны — `mobile/src/app/`. Сборка apk без аккаунта Expo — GitHub Actions → mobile-android → Run workflow → Artifacts. Подробно — раздел «Мобильная версия на Expo» в `CLAUDE.md`.
-- **Работа 22–24.11 лежит в ветке `claude/adoring-carson-1x2z8l`, в `main` ещё не слита** — сайт на Vercel по-старому.
+- Работа 22–24.11 слита в `main` 24.11, сайт на Vercel обновлён.
 - Правила проекта — `CLAUDE.md` (отвечать по-русски, коротко; строки только через `t()`; цвета только токенами; lint перед правками, build после).
 - Плейбуки (цель, шаги, правила, готово когда):
   - `playbooks/store-release/PLAYBOOK.md` — выпуск в магазины;
@@ -22,7 +22,7 @@
 - политика конфиденциальности (`/privacy`), удаление аккаунта, Sentry, Capacitor-проекты, `codemagic.yaml`, тексты для магазинов.
 
 ## Ждёт пользователя
-0. **Слить ветку `claude/adoring-carson-1x2z8l` в `main`** (PR на GitHub) — иначе сайт не обновится. Проверить apk на телефоне.
+0. Проверить apk на телефоне (Actions → mobile-android → Run workflow).
 1. **Почта для кодов входа — без неё настоящие люди не войдут.** Brevo (бесплатно): отправитель viamiasupp@gmail.com, SMTP-ключ вставить в Supabase → Authentication → Emails → SMTP (host `smtp-relay.brevo.com`, port 587). После этого проверить вход с обычной почтой.
 2. **Аккаунты Apple Developer (99 $/год) и Google Play (25 $)** — инструкция: `playbooks/store-release/toolbox/accounts-and-codemagic.md`.
 3. **12 тестеров с Android** — закрытый тест Google начать **до 1 декабря** (14 дней обязательны).
