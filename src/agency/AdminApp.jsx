@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
-import { BadgeCheck, Ban, FileText, LogOut, X } from "lucide-react";
+import { BadgeCheck, Ban, Building2, FileText, LogOut, X } from "lucide-react";
 import { useAuth } from "../auth-context";
 import { useSettings } from "../settings-context";
 import { LoginScreen } from "../Login";
@@ -13,8 +13,9 @@ import "./agency.css";
 // (playbooks/agency-cabinet/toolbox/03-make-admin.sql). Права проверяет база, не этот экран.
 // Что смотреть — playbooks/agency-cabinet/toolbox/accreditation-checklist.md и tour-checklist.md.
 
-export default function AdminApp({ onExit }) {
-  const exit = onExit || (() => window.location.assign("/"));
+export default function AdminApp({ onExit, onOpenAgency }) {
+  // null — кабинет открыт как рабочий экран аккаунта: «назад» в туристическое приложение нет
+  const exit = onExit === null ? undefined : onExit || (() => window.location.assign("/"));
   const { t } = useSettings();
   const { enabled, user, signOut } = useAuth();
   // ответ привязан к аккаунту: сменили аккаунт — снова «проверяем», без мигания «нет доступа»
@@ -43,7 +44,12 @@ export default function AdminApp({ onExit }) {
   if (!user) return <LoginScreen onBack={exit} />;
 
   const logout = (
-    <button className="icon-btn" onClick={signOut} aria-label={t("login.out")}><LogOut size={18} /></button>
+    <>
+      {onOpenAgency && (
+        <button className="icon-btn" onClick={onOpenAgency} aria-label={t("ag.brand")}><Building2 size={18} /></button>
+      )}
+      <button className="icon-btn" onClick={signOut} aria-label={t("login.out")}><LogOut size={18} /></button>
+    </>
   );
   const who = user.email || prettyPhone(user.phone);
   const head = <AgencyHeader title={t("adm.title")} sub={who} right={logout} onBack={exit} />;

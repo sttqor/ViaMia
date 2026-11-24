@@ -28,7 +28,8 @@ import "./agency.css";
 
 // onExit — выйти обратно в приложение (экран профиля); без него — на главную по ссылке /agency
 export default function AgencyApp({ onExit }) {
-  const exit = onExit || (() => window.location.assign("/"));
+  // null — кабинет открыт как рабочий экран аккаунта: «назад» в туристическое приложение нет
+  const exit = onExit === null ? undefined : onExit || (() => window.location.assign("/"));
   const { t } = useSettings();
   const { enabled, user, signOut } = useAuth();
   const [agency, setAgency] = useState(undefined); // undefined — грузится, null — ещё не зарегистрировано

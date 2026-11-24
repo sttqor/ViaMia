@@ -5,13 +5,16 @@ import './screens.css'
 import Root from './Root.jsx'
 import { SettingsProvider } from './SettingsProvider.jsx'
 import { AuthProvider } from './AuthProvider.jsx'
+import { RolesProvider } from './RolesProvider.jsx'
 import { initNative } from './native.js'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SettingsProvider>
       <AuthProvider>
-        <Root />
+        <RolesProvider>
+          <Root />
+        </RolesProvider>
       </AuthProvider>
     </SettingsProvider>
   </StrictMode>,

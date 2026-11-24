@@ -5,6 +5,7 @@ import { useContent } from "./content-context";
 import { cancelBookingRequest, submitBookingRequest } from "./api";
 import { useAccountSync } from "./useAccountSync";
 import { useSettings } from "./settings-context";
+import { useRoles } from "./roles-context";
 import { TabBar } from "./TabBar";
 import { FlyLayer } from "./FlyLayer";
 import { useMinimizeOnScroll } from "./useMinimizeOnScroll";
@@ -114,6 +115,13 @@ function AppScreens() {
   const [splash, setSplash] = useState(true);
   // экран поверх вкладок без своего тура: "saved" | "tips" | null
   const [page, setPage] = useState(null);
+  // агентство и админ работают в своём кабинете, а не в туристическом приложении
+  const roles = useRoles();
+  const refreshRoles = roles.refresh;
+  // после заявки агентства (экран кабинета закрыли) роль появляется — перечитываем при смене экрана
+  useEffect(() => {
+    refreshRoles();
+  }, [page, refreshRoles]);
   // маршрут дня, открытый на карте кнопкой «навигация» ({ stops }), null — нет
   const [navPlan, setNavPlan] = useState(null);
 
@@ -214,6 +222,21 @@ function AppScreens() {
   }
 
   if (splash) return <Splash onDone={() => setSplash(false)} />;
+  if (roles.home) {
+    // у админа со своим агентством кабинет агентства открывается из модерации и закрывается назад в неё
+    const inAgency = roles.home === "/agency" || page === "agency";
+    const Screen = inAgency ? AgencyScreen : AdminScreen;
+    return (
+      <ErrorBoundary full>
+        <Suspense fallback={<Loader full />}>
+          <Screen
+            onExit={roles.home === "/admin" && inAgency ? () => setPage(null) : null}
+            onOpenAgency={roles.agency ? () => setPage("agency") : undefined}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
   if (travelMode === null) {
     return (
       <Onboarding
