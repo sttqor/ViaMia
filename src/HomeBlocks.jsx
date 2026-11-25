@@ -4,20 +4,15 @@ import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "
 import {
   ChevronRight,
   Cloud,
-  Droplets,
   Languages,
   Lightbulb,
   Map as MapIcon,
   Phone,
-  RefreshCw,
-  Sunrise,
-  Sunset,
   Volume2,
-  Wind,
   X,
 } from "lucide-react";
 import { fallbackOf } from "./i18n";
-import { OSH, PHRASES, SOS, deg, toRussianSounds, updatedText, useOshWeather, weatherKind, sunInfo } from "./home-data";
+import { OSH, PHRASES, SOS, deg, toRussianSounds, useOshWeather, weatherKind } from "./home-data";
 import { useSettings } from "./settings-context";
 import { Toast } from "./Toast";
 import "./HomeBlocks.css";
@@ -42,7 +37,7 @@ function useOshNow() {
 }
 
 export function OshHeader() {
-  const { t, locale, fmtDuration } = useSettings();
+  const { t, locale } = useSettings();
   const weather = useOshWeather();
   const wx = weather.data;
   const now = useOshNow();
@@ -54,12 +49,13 @@ export function OshHeader() {
     month: "long",
   }).format(now);
   const timeText = new Intl.DateTimeFormat(locale, { timeZone: OSH.tz, hour: "2-digit", minute: "2-digit" }).format(now);
-  const { isDay, sunToday, shownRise, untilMin, sx, sy } = sunInfo(wx, now);
   const kind = wx ? weatherKind(wx.code, wx.isDay) : null;
-  const nextText = wx ? t(isDay ? "wx.sunsetIn" : "wx.sunriseIn", { t: fmtDuration(Math.max(1, untilMin)) }) : "";
+  const Icon = kind ? kind.Icon : Cloud;
+  const cond = kind ? t(`wx.c.${kind.key}`) : t(weather.failed ? "wx.offline" : "wx.loading");
+  const temp = wx ? deg(wx.temp) : "—°";
 
   return (
-    <header className={`osh-head ${isDay ? "is-day" : "is-night"}`}>
+    <header className="osh-head">
       <motion.div
         className="osh-title"
         initial={{ opacity: 0, y: 10 }}
@@ -72,124 +68,21 @@ export function OshHeader() {
         </span>
       </motion.div>
 
-      <motion.div
-        className="wx"
-        initial={{ opacity: 0, y: 12 }}
+      {/* погода — одна строка; тап обновляет (сама обновляется раз в 10 мин) */}
+      <motion.button
+        type="button"
+        className={`wx ${weather.loading ? "is-loading" : ""}`}
+        onClick={weather.refresh}
+        disabled={weather.loading}
+        aria-label={`${cond}, ${temp}. ${t("wx.refresh")}`}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.35, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="wx-live">
-          <span className={`wx-live-dot ${weather.failed ? "is-off" : ""}`} aria-hidden />
-          <span className="wx-live-text">
-            {weather.failed ? t("wx.offline") : t("wx.now")}
-            {weather.at > 0 && ` · ${updatedText(t, weather.at, now.getTime())}`}
-          </span>
-          <button
-            type="button"
-            className="wx-refresh"
-            aria-label={t("wx.refresh")}
-            disabled={weather.loading}
-            onClick={weather.refresh}
-          >
-            <span className={`ico ${weather.loading ? "is-spinning" : ""}`}>
-              <RefreshCw size={15} />
-            </span>
-          </button>
-        </div>
-
-        <div className="wx-main">
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={kind ? `${wx.code}-${wx.isDay}` : "none"}
-              className="wx-icon"
-              initial={{ opacity: 0, scale: 0.6, rotate: -30 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              exit={{ opacity: 0, scale: 0.6 }}
-              transition={SPRING}
-            >
-              {kind ? <kind.Icon size={30} strokeWidth={1.8} /> : <Cloud size={30} strokeWidth={1.8} />}
-            </motion.span>
-          </AnimatePresence>
-          <span className="wx-temp-wrap">
-            <AnimatePresence mode="popLayout" initial={false}>
-              <motion.b
-                key={wx ? Math.round(wx.temp) : "none"}
-                className="wx-temp"
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {wx ? deg(wx.temp) : "—°"}
-              </motion.b>
-            </AnimatePresence>
-          </span>
-          <span className="wx-cond">
-            {kind ? t(`wx.c.${kind.key}`) : t(weather.failed ? "wx.noData" : "wx.loading")}
-            {wx && <small>{t("wx.feels", { t: deg(wx.feels) })}</small>}
-          </span>
-        </div>
-
-        <div className="wx-sun" aria-hidden={!wx}>
-          <svg viewBox="0 0 120 64" className="wx-arc">
-            <path d="M10 58 A50 50 0 0 1 110 58" className="wx-arc-track" />
-            {wx && (
-              <path
-                d={`M10 58 A50 50 0 0 1 ${sx.toFixed(1)} ${sy.toFixed(1)}`}
-                className={isDay ? "wx-arc-done" : "wx-arc-done is-night"}
-              />
-            )}
-            {wx && isDay && <circle cx={sx} cy={sy} r="6" className="wx-arc-sun" />}
-            {wx && !isDay && (
-              <g className="wx-arc-moon" transform={`translate(${sx.toFixed(1)} ${sy.toFixed(1)})`}>
-                {/* полумесяц: внешняя дуга r=6, внутренняя r=4.5 */}
-                <path d="M1 -6 A6 6 0 1 0 1 6 A4.5 4.5 0 1 1 1 -6 Z" />
-              </g>
-            )}
-          </svg>
-          {wx && <div className="wx-sun-next">{nextText}</div>}
-          <div className="wx-sun-row">
-            <span>
-              <Sunrise size={14} /> {shownRise ? shownRise.slice(11, 16) : "—"}
-            </span>
-            <span>
-              <Sunset size={14} /> {sunToday ? sunToday.set.slice(11, 16) : "—"}
-            </span>
-          </div>
-        </div>
-
-        {wx?.hours?.length > 0 && (
-          <div className="wx-hours" aria-label={t("wx.hourly")}>
-            {wx.hours.map((h, i) => {
-              const k = weatherKind(h.code, h.isDay);
-              return (
-                <motion.div
-                  key={h.time}
-                  className="wx-hour"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.12 + i * 0.03, ease: "easeOut" }}
-                >
-                  <span className="wx-hour-time">{h.time.slice(11, 16)}</span>
-                  <k.Icon size={18} strokeWidth={1.9} />
-                  <b>{deg(h.temp)}</b>
-                  <span className={`wx-hour-rain ${h.rain >= 20 ? "" : "is-dry"}`}>
-                    <Droplets size={10} />
-                    {h.rain}%
-                  </span>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="wx-foot">
-          <span>{wx ? t("wx.range", { max: deg(wx.max), min: deg(wx.min) }) : "—"}</span>
-          <span>
-            <Wind size={13} /> {wx ? t("wx.wind", { v: Math.round(wx.wind) }) : "—"}
-          </span>
-        </div>
-      </motion.div>
+        <Icon size={20} strokeWidth={1.9} className="wx-icon" aria-hidden />
+        <b className="wx-temp">{temp}</b>
+        <span className="wx-cond">{cond}</span>
+      </motion.button>
     </header>
   );
 }
