@@ -2,15 +2,30 @@
     padding: 0 16px;
 }
 
-/* сторис */
+/* сторис: светлая карточка с түндүком; листается свайпом или тапом по краям, полоски сверху */
 .story {
     position: relative;
-    height: 440px;
+    height: 280px;
     border-radius: var(--radius-card);
     overflow: hidden;
-    background: var(--indigo);
-    color: var(--on-dark);
-    box-shadow: var(--shadow-float);
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+}
+
+/* түндүк в углу — тот же знак, что на фоне приложения */
+.story::before {
+    content: "";
+    position: absolute;
+    right: -70px;
+    top: -50px;
+    width: 230px;
+    height: 230px;
+    background: var(--orn);
+    opacity: var(--orn-o);
+    -webkit-mask: url("/tunduk.svg") center / contain no-repeat;
+    mask: url("/tunduk.svg") center / contain no-repeat;
+    pointer-events: none;
 }
 
 .story-slide {
@@ -19,28 +34,11 @@
     touch-action: pan-y;
 }
 
-.story-slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    pointer-events: none;
-    user-select: none;
-}
-
-/* сверху — под полоски, снизу — длинная тень под текст */
-.story-fade {
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(180deg, rgba(20, 26, 40, .55) 0%, rgba(20, 26, 40, 0) 22%),
-        linear-gradient(180deg, rgba(20, 26, 40, 0) 38%, rgba(20, 26, 40, .78) 66%, rgba(20, 26, 40, .96) 100%);
-}
-
 .story-zone {
     position: absolute;
     top: 0;
-    bottom: 190px;
-    width: 38%;
+    bottom: 0;
+    width: 30%;
     padding: 0;
     border: 0;
     background: none;
@@ -60,20 +58,38 @@
     cursor: default;
 }
 
+/* текст поверх зон: сами зоны ловят тапы по пустым местам, кнопки — свои */
 .story-text {
     position: absolute;
-    left: 18px;
-    right: 18px;
-    bottom: 18px;
-    text-shadow: 0 1px 12px rgba(0, 0, 0, .35);
+    inset: 26px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+}
+
+.story-text button {
+    pointer-events: auto;
+}
+
+.story-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.story-count {
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    letter-spacing: .08em;
+    color: var(--muted);
 }
 
 .story-text h2 {
-    margin: 10px 0 8px;
+    margin: 14px 0 8px;
     font-family: var(--display);
-    font-size: var(--fs-2xl);
-    line-height: 1.1;
-    color: var(--on-dark);
+    font-size: 30px;
+    line-height: 1.08;
+    color: var(--ink);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -82,78 +98,110 @@
 }
 
 .story-text p {
-    margin: 0 0 16px;
+    margin: 0;
     font-size: var(--fs-sm);
-    line-height: 1.45;
-    color: rgba(255, 255, 255, .88);
+    line-height: 1.5;
+    color: var(--muted);
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-.story-read {
-    display: inline-flex;
+.story-foot {
+    margin-top: auto;
+    display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 10px;
+}
+
+/* тур по теме факта: миниатюра + название */
+.story-tour {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.story-tour img {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-thumb);
+    object-fit: cover;
+    background: var(--sand-100);
+    flex-shrink: 0;
+}
+
+.story-tour .grow {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.story-tour small {
+    font-size: var(--fs-xs);
+    color: var(--muted);
+}
+
+.story-tour b {
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.story-tour svg {
+    color: var(--terracotta);
+    flex-shrink: 0;
+}
+
+.story-read {
     min-height: 44px;
-    padding: 0 16px 0 20px;
-    border: 1px solid rgba(255, 255, 255, .35);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .16);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    color: #fff;
+    padding: 0 18px;
+    border: 0;
+    border-radius: var(--radius-btn);
+    background: var(--terracotta);
+    color: var(--on-dark);
     font-family: inherit;
     font-size: 14px;
     font-weight: 800;
     cursor: pointer;
-    text-shadow: none;
+    flex-shrink: 0;
 }
 
 .story-bars {
     position: absolute;
     top: 12px;
-    left: 12px;
-    right: 12px;
+    left: 18px;
+    right: 18px;
     display: flex;
     gap: 5px;
     z-index: 2;
     pointer-events: none;
 }
 
-/* неактивные полоски — тёмные с белой каймой: видны и на светлом небе, и на тёмном фото */
 .story-bars span {
     flex: 1;
-    height: 4px;
+    height: 3px;
     border-radius: var(--radius-pill);
-    background: rgba(0, 0, 0, .25);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55);
-    transition: background .2s ease, box-shadow .2s ease;
-}
-
-/* заливка полоски — маска слева направо */
-.story-bars span {
+    background: var(--line);
     overflow: hidden;
 }
+
 .story-bars span i {
     display: block;
     height: 100%;
-    background: var(--on-dark);
-    transform-origin: left center;
-}
-
-.story-kicker {
-    position: absolute;
-    top: 24px;
-    left: 14px;
-    font-size: var(--fs-xs);
-    font-weight: 800;
-    letter-spacing: .08em;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, .4);
-    z-index: 2;
-    pointer-events: none;
+    background: var(--terracotta);
+    transform-origin: left;
 }
 
 .fact2-overlay {

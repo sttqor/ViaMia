@@ -260,6 +260,7 @@ export default {
   "login.errPhone": "番号を最後まで入力してください：+996 (XXX) XX-XX-XX。",
   "login.errOperator": "キルギスにこの事業者コードはありません。番号をご確認ください。",
   "login.errSmsSoon": "SMSでのログインは準備中です。今はメールでログインしてください。",
+  "facts.tour": "関連ツアー",
   "wx.noData": "オンラインになると天気が表示されます",
   "detail.bookOnSite": "サイトで予約",
   "login.errSend": "コードを送信できませんでした。1分ほど待ってからもう一度お試しください。",

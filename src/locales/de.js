@@ -263,6 +263,7 @@ export default {
   "login.errPhone": "Bitte die vollständige Nummer: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Diese Netzvorwahl gibt es in Kirgisistan nicht. Prüfen Sie die Nummer.",
   "login.errSmsSoon": "Anmeldung per SMS kommt bald – melden Sie sich vorerst per E-Mail an.",
+  "facts.tour": "Tour zum Thema",
   "wx.noData": "Wetter erscheint, sobald Sie online sind",
   "detail.bookOnSite": "Auf der Website buchen",
   "login.errSend": "Der Code konnte nicht gesendet werden. Warten Sie eine Minute und versuchen Sie es erneut.",

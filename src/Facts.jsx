@@ -235,7 +235,7 @@ function StorySlide({ dir, children, ...drag }) {
 // полоски сверху показывают, где вы сейчас
 export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
     const { t, loc } = useSettings();
-    const { facts } = useContent();
+    const { facts, byId } = useContent();
     const [index, setIndex] = useState(null);
     const [slide, setSlide] = useState(0);
     const [dir, setDir] = useState(1);
@@ -253,6 +253,8 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
         move(step);
     };
     const f = facts[current] ? loc(facts[current]) : null;
+    const tourRaw = f?.expId ? byId(f.expId) : undefined;
+    const tour = tourRaw ? loc(tourRaw) : null;
 
     return (
         <section className="fact2-section">
@@ -273,15 +275,6 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
                                 else if (info.offset.x > 50 || info.velocity.x > 500) move(-1);
                             }}
                         >
-                            <motion.img
-                                src={f.image}
-                                alt=""
-                                draggable={false}
-                                initial={{ scale: 1.08 }}
-                                animate={{ scale: 1 }}
-                                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-                            />
-                            <div className="story-fade" />
                             <button className="story-zone left" onClick={() => tap(-1)} aria-label={t("facts.prev")} disabled={current === 0} />
                             <button
                                 className="story-zone right"
@@ -290,12 +283,29 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
                                 disabled={current === facts.length - 1}
                             />
                             <motion.div className="story-text" variants={SETTLE} initial="hidden" animate="show">
-                                <motion.span variants={RISE_IN} className="fact-tag">{f.tag}</motion.span>
+                                <motion.div variants={RISE_IN} className="story-top">
+                                    <span className="fact-tag">{f.tag}</span>
+                                    <span className="story-count">{current + 1} / {facts.length}</span>
+                                </motion.div>
                                 <motion.h2 variants={RISE_IN}>{f.title}</motion.h2>
                                 <motion.p variants={RISE_IN}>{f.short}</motion.p>
-                                <motion.button variants={RISE_IN} className="story-read" whileTap={{ scale: 0.97 }} onClick={() => setIndex(current)}>
-                                    {t("facts.read")} <ChevronRight size={16} />
-                                </motion.button>
+                                <motion.div variants={RISE_IN} className="story-foot">
+                                    {tour ? (
+                                        <button className="story-tour" onClick={() => onOpenExp(tourRaw)}>
+                                            <img src={tour.image} alt="" draggable={false} />
+                                            <span className="grow">
+                                                <small>{t("facts.tour")}</small>
+                                                <b>{tour.title}</b>
+                                            </span>
+                                            <ChevronRight size={18} />
+                                        </button>
+                                    ) : (
+                                        <span className="grow" />
+                                    )}
+                                    <button className="story-read" onClick={() => setIndex(current)}>
+                                        {t("facts.read")}
+                                    </button>
+                                </motion.div>
                             </motion.div>
                         </StorySlide>
                     </AnimatePresence>
@@ -310,7 +320,6 @@ export function FactsSection({ onGoTo, onOpenExp, MiniMap }) {
                             </span>
                         ))}
                     </div>
-                    <span className="story-kicker">{t("facts.kicker")} · {current + 1}/{facts.length}</span>
                 </div>
             )}
 

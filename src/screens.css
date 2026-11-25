@@ -137,16 +137,62 @@
 .exp-media { position: relative; }
 .exp-body { padding: 14px; }
 
-.exp-btn {
-  flex: 1;
-  min-height: var(--hit);
-  padding: 0;
-  font-size: var(--fs-sm);
-  text-align: center;
-  justify-content: center;
-}
 
-.exp-btn-main { flex: 1.8; } /* «подробнее» — главное действие карточки, «в маршрут» вторично */
+/* карточка-билет: тело, отрывная линия с вырезами, корешок с ценой */
+.exp-card .exp-title {
+  font-family: var(--display);
+  font-size: 21px;
+  line-height: 1.15;
+  margin: 4px 0 8px;
+}
+.exp-org {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--muted);
+}
+.exp-org.is-verified { color: var(--green); }
+.exp-perf {
+  position: relative;
+  margin: 0 14px;
+  border-top: 2px dashed var(--line);
+}
+.exp-perf::before,
+.exp-perf::after {
+  content: "";
+  position: absolute;
+  top: -11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+.exp-perf::before { left: -25px; }
+.exp-perf::after { right: -25px; }
+.exp-stub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+.exp-price {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.exp-price b {
+  font-family: var(--display);
+  font-size: 24px;
+}
+.exp-route.on {
+  background: var(--terracotta-glow);
+  border-color: var(--terracotta);
+  color: var(--terracotta-dark);
+}
 
 /* ── туры ────────────────────────────────────────────────── */
 .tours-search { padding: calc(14px + env(safe-area-inset-top)) 16px 0; }

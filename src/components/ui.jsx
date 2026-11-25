@@ -1,12 +1,12 @@
 import { Suspense, lazy } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { BadgeCheck, Heart, Star } from "lucide-react";
+import { BadgeCheck, Check, Heart, Plus, Star } from "lucide-react";
 import { durationMinutes } from "../i18n";
 import { useSettings } from "../settings-context";
 import { flyToRoute } from "../flyToRoute";
 import { Segmented } from "../Segmented";
 import { ErrorBoundary, Loader } from "../Status.jsx";
-import { SPRING, EASE_OUT, TAP, priceText } from "./shared";
+import { SPRING, EASE_OUT, TAP } from "./shared";
 
 // Карта (maplibre, ~1 МБ) грузится отдельным файлом — только когда её открыли
 const ExploreMapLazy = lazy(() => import("../OshMap").then((m) => ({ default: m.ExploreMap })));
@@ -148,38 +148,52 @@ export function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave,
       <div className="exp-body">
         <div className="kicker">
           {exp.type} · {fmtDuration(durationMinutes(exp.duration))}
+          {exp.place ? ` · ${exp.place}` : ""}
         </div>
         <button className="exp-title" onClick={() => onOpen(raw)}>
           {exp.title}
         </button>
-        <div className="row between mb-12">
+        {exp.selfGuided ? (
+          <span className="mode-label self">{t("label.self")}</span>
+        ) : exp.agencyName ? (
+          <span className={`exp-org ${raw.agencyVerified ? "is-verified" : ""}`}>
+            {raw.agencyVerified && <BadgeCheck size={14} aria-label={t("label.verified")} />}
+            {raw.agencyVerified ? `${t("label.verified")} · ${exp.agencyName}` : exp.agencyName}
+          </span>
+        ) : (
+          <StarRow rating={exp.rating} />
+        )}
+      </div>
+      {/* отрывная линия, как у билета: бронь в приложении и есть билет */}
+      <div className="exp-perf" aria-hidden />
+      <div className="exp-stub">
+        <div className="exp-price">
           {exp.selfGuided ? (
-            <span className="mode-label self">{t("label.self")}</span>
-          ) : exp.agencyName ? (
-            <span className="mode-label guided">
-              {raw.agencyVerified && <BadgeCheck size={13} aria-label={t("label.verified")} />}
-              {t("label.guided", { agency: exp.agencyName })}
-            </span>
+            <b>{t("price.free")}</b>
+          ) : exp.price == null ? (
+            <b className="t-md">{t("price.request")}</b>
           ) : (
-            <StarRow rating={exp.rating} />
+            <>
+              <span className="muted t-xs">{t("common.from")}</span>
+              <b>{money(exp.price)}</b>
+            </>
           )}
-          <div className="price">{priceText(exp, t, money)}</div>
         </div>
-        <div className="row">
-          <motion.button
-            className={`pill exp-btn ${inRoute ? "on" : ""}`}
-            whileTap={TAP}
-            onClick={(e) => {
-              if (!inRoute) flyToRoute({ from: e.currentTarget, image: exp.image });
-              onToggleRoute(raw);
-            }}
-          >
-            <Ticker value={inRoute ? t("card.inRoute") : t("card.addRoute")} />
-          </motion.button>
-          <motion.button className="cta exp-btn exp-btn-main" whileTap={TAP} onClick={() => onOpen(raw)}>
-            {t("common.details")}
-          </motion.button>
-        </div>
+        <motion.button
+          className={`icon-btn exp-route ${inRoute ? "on" : ""}`}
+          whileTap={TAP}
+          aria-label={inRoute ? t("card.inRoute") : t("card.addRoute")}
+          aria-pressed={inRoute}
+          onClick={(e) => {
+            if (!inRoute) flyToRoute({ from: e.currentTarget, image: exp.image });
+            onToggleRoute(raw);
+          }}
+        >
+          {inRoute ? <Check size={18} /> : <Plus size={18} />}
+        </motion.button>
+        <motion.button className="cta cta-sm" whileTap={TAP} onClick={() => onOpen(raw)}>
+          {t("common.details")}
+        </motion.button>
       </div>
     </article>
   );
