@@ -6,12 +6,12 @@ import Root from './Root.jsx'
 import { SettingsProvider } from './SettingsProvider.jsx'
 import { AuthProvider } from './AuthProvider.jsx'
 import { RolesProvider } from './RolesProvider.jsx'
-import { initNative } from './native.js'
+import { initNative, isNative, nativeOAuth } from './native.js'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SettingsProvider>
-      <AuthProvider>
+      <AuthProvider oauth={isNative() ? nativeOAuth : undefined}>
         <RolesProvider>
           <Root />
         </RolesProvider>

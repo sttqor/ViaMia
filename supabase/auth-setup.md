@@ -108,6 +108,10 @@ SMS-провайдера пока нет, поэтому:
   Supabase шлёт стандартные письма со ссылкой, а не с кодом.
 - **Authentication** → **Sign In / Providers** → **Email** → **Minimum password length**: 8.
   **Leaked password protection** доступна только на платном плане Pro.
+- Как хранится пароль: приложение его никуда не сохраняет и сразу отдаёт Supabase. Supabase
+  держит только **bcrypt-хэш** (`auth.users.encrypted_password`, префикс `$2a$`, проверено 25.11.2026),
+  сам пароль из него не восстановить — его не видим ни мы, ни Supabase. В `user_metadata` лежит только
+  флаг `has_password`. Это же сказано в политике (`src/privacy-text.js`, «Где хранятся данные»).
 
 Сделано 19.11.2026: телефон включён (заглушки Twilio, тестовые номера
 `996700000001` и `996555000002`, код `123456`, действуют до 31.12.2026),
@@ -145,7 +149,11 @@ Gmail — около 500 писем в день и может попадать �
 Supabase → Authentication → URL Configuration → Redirect URLs, добавить:
 - `https://osh-explorer2.vercel.app/**` — сайт;
 - `viamia://**` — приложение (вход через браузер возвращается на `viamia://auth`);
-- `exp+viamia://**` — тестовая dev-сборка.
+- `exp+viamia://auth` — тестовая dev-сборка (со звёздочками `exp+viamia://**` Supabase адрес не принимает);
+- `kg.viamia.app://auth` — Capacitor-сборка для магазинов (выпуск 15.12, `src/native.js`);
+- `http://localhost:5173/**` — проверка на компьютере.
+
+Сделано 25.11.2026: Site URL = `https://osh-explorer2.vercel.app`, все адреса выше добавлены.
 
 ### 1. Google (бесплатно, ~15 минут)
 1. console.cloud.google.com → создать проект «ViaMia».
@@ -153,6 +161,8 @@ Supabase → Authentication → URL Configuration → Redirect URLs, добав�
 3. Credentials → Create credentials → OAuth client ID → **Web application**.
    Authorized redirect URIs: `https://wksvdvqxixyjguvbcqza.supabase.co/auth/v1/callback`.
 4. Скопировать Client ID и Client secret → Supabase → Authentication → Sign In / Providers → **Google** → Enable, вставить, Save.
+
+Сделано 25.11.2026: проект `viamia-515803`, клиент «ViaMia web», экран согласия без логотипа (логотип потребовал бы проверки Google), главная и `/privacy` указаны, статус **In production**; в Supabase Google включён (`/auth/v1/settings` → `google: true`).
 
 ### 2. Apple (нужен аккаунт Apple Developer, 99 $/год)
 Если в приложении есть вход через Google, App Store требует и «Войти через Apple» (правило 4.8).
@@ -168,4 +178,5 @@ Supabase → Authentication → URL Configuration → Redirect URLs, добав�
 - Сайт: переход к Google / Apple и обратно на ту же страницу, сессию подхватывает supabase-js.
 - Айфон + Apple: нативное окно Apple → `signInWithIdToken` (с nonce).
 - Android и Google на айфоне: защищённое окно браузера → `viamia://auth?code=…` → `exchangeCodeForSession` (PKCE).
+- Capacitor-сборка (до замены на Expo): системный браузер `@capacitor/browser` → `kg.viamia.app://auth` (схема в `ios/App/App/Info.plist` и `AndroidManifest.xml`) → сессия в `src/native.js` (`nativeOAuth`, `appUrlOpen`). Встроенный webview Google не пускает.
 - Новый человек через Google / Apple получает обычный аккаунт; профиль создаёт тот же триггер `handle_new_user`, слияние избранного и маршрута работает так же.
