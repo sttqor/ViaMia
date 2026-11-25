@@ -22,6 +22,7 @@ export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
   const contactOk = contact.trim().length >= 5;
   const canSubmit = nameOk && contactOk;
   const [sending, setSending] = useState(false);
+  const [code] = useState(makeCode); // один код на форму: повтор после обрыва связи не создаст вторую заявку
   const [sendError, setSendError] = useState(false);
   const [tried, setTried] = useState(false); // нажимали «отправить» с пустыми полями
   const nameRef = useRef(null);
@@ -31,8 +32,9 @@ export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
   const needLogin = authOn && !user;
   const [askLogin, setAskLogin] = useState(false);
 
+  const inFlight = useRef(false); // двойной тап быстрее перерисовки: state ещё старый, ref — нет
   async function submit() {
-    if (sending) return;
+    if (sending || inFlight.current) return;
     if (!canSubmit) {
       setTried(true);
       (nameOk ? contactRef : nameRef).current?.focus();
@@ -42,6 +44,7 @@ export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
       setAskLogin(true); // вход по коду, поля формы сохранятся
       return;
     }
+    inFlight.current = true;
     setSending(true);
     setSendError(false);
     try {
@@ -54,11 +57,12 @@ export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
         contact: contact.trim(),
         status: "pending",
         createdAt: new Date().toISOString(),
-        code: makeCode(),
+        code,
       });
     } catch (err) {
       console.warn("Заявка не отправилась", err);
       setSendError(true);
+      inFlight.current = false;
       setSending(false);
     }
   }

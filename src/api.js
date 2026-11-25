@@ -88,13 +88,19 @@ export async function submitBookingRequest(entry, lang) {
   };
   // вошедший турист читает свою заявку — берём id для чата и «поездки»; гостю читать нельзя
   const { data: sess } = await supabase.auth.getSession();
+  // 23505 — такой код уже есть: первая попытка дошла, а ответ потерялся (обрыв связи). Это не ошибка
+  const DUP = "23505";
   if (sess?.session) {
     const { data, error } = await supabase.from("booking_requests").insert(row).select("id").single();
+    if (error?.code === DUP) {
+      const { data: had } = await supabase.from("booking_requests").select("id").eq("code", row.code).eq("user_id", sess.session.user.id).maybeSingle();
+      if (had) return { synced: true, id: had.id };
+    }
     if (error) throw error;
     return { synced: true, id: data.id };
   }
   const { error } = await supabase.from("booking_requests").insert(row);
-  if (error) throw error;
+  if (error && error.code !== DUP) throw error;
   return { synced: true };
 }
 

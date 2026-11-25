@@ -10,7 +10,10 @@ export async function compressImage(file, maxSide = MAX_SIDE) {
   try {
     bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
   } catch {
-    return file; // формат, который браузер не открыл (HEIC и т.п.) — пусть решит сервер
+    // HEIC/HEIF (фото с айфона, перенесённые на компьютер) браузеры не показывают — такое фото туристы не увидят.
+    // iPhone при выборе фото в браузере сам отдаёт JPEG, сюда попадает только «сырой» .heic
+    if (/heic|heif/i.test(file.type) || /\.hei[cf]$/i.test(file.name || "")) throw new Error("heic");
+    return file;
   }
   const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
   if (scale === 1 && file.size < 500 * 1024 && file.type !== "image/png") {

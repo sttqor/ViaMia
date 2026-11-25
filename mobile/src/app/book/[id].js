@@ -32,6 +32,8 @@ export default function BookScreen() {
   const name = nameRaw ?? account?.name ?? "";
   const contact = contactRaw ?? account?.contact ?? "";
   const [sending, setSending] = useState(false);
+  const [code] = useState(makeCode); // один код на форму: повтор после обрыва связи не создаст вторую заявку
+  const inFlight = useRef(false); // двойной тап быстрее перерисовки: state ещё старый, ref — нет
   const [sendError, setSendError] = useState(false);
   const [tried, setTried] = useState(false);
   const nameRef = useRef(null);
@@ -45,17 +47,18 @@ export default function BookScreen() {
   const needLogin = authOn && !user;
 
   async function submit() {
-    if (sending) return;
+    if (sending || inFlight.current) return;
     if (!nameOk || !contactOk) {
       setTried(true);
       (nameOk ? contactRef : nameRef).current?.focus();
       return;
     }
+    inFlight.current = true;
     setSending(true);
     setSendError(false);
     const entry = {
       exp: raw, date, guests, total, name: name.trim(), contact: contact.trim(),
-      status: "pending", createdAt: new Date().toISOString(), code: makeCode(),
+      status: "pending", createdAt: new Date().toISOString(), code,
     };
     try {
       const { synced, id: rowId } = await submitBookingRequest(entry, lang);
@@ -66,6 +69,7 @@ export default function BookScreen() {
     } catch (err) {
       console.warn("Заявка не отправилась", err);
       setSendError(true);
+      inFlight.current = false;
       setSending(false);
     }
   }

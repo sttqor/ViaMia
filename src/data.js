@@ -700,7 +700,8 @@ function localKey(d) {
 // Ближайшие дни: { key: "2026-11-11", date: Date }. Подписи делаются на нужном языке в интерфейсе.
 export function upcomingDates(count = 8) {
   const out = [];
-  const now = new Date();
+  // календарь Оша (UTC+6, без летнего времени), а не телефона: турист из другого пояса видит те же «сегодня/завтра», что и агентство
+  const now = new Date(Date.now() + (6 * 60 + new Date().getTimezoneOffset()) * 60000);
   for (let i = 0; i < count; i += 1) {
     const d = new Date(now);
     d.setDate(now.getDate() + i);
