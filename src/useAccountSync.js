@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchMyBookings, fetchProfile, saveProfile } from "./api";
+import { avatarPath, clearAvatars, fetchMyBookings, fetchProfile, saveProfile } from "./api";
 import { useAuth } from "./auth-context";
 import { subscribeEvents } from "./booking/booking-api";
 import { cleanSettings, mergeSettings, useSettings } from "./settings-context";
@@ -59,7 +59,13 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
         const mergedRoute = mergeRoute(profile?.route, now.routeIds, defaultRoute);
         const mergedSettings = mergeSettings(profile?.settings, now.settings, now.touched);
 
-        setAccount({ name: profile?.name || "", contact: profile?.contact || "" });
+        // имя и фото по умолчанию — из Google / Apple, пока человек не задал свои
+        const meta = user.user_metadata || {};
+        setAccount({
+          name: profile?.name || meta.full_name || meta.name || "",
+          contact: profile?.contact || "",
+          avatar: profile?.avatar_url || meta.avatar_url || meta.picture || "",
+        });
         setSaved(mergedSaved);
         setRouteIds(mergedRoute);
         setBookings((prev) => mergeBookings(prev, remote));
@@ -113,11 +119,19 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
   // контакты из брони запоминаются в аккаунте — в следующий раз не вводить заново
   function rememberContact({ name, contact }) {
     if (!user || readyFor.current !== user.id) return;
-    setAccount({ name, contact });
+    setAccount((a) => ({ ...(a || {}), name, contact }));
     saveProfile(user.id, { name, contact }).catch(() => {});
   }
 
-  return { account, rememberContact };
+  // экран «Изменить профиль»: имя и фото. Пишет сразу (не ждёт задержку), ошибку отдаёт экрану
+  async function updateAccount({ name, avatar }) {
+    if (!user || readyFor.current !== user.id) throw new Error("not_ready");
+    await saveProfile(user.id, { name, avatar_url: avatar || null });
+    clearAvatars(user.id, avatarPath(avatar)).catch(() => {}); // прежние фото больше не нужны
+    setAccount((a) => ({ ...(a || {}), name, avatar }));
+  }
+
+  return { account, rememberContact, updateAccount };
 }
 
 // маршрут не трогали — берём свой из аккаунта, иначе — свой + чего не хватает из аккаунта

@@ -15,6 +15,7 @@ export const PRIVACY = {
         p: [
           "Почту или телефон — только если вы входите в аккаунт. Нужны, чтобы прислать код входа.",
           "Если входите через Apple или Google — получаем от них только имя и почту (Apple может дать скрытый адрес вместо настоящего). Пароль от Apple или Google мы не видим.",
+          "Имя и фото профиля — если вы их добавили (Профиль → нажать на имя). Имя видит агентство в вашей заявке на бронь, фото — только вы. При удалении аккаунта фото удаляется.",
           "Избранное и маршрут дня — хранятся на телефоне, а после входа ещё и в аккаунте, чтобы не потерялись.",
           "Заявку на бронь: имя, контакт для связи, дату и число гостей. Её видит агентство, которое проводит тур, — чтобы подтвердить и связаться с вами.",
           "Переписку по брони — сообщения в чате с агентством. Их видите вы и агентство, которое проводит тур.",
@@ -72,6 +73,7 @@ export const PRIVACY = {
         p: [
           "Your email or phone — only if you sign in. We use it to send you a sign-in code.",
           "If you sign in with Apple or Google, we only get your name and email from them (Apple may give us a private relay address instead). We never see your Apple or Google password.",
+          "Profile name and photo — if you added them (Profile → tap your name). The agency sees your name in your booking request; only you see the photo. The photo is deleted when you delete your account.",
           "Saved places and your day route — stored on your phone and, once you sign in, in your account so they don't get lost.",
           "Booking requests: name, contact, date and number of guests. The agency running the tour sees them to confirm and contact you.",
           "Booking chat — messages with the agency. Only you and the agency running the tour can see them.",

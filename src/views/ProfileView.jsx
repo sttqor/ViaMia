@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Bell, Building2, Check, ChevronLeft, ChevronRight, DollarSign, Globe, Heart, HelpCircle, LogOut, Moon, Search, ShieldCheck, Ticket, Trash2, User } from "lucide-react";
+import { Bell, Building2, Check, ChevronLeft, ChevronRight, DollarSign, Globe, Heart, HelpCircle, LogOut, Moon, Pencil, Search, ShieldCheck, Ticket, Trash2, User } from "lucide-react";
 import { useContent } from "../content-context";
 import { deleteMyAccount, fetchAccountRoles } from "../api";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName } from "../i18n";
@@ -14,6 +14,7 @@ import { SUPPORT_EMAIL } from "../privacy-text";
 import { OfflineMapRow } from "../OfflineMapRow.jsx";
 import { EventsBell } from "../booking/EventsBell.jsx";
 import { SPRING, SCREEN_IN, STAGGER, RISE, TAP, priceText } from "../components/shared";
+import { ProfileEdit } from "./ProfileEdit.jsx";
 
 // 4. ПРОФИЛЬ: НАСТРОЙКИ, ЯЗЫК, ВАЛЮТА, ПОДДЕРЖКА
 function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
@@ -63,7 +64,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   );
 }
 
-export function ProfileView({ bookings, onOpenTicket, onOpenBooking, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours, onOpenAgency, onOpenAdmin, onOpenPrivacy }) {
+export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, onOpenBooking, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours, onOpenAgency, onOpenAdmin, onOpenPrivacy }) {
   const {
     t,
     loc,
@@ -104,6 +105,10 @@ export function ProfileView({ bookings, onOpenTicket, onOpenBooking, saved, onOp
   const currentLang = LANGUAGES.find((l) => l.code === lang);
   const { allTours } = useContent();
   const savedRaw = allTours.filter((e) => saved.has(e.id));
+
+  if (screen === "edit" && authUser) {
+    return <ProfileEdit account={account} onSave={onSaveAccount} onBack={() => setScreen(null)} />;
+  }
 
   if (screen?.startsWith("link-") && authUser) {
     return <LinkScreen mode={screen.slice(5)} onBack={() => setScreen(null)} />;
@@ -154,15 +159,26 @@ export function ProfileView({ bookings, onOpenTicket, onOpenBooking, saved, onOp
 
       <motion.div className="card panel" variants={RISE}>
         <div className="row gap-12">
-          <div className="avatar">
-            <User size={22} color="var(--terracotta)" />
-          </div>
-          <div className="grow">
-            <div className="t-md b">{authUser ? t("login.account") : t("profile.guest")}</div>
-            <div className="muted t-xs login-email">
-              {authUser ? authUser.email || prettyPhone(authUser.phone) : t("profile.guestNote")}
-            </div>
-          </div>
+          {/* вошёл — шапка открывает «Изменить профиль» (имя, фамилия, фото) */}
+          <button
+            className="profile-head-btn"
+            onClick={() => authUser && setScreen("edit")}
+            disabled={!authUser}
+            aria-label={authUser ? t("profile.edit") : undefined}
+          >
+            <span className="avatar">
+              {authUser && account?.avatar ? <img src={account.avatar} alt="" /> : <User size={22} color="var(--terracotta)" />}
+            </span>
+            <span className="grow">
+              <span className="t-md b" style={{ display: "block" }}>
+                {authUser ? account?.name || t("login.account") : t("profile.guest")}
+              </span>
+              <span className="muted t-xs login-email" style={{ display: "block" }}>
+                {authUser ? authUser.email || prettyPhone(authUser.phone) : t("profile.guestNote")}
+              </span>
+            </span>
+            {authUser && <Pencil size={16} color="var(--muted-2)" />}
+          </button>
           {!authUser &&
             (authOn ? (
               <motion.button className="pill pill-sm" whileTap={TAP} onClick={onOpenLogin}>

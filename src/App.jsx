@@ -132,7 +132,7 @@ function AppScreens() {
   // ── Аккаунт ───────────────────────────────────────────────────
   // Избранное, маршрут, брони и настройки сливаются с облаком при входе и
   // синхронизируются дальше; выход убирает личное с устройства (useAccountSync.js)
-  const { account, rememberContact } = useAccountSync({
+  const { account, rememberContact, updateAccount } = useAccountSync({
     byId,
     saved,
     setSaved,
@@ -348,6 +348,8 @@ function AppScreens() {
 
       {tab === "profile" && (
         <ProfileView
+          account={account}
+          onSaveAccount={updateAccount}
           bookings={bookings}
           onOpenTicket={setTicket}
           onOpenBooking={openBookingById}

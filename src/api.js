@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { compressImage } from "./agency/compressImage";
 
 // Строки из таблиц Supabase → объекты в том же виде, что в data.js.
 // Переводы лежат в колонке i18n как {"en": {...}} с теми же именами полей, что в data.js
@@ -170,6 +171,9 @@ export async function fetchAccountRoles(userId) {
 // playbooks/store-release/toolbox/01-delete-account.sql
 export async function deleteMyAccount() {
   if (!supabase) throw new Error("offline");
+  // фото профиля — до удаления аккаунта: потом прав на свою папку уже не будет
+  const { data: sess } = await supabase.auth.getSession();
+  if (sess?.session) await clearAvatars(sess.session.user.id).catch(() => {});
   const { error } = await supabase.rpc("delete_my_account");
   if (error) throw error;
 }
@@ -178,4 +182,26 @@ export async function saveProfile(userId, patch) {
   if (!supabase) return;
   const { error } = await supabase.from("profiles").upsert({ id: userId, ...patch });
   if (error) throw error;
+}
+
+// Фото профиля: бакет avatars, папка = id пользователя (playbooks/store-release/toolbox/03-profile-avatar.sql).
+// Новое фото — новый файл (иначе телефон покажет старое из кэша); старые удаляются при сохранении профиля.
+export async function uploadAvatar(userId, file) {
+  const f = await compressImage(file, 512);
+  const ext = (f.name.match(/\.\w+$/) || [".jpg"])[0].toLowerCase();
+  const path = `${userId}/${Date.now()}${ext}`;
+  const { error } = await supabase.storage.from("avatars").upload(path, f.body || f, { contentType: f.type, cacheControl: "31536000" });
+  if (error) throw error;
+  return supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+}
+
+// ссылка на наше фото → путь в бакете (чужие ссылки, например фото из Google, → undefined)
+export const avatarPath = (url) => (url && url.includes("/avatars/") ? decodeURIComponent(url.split("/avatars/")[1]) : undefined);
+
+// удалить все фото профиля, кроме keep (путь в бакете)
+export async function clearAvatars(userId, keep) {
+  const { data, error } = await supabase.storage.from("avatars").list(userId);
+  if (error) throw error;
+  const paths = (data || []).map((o) => `${userId}/${o.name}`).filter((p) => p !== keep);
+  if (paths.length) await supabase.storage.from("avatars").remove(paths);
 }
