@@ -36,6 +36,7 @@ export default function AdminApp({ onExit }) {
   if (!enabled) {
     return (
       <div className="ag-app">
+        <AgencyHeader title={t("adm.title")} onBack={exit} />
         <div className="ag-body"><div className="ag-banner">{t("ag.noBackend")}</div></div>
       </div>
     );

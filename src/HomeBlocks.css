@@ -366,7 +366,7 @@
   padding: 2px 6px;
   border-radius: var(--radius-pill);
   background: var(--gold);
-  color: var(--ink);
+  color: var(--indigo); /* на золоте всегда тёмный текст, --ink в тёмной теме светлеет */;
   font-size: var(--fs-xs);
   font-weight: 800;
 }

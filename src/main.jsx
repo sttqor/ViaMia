@@ -7,6 +7,11 @@ import { SettingsProvider } from './SettingsProvider.jsx'
 import { AuthProvider } from './AuthProvider.jsx'
 import { initNative } from './native.js'
 
+// фото не загрузилось (нет сети) — вместо значка битой картинки песочная плашка (.img-broken в index.css)
+window.addEventListener('error', (e) => {
+  if (e.target instanceof HTMLImageElement) e.target.classList.add('img-broken')
+}, true)
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SettingsProvider>

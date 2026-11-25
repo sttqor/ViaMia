@@ -146,7 +146,7 @@
   justify-content: center;
 }
 
-.exp-btn-main { flex: 1.2; }
+.exp-btn-main { flex: 1.8; } /* «подробнее» — главное действие карточки, «в маршрут» вторично */
 
 /* ── туры ────────────────────────────────────────────────── */
 .tours-search { padding: calc(14px + env(safe-area-inset-top)) 16px 0; }

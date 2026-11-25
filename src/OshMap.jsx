@@ -816,6 +816,9 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
           <MapIcon size={32} color="var(--indigo)" />
           <b>{t("map.failedTitle")}</b>
           <span className="muted">{t("map.failedText")}</span>
+          <a className="cta ghost cta-sm" href={twoGisPlace(CITY.lat, CITY.lng)} target="_blank" rel="noreferrer">
+            <MapIcon size={16} /> {t("map.poi.open2gis")}
+          </a>
         </motion.div>
       )}
     </div>

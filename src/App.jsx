@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   BadgeCheck,
   Bell,
+  Phone,
   Building2,
   Calendar,
   Check,
@@ -446,7 +447,7 @@ function RouteView({ items, setItems, onGoToTours, onNavigate }) {
       <div className="page-head">
         <div className="kicker">{t("route.kicker")}</div>
         <h1 className="page-title">{t("route.title")}</h1>
-        <p className="muted">{t("route.subtitle")}</p>
+        {items.length === 0 && <p className="muted">{t("route.subtitle")}</p>}
       </div>
 
       <div className="section-pad">
@@ -1052,31 +1053,6 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
         </motion.div>
       )}
 
-      {/* для партнёров: кабинет агентства и модерация (пускает только админов — решает база) */}
-      <motion.div className="card panel" variants={RISE}>
-        <button className="row-btn" onClick={onOpenAgency}>
-          <span className="row">
-            <Building2 size={16} color="var(--terracotta)" />
-            <span className="grow">
-              <span>{myRoles.agency ? myRoles.agency.name : t("profile.agencyTitle")}</span>
-              <span className="muted t-xs">
-                {myRoles.agency ? t(`profile.agency.${myRoles.agency.status}`) : t("profile.agencyText")}
-              </span>
-            </span>
-          </span>
-          <ChevronRight size={16} color="var(--muted-2)" />
-        </button>
-        <button className="row-btn row-btn-divided" onClick={onOpenAdmin}>
-          <span className="row">
-            <ShieldCheck size={16} color="var(--terracotta)" />
-            <span className="grow">
-              <span>{t(myRoles.admin ? "profile.adminTitle" : "profile.adminAsk")}</span>
-              <span className="muted t-xs">{t(myRoles.admin ? "profile.adminText" : "profile.adminAskText")}</span>
-            </span>
-          </span>
-          <ChevronRight size={16} color="var(--muted-2)" />
-        </button>
-      </motion.div>
 
 
       <motion.div className="card panel" variants={RISE}>
@@ -1226,6 +1202,34 @@ function ProfileView({ bookings, onOpenTicket, saved, onOpenSaved, onOpenSavedLi
           </span>
           <ChevronRight size={16} color="var(--muted-2)" />
         </button>
+      </motion.div>
+
+      {/* для партнёров: кабинет агентства внизу профиля; модерация видна только админам (права всё равно проверяет база) */}
+      <motion.div className="card panel" variants={RISE}>
+        <button className="row-btn" onClick={onOpenAgency}>
+          <span className="row">
+            <Building2 size={16} color="var(--terracotta)" />
+            <span className="grow">
+              <span>{myRoles.agency ? myRoles.agency.name : t("profile.agencyTitle")}</span>
+              <span className="muted t-xs">
+                {myRoles.agency ? t(`profile.agency.${myRoles.agency.status}`) : t("profile.agencyText")}
+              </span>
+            </span>
+          </span>
+          <ChevronRight size={16} color="var(--muted-2)" />
+        </button>
+        {myRoles.admin && (
+          <button className="row-btn row-btn-divided" onClick={onOpenAdmin}>
+            <span className="row">
+              <ShieldCheck size={16} color="var(--terracotta)" />
+              <span className="grow">
+                <span>{t("profile.adminTitle")}</span>
+                <span className="muted t-xs">{t("profile.adminText")}</span>
+              </span>
+            </span>
+            <ChevronRight size={16} color="var(--muted-2)" />
+          </button>
+        )}
       </motion.div>
 
       {authUser && (
@@ -1468,6 +1472,12 @@ function Booking({ exp: raw, defaults, onBack, onConfirm }) {
           <div>
             <div className="booking-summary-title">{exp.title}</div>
             <div className="muted">{fmtDuration(durationMinutes(exp.duration))} · {exp.place}</div>
+            {exp.agencyName && (
+              <div className="row gap-4 muted t-sm">
+                {t("detail.organizer")}: {exp.agencyName}
+                {raw.agencyVerified && <BadgeCheck size={14} color="var(--green)" aria-label={t("label.verified")} />}
+              </div>
+            )}
           </div>
         </div>
         <b>{t("booking.when")}</b>
@@ -1519,17 +1529,19 @@ function Booking({ exp: raw, defaults, onBack, onConfirm }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t("booking.name")}
+              aria-label={t("booking.name")}
               autoComplete="name"
               aria-invalid={tried && !nameOk}
             />
           </div>
           <div className={`search ${tried && !contactOk ? "is-invalid" : ""}`}>
-            <Bell size={18} color="var(--muted-2)" />
+            <Phone size={18} color="var(--muted-2)" />
             <input
               ref={contactRef}
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               placeholder={t("booking.contact")}
+              aria-label={t("booking.contact")}
               autoComplete="tel"
               aria-invalid={tried && !contactOk}
             />
@@ -1547,7 +1559,7 @@ function Booking({ exp: raw, defaults, onBack, onConfirm }) {
           </div>
         </Reveal>
 
-        <motion.button className="cta" disabled={sending} whileTap={TAP} onClick={submit}>
+        <motion.button className="cta booking-submit" disabled={sending} whileTap={TAP} onClick={submit}>
           {sending
             ? t("booking.sending")
             : total == null

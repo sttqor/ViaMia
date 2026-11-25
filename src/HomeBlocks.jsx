@@ -294,7 +294,7 @@ export function OshHeader() {
             </AnimatePresence>
           </span>
           <span className="wx-cond">
-            {kind ? t(`wx.c.${kind.key}`) : t("wx.loading")}
+            {kind ? t(`wx.c.${kind.key}`) : t(weather.failed ? "wx.noData" : "wx.loading")}
             {wx && <small>{t("wx.feels", { t: deg(wx.feels) })}</small>}
           </span>
         </div>

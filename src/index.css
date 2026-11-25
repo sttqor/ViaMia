@@ -266,6 +266,8 @@ img {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  text-decoration: none; /* у кнопки-ссылки <a class="cta"> */
+  transition: transform 0.15s ease, background 0.2s ease;
 }
 
 .cta:disabled {
@@ -790,13 +792,9 @@ img {
   outline: none;
 }
 
-.cta {
-  transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 6px 16px rgba(212, 83, 43, 0.28);
-}
 
 .cta:hover {
-  background: var(--orange-dark);
+  background: var(--terracotta-deep); /* --orange-dark в тёмной теме светлеет (он для текста) */
 }
 
 .cta:active {
@@ -1363,4 +1361,23 @@ img {
 .save-btn::after {
   inset: -3px;
   border-radius: 50%;
+}
+
+/* фото не загрузилось: пустая картинка поверх подложки вместо значка браузера */
+img.img-broken {
+  content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E");
+  background: var(--sand-100);
+}
+
+/* браузерный серый в полях ввода тусклее 4.5:1 на песке */
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+/* «отправить заявку» всегда под большим пальцем */
+.booking-submit {
+  position: sticky;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 2;
 }
