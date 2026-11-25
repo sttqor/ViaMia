@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, Linking, Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { BadgeCheck, MessageCircle, Pencil, Trash2 } from "lucide-react-native";
@@ -10,6 +10,7 @@ import { Button } from "../ui";
 import { FONT, RADIUS, useColors } from "../theme";
 import { Banner, Card, Chip, Chips, KV, Row, StatusBadge, Title, Txt } from "./ui";
 import { timeOsh, todayOsh } from "./time";
+import { SUPPORT_EMAIL } from "../../../src/privacy-text";
 
 // вкладки кабинета — как ToursTab / AgencyInfo / AgencyStatus (AgencyApp.jsx), BookingsTab.jsx, GuidesTab.jsx
 
@@ -81,6 +82,13 @@ export function AgencyInfo({ agency, onEdit }) {
       />
       {agency.about ? <Txt>{agency.about}</Txt> : null}
       {agency.status !== "blocked" ? <Button secondary title={t("ag.form.editTitle")} onPress={onEdit} /> : null}
+      {/* удаление аккаунта агентства — из приложения (apple 5.1.1(v)), как в src/agency/AgencyApp.jsx */}
+      <Button
+        secondary
+        title={t("ag.deleteAccount")}
+        onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(t("ag.deleteMailSubject", { name: agency.name }))}`)}
+      />
+      <Txt kind="small">{t("ag.deleteAccountNote")}</Txt>
     </Card>
   );
 }

@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { Check, Circle, ImagePlus, X } from "lucide-react-native";
 import { useSettings } from "../../../../../src/settings-context";
 import { CATEGORIES } from "../../../../../src/data";
-import { fetchMyTours, removePhoto, saveTour, uploadPhoto } from "../../../../../src/agency/agency-api";
+import { dropUnusedPhotos, fetchMyTours, removePhoto, saveTour, uploadPhoto } from "../../../../../src/agency/agency-api";
 import { LANGS, MAX_PHOTOS, badPrice, checklist, fromRow, toRow } from "../../../../../src/agency/tour-form";
 import { Button } from "../../../../lib/ui";
 import { FONT, RADIUS, useColors } from "../../../../lib/theme";
@@ -60,6 +60,19 @@ function Editor({ agency, tour }) {
   const cats = CATEGORIES.filter((x) => x.id !== "all");
   const wasPublished = tour?.status === "published";
 
+  // ушли без сохранения — новые загрузки не нужны (как в src/agency/TourEditor.jsx)
+  const latest = useRef(f);
+  useEffect(() => {
+    latest.current = f;
+  });
+  const savedRef = useRef(false);
+  useEffect(
+    () => () => {
+      if (!savedRef.current && latest.current) dropUnusedPhotos(latest.current.images, tour?.images);
+    },
+    [tour]
+  );
+
   async function addPhotos() {
     const limit = MAX_PHOTOS - f.images.length;
     if (limit <= 0) return;
@@ -96,6 +109,8 @@ function Editor({ agency, tour }) {
     setError(null);
     try {
       await saveTour(agency.id, toRow(f, status), tour?.id);
+      savedRef.current = true;
+      dropUnusedPhotos(tour?.images, f.images); // снятые с тура фото больше нигде не нужны
       allowLeave();
       router.back();
     } catch (err) {

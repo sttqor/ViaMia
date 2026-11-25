@@ -1,8 +1,8 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Circle, ImagePlus, Save, Send, X } from "lucide-react";
 import { useSettings } from "../settings-context";
 import { CATEGORIES } from "../data";
-import { removePhoto, saveTour, uploadPhoto } from "./agency-api";
+import { dropUnusedPhotos, removePhoto, saveTour, uploadPhoto } from "./agency-api";
 import { AgencyHeader, Field, StatusBadge } from "./ui";
 import { LANGS, MAX_PHOTOS, badPrice, checklist, fromRow, toRow } from "./tour-form";
 
@@ -19,6 +19,19 @@ export function TourEditor({ agency, tour, onClose, onSaved }) {
   const ready = checks.every(([, ok]) => ok);
   const cats = CATEGORIES.filter((c) => c.id !== "all");
   const wasPublished = tour?.status === "published";
+
+  // ушли без сохранения — новые загрузки не нужны
+  const latest = useRef(f);
+  useEffect(() => {
+    latest.current = f;
+  });
+  const savedRef = useRef(false);
+  useEffect(
+    () => () => {
+      if (!savedRef.current) dropUnusedPhotos(latest.current.images, tour?.images);
+    },
+    [tour]
+  );
 
   async function addPhotos(e) {
     const files = [...(e.target.files || [])].slice(0, MAX_PHOTOS - f.images.length);
@@ -66,6 +79,8 @@ export function TourEditor({ agency, tour, onClose, onSaved }) {
     setError(null);
     try {
       const row = await saveTour(agency.id, toRow(f, status), tour?.id);
+      savedRef.current = true;
+      dropUnusedPhotos(tour?.images, f.images); // снятые с тура фото больше нигде не нужны
       onSaved(row);
     } catch (err) {
       console.warn("Тур не сохранился", err);

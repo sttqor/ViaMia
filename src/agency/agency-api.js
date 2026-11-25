@@ -80,6 +80,12 @@ export async function removePhoto(url) {
   await supabase.storage.from(PHOTOS).remove([decodeURIComponent(url.slice(i + marker.length))]);
 }
 
+// фото из before, которых нет в after, — убрать из хранилища (тихо): брошенные загрузки
+// и снятые с тура фото не должны оставаться на сервере
+export function dropUnusedPhotos(before = [], after = []) {
+  for (const url of before || []) if (!(after || []).includes(url)) removePhoto(url).catch(() => {});
+}
+
 // ── туры агентства ─────────────────────────────────────────────
 export async function fetchMyTours(agencyId) {
   return check(

@@ -21,6 +21,7 @@ import {
   uploadDoc,
   uploadPhoto,
 } from "./agency-api";
+import { SUPPORT_EMAIL } from "../privacy-text";
 import "./agency.css";
 
 // Кабинет турагентства: /agency
@@ -422,6 +423,14 @@ function AgencyInfo({ agency, onEdit }) {
       </dl>
       {agency.about && <p className="body-text t-sm">{agency.about}</p>}
       {agency.status !== "blocked" && <button className="cta ghost" onClick={onEdit}>{t("ag.form.editTitle")}</button>}
+      {/* удаление аккаунта агентства запускается из приложения (правило apple 5.1.1(v)); сами данные стирает поддержка, чтобы не пропали заявки туристов */}
+      <a
+        className="cta ghost mt-8"
+        href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(t("ag.deleteMailSubject", { name: agency.name }))}`}
+      >
+        <Trash2 size={16} /> {t("ag.deleteAccount")}
+      </a>
+      <p className="muted t-xs mt-8">{t("ag.deleteAccountNote")}</p>
     </section>
   );
 }
