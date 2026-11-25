@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronLeft, Lock, UserRound } from "lucide-react";
 import { authErrorKey, useAuth } from "./auth-context";
-import { CodeStep, ErrorNote, IdField, PasswordField } from "./AuthParts";
+import { CodeStep, ErrorNote, IdField, OAuthButtons, PasswordField } from "./AuthParts";
 import { prettyPhone, readLoginId, showLoginId } from "./phone";
 import { useSettings } from "./settings-context";
 
-const SPRING = { type: "spring", stiffness: 400, damping: 32 };
+const SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 const EASE_OUT = [0.22, 1, 0.36, 1];
 const SLIDE = (dir) => ({
   initial: { opacity: 0, x: 24 * dir },
@@ -154,6 +154,7 @@ export function LoginScreen({ onBack }) {
               </span>
               <h2>{t("login.heroTitle")}</h2>
               <p className="muted">{t("login.heroText")}</p>
+              <OAuthButtons onError={setError} />
               <IdField
                 value={raw}
                 placeholder={t("login.idPlaceholder")}

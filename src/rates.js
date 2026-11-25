@@ -50,6 +50,12 @@ async function fromJsdelivr() {
   return { rates, date: j.date };
 }
 
+// телефон: в общем коде нет react-native, поэтому mobile/src/app/_layout.js зовёт это при AppState "active"
+const wakers = new Set();
+export function refreshRates() {
+  wakers.forEach((f) => f());
+}
+
 export function useLiveRates() {
   const [state, setState] = useState(() => {
     const c = readCache();
@@ -85,6 +91,14 @@ export function useLiveRates() {
 
   useEffect(() => {
     const first = setTimeout(refresh, 0);
+    if (typeof document === "undefined") {
+      // мобильная версия (mobile/)
+      wakers.add(refresh);
+      return () => {
+        clearTimeout(first);
+        wakers.delete(refresh);
+      };
+    }
     const onVisible = () => {
       if (document.visibilityState === "visible") refresh();
     };

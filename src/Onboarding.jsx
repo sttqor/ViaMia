@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { Compass, Users } from "lucide-react";
 import { useSettings } from "./settings-context";
 
-const SPRING = { type: "spring", stiffness: 400, damping: 32 };
+const SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 const EASE_OUT = [0.22, 1, 0.36, 1];
 
 // Первый экран: «как путешествуешь?» — сам или с гидом.
@@ -56,7 +56,7 @@ export function Onboarding({ onPick }) {
               className={`onb-card ${isPicked ? "is-on" : ""}`}
               initial={{ opacity: 0, y: 16 }}
               animate={target}
-              transition={picked ? SPRING : { ...SPRING, delay: 0.14 + i * 0.08 }}
+              transition={picked ? SPRING : { ...SPRING, delay: 0.14 + i * 0.06 }}
               whileTap={picked ? undefined : { scale: 0.97 }}
               onClick={() => pick(o.id)}
             >

@@ -711,3 +711,58 @@ a.row-btn { color: inherit; text-decoration: none; }
 .offline-bar { display: block; height: 4px; margin-top: 6px; border-radius: 2px; background: var(--sand-100); overflow: hidden; }
 .offline-bar > span { display: block; height: 100%; background: var(--terracotta); transition: width 0.2s; }
 .is-danger { color: var(--danger) !important; }
+
+/* вход через Google / Apple (правила брендов: Google — белая кнопка с цветной «G», Apple — чёрная) */
+.oauth {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin: 6px 0 4px;
+}
+.oauth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: var(--h-btn, 48px);
+  border-radius: var(--radius-btn, 14px);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .12s ease;
+}
+.oauth-btn:active {
+  transform: scale(.97);
+}
+.oauth-btn.is-apple {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+:root[data-theme="dark"] .oauth-btn.is-apple {
+  background: #fff;
+  border-color: #fff;
+  color: #000;
+}
+.oauth-btn:disabled {
+  opacity: .6;
+}
+.oauth-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+.oauth-or::before,
+.oauth-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}

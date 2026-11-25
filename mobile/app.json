@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "ViaMia",
+    "slug": "viamia",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "kg.viamia.app",
+      "usesAppleSignIn": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#D4532B",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "kg.viamia.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-image",
+      "expo-font",
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "ViaMia показывает, где вы на карте Оша, и ведёт по маршруту."
+        }
+      ],
+      "expo-video",
+      "expo-localization",
+      "expo-web-browser",
+      "expo-apple-authentication"
+    ],
+    "scheme": "viamia",
+    "backgroundColor": "#FAF6F0",
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

@@ -18,8 +18,8 @@ import "./TabBar.css";
 // • повторный тап по активной вкладке — прокрутка наверх
 // • при прокрутке вниз панель сворачивается в кружок с текущей иконкой, вверх — разворачивается
 
-const SPRING = { type: "spring", stiffness: 520, damping: 40, mass: 0.9 };
-const LAYOUT_SPRING = { type: "spring", stiffness: 420, damping: 36 };
+const SPRING = { type: "spring", bounce: 0, duration: 0.3 };
+const LAYOUT_SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 const DRAG_THRESHOLD = 6;
 const BUMP_SPRING = { type: "spring", stiffness: 500, damping: 12 };
 const RIPPLE = { duration: 0.5, ease: "easeOut" };
@@ -228,7 +228,7 @@ export function TabBar({ tabs, activeId, onSelect, onReselect, minimized, onExpa
                   className={`tabbar-lens ${pressed ? "is-pressed" : ""}`}
                   style={{ width: tabW, x, scaleX: stretch }}
                   animate={{ scale: pressed ? 1.12 : 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 28 }}
+                  transition={{ type: "spring", bounce: 0, duration: 0.28 }}
                   aria-hidden="true"
                 />
               )}

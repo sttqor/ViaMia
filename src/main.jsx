@@ -5,7 +5,8 @@ import './screens.css'
 import Root from './Root.jsx'
 import { SettingsProvider } from './SettingsProvider.jsx'
 import { AuthProvider } from './AuthProvider.jsx'
-import { initNative } from './native.js'
+import { RolesProvider } from './RolesProvider.jsx'
+import { initNative, isNative, nativeOAuth } from './native.js'
 
 // фото не загрузилось (нет сети) — вместо значка битой картинки песочная плашка (.img-broken в index.css)
 window.addEventListener('error', (e) => {
@@ -15,8 +16,10 @@ window.addEventListener('error', (e) => {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SettingsProvider>
-      <AuthProvider>
-        <Root />
+      <AuthProvider oauth={isNative() ? nativeOAuth : undefined}>
+        <RolesProvider>
+          <Root />
+        </RolesProvider>
       </AuthProvider>
     </SettingsProvider>
   </StrictMode>,

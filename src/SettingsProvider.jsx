@@ -97,6 +97,7 @@ export function SettingsProvider({ children }) {
 
   // Тема: атрибут data-theme на <html> (index.css), при "system" следим за сменой в телефоне
   useEffect(() => {
+    if (typeof document === "undefined") return undefined; // мобильная версия (mobile/) — тема через useColorScheme
     const apply = () => {
       document.documentElement.dataset.theme = resolveTheme(theme);
     };
@@ -113,6 +114,7 @@ export function SettingsProvider({ children }) {
   }, [theme]);
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
     document.documentElement.lang = lang;
     document.documentElement.dir = isRtl(lang) ? "rtl" : "ltr";
   }, [lang]);

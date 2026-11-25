@@ -1,7 +1,7 @@
 // Политика конфиденциальности — для App Store / Google Play и экрана в профиле.
 // Меняете, что собираем (новый сервис, аналитика, push) — обновите текст и дату.
 // Адрес для магазинов: https://osh-explorer2.vercel.app/privacy
-export const PRIVACY_UPDATED = "2026-11-21";
+export const PRIVACY_UPDATED = "2026-11-25";
 export const SUPPORT_EMAIL = "viamiasupp@gmail.com";
 
 export const PRIVACY = {
@@ -14,6 +14,7 @@ export const PRIVACY = {
         h: "Что мы собираем",
         p: [
           "Почту или телефон — только если вы входите в аккаунт. Нужны, чтобы прислать код входа.",
+          "Если входите через Apple или Google — получаем от них только имя и почту (Apple может дать скрытый адрес вместо настоящего). Пароль от Apple или Google мы не видим.",
           "Избранное и маршрут дня — хранятся на телефоне, а после входа ещё и в аккаунте, чтобы не потерялись.",
           "Заявку на бронь: имя, контакт для связи, дату и число гостей. Её видит агентство, которое проводит тур, — чтобы подтвердить и связаться с вами.",
           "Для турагентств: данные организации и документы для проверки. Их видят только само агентство и модератор ViaMia.",
@@ -28,6 +29,7 @@ export const PRIVACY = {
         h: "Где хранятся данные",
         p: [
           "Аккаунты, туры и заявки — в Supabase (облачная база данных). Приложение раздаётся через Vercel.",
+          "Пароль, если вы его задали, хранится только в виде хэша (bcrypt) — из него нельзя восстановить сам пароль, поэтому его не видим ни мы, ни Supabase. Данные между телефоном и сервером идут по защищённому соединению (HTTPS).",
           "Погода (Open-Meteo), карта (OpenFreeMap) и курсы валют запрашиваются напрямую с телефона — эти сервисы видят только обычный технический запрос, без ваших личных данных.",
           "Ссылки «Открыть в 2ГИС» открывают приложение или сайт 2ГИС — дальше действуют их правила.",
         ],
@@ -65,6 +67,7 @@ export const PRIVACY = {
         h: "What we collect",
         p: [
           "Your email or phone — only if you sign in. We use it to send you a sign-in code.",
+          "If you sign in with Apple or Google, we only get your name and email from them (Apple may give us a private relay address instead). We never see your Apple or Google password.",
           "Saved places and your day route — stored on your phone and, once you sign in, in your account so they don't get lost.",
           "Booking requests: name, contact, date and number of guests. The agency running the tour sees them to confirm and contact you.",
           "For tour agencies: company details and documents for verification. Only the agency and the ViaMia moderator can see them.",
@@ -79,6 +82,7 @@ export const PRIVACY = {
         h: "Where data is stored",
         p: [
           "Accounts, tours and bookings are stored in Supabase (cloud database). The app is served by Vercel.",
+          "If you set a password, only its hash (bcrypt) is stored. The password itself can't be recovered from it, so neither we nor Supabase can see it. Data between your phone and the server travels over an encrypted connection (HTTPS).",
           "Weather (Open-Meteo), maps (OpenFreeMap) and exchange rates are requested directly from your phone — these services only see a regular technical request, no personal data.",
           "“Open in 2GIS” links open the 2GIS app or website — their own rules apply there.",
         ],

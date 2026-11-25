@@ -37,6 +37,7 @@ export function tourFromRow(r) {
     description: r.description,
     highlights: r.highlights || [],
     includes: r.includes || [],
+    itinerary: r.itinerary || [], // [{ time, title }] — программа по времени
     ...i18nBlocks(r.i18n),
   };
 }
@@ -76,7 +77,7 @@ export const isRemoteEnabled = () => Boolean(supabase);
 // Ответ не читаем: у туриста нет права читать таблицу заявок.
 export async function submitBookingRequest(entry, lang) {
   if (!supabase) return { synced: false };
-  const { error } = await supabase.from("booking_requests").insert({
+  const row = {
     code: entry.code,
     tour_id: entry.exp.id,
     date: entry.date,
@@ -84,7 +85,15 @@ export async function submitBookingRequest(entry, lang) {
     name: entry.name,
     contact: entry.contact,
     lang,
-  });
+  };
+  // вошедший турист читает свою заявку — берём id для чата и «поездки»; гостю читать нельзя
+  const { data: sess } = await supabase.auth.getSession();
+  if (sess?.session) {
+    const { data, error } = await supabase.from("booking_requests").insert(row).select("id").single();
+    if (error) throw error;
+    return { synced: true, id: data.id };
+  }
+  const { error } = await supabase.from("booking_requests").insert(row);
   if (error) throw error;
   return { synced: true };
 }
@@ -102,6 +111,7 @@ export function bookingFromRow(r, byId) {
   const exp = byId(r.tour_id);
   if (!exp) return null; // тур сняли с публикации — останется локальная копия брони
   return {
+    id: r.id, // для чата и «поездки»
     code: r.code,
     exp,
     date: r.date,
@@ -110,6 +120,9 @@ export function bookingFromRow(r, byId) {
     name: r.name,
     contact: r.contact,
     status: r.status, // агентство подтвердило — увидим здесь
+    meetAt: r.meet_at,
+    note: r.agency_note,
+    declineReason: r.decline_reason,
     createdAt: r.created_at,
     synced: true,
   };
@@ -142,6 +155,8 @@ export async function fetchAccountRoles(userId) {
     supabase.from("agencies").select("name, status").eq("owner_user_id", userId).maybeSingle(),
     supabase.rpc("is_admin"),
   ]);
+  // сбой сети ≠ «нет агентства»: иначе агентство откроется как турист
+  if (agency.error || admin.error) throw agency.error || admin.error;
   return { agency: agency.data || null, admin: Boolean(admin.data) };
 }
 

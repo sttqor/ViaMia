@@ -5,7 +5,7 @@ import { useSettings } from "./settings-context";
 import { TIP_TOPICS, TIPS } from "./tips-data.js";
 import "./Tips.css";
 
-const SPRING = { type: "spring", stiffness: 400, damping: 32 };
+const SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 const EASE_OUT = [0.22, 1, 0.36, 1];
 const topicOf = (id) => TIP_TOPICS.find((x) => x.id === id) || TIP_TOPICS[0];
 

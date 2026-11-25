@@ -31,12 +31,13 @@ export async function saveAgency(userId, form, existingId) {
   return check(await supabase.from("agencies").insert({ ...row, owner_user_id: userId }).select().single());
 }
 
+// file — File из браузера или { name, type, body: ArrayBuffer } из телефона (mobile/lib/agency/files.js, уже сжат)
 // Документы видят только владелец и админ (приватный бакет)
 export async function uploadDoc(agencyId, file) {
   const f = await compressImage(file, 2400);
   const ext = (f.name.match(/\.\w+$/) || [".bin"])[0].toLowerCase();
   const path = `${agencyId}/${Date.now()}-${rand()}${ext}`;
-  check(await supabase.storage.from(DOCS).upload(path, f, { contentType: f.type }));
+  check(await supabase.storage.from(DOCS).upload(path, f.body || f, { contentType: f.type }));
   return path;
 }
 
@@ -67,7 +68,7 @@ export async function uploadPhoto(agencyId, file) {
   const f = await compressImage(file);
   const ext = (f.name.match(/\.\w+$/) || [".jpg"])[0].toLowerCase();
   const path = `${agencyId}/${Date.now()}-${rand()}${ext}`;
-  check(await supabase.storage.from(PHOTOS).upload(path, f, { contentType: f.type, cacheControl: "31536000" }));
+  check(await supabase.storage.from(PHOTOS).upload(path, f.body || f, { contentType: f.type, cacheControl: "31536000" }));
   return supabase.storage.from(PHOTOS).getPublicUrl(path).data.publicUrl;
 }
 
@@ -86,7 +87,7 @@ export async function fetchMyTours(agencyId) {
   );
 }
 
-const TOUR_FIELDS = ["title", "category", "type", "place", "duration", "price", "langs", "group_size", "meeting", "description", "highlights", "includes", "images", "lat", "lng", "free_cancel", "source_url", "status"];
+const TOUR_FIELDS = ["title", "category", "type", "place", "duration", "price", "langs", "group_size", "meeting", "description", "highlights", "includes", "images", "lat", "lng", "free_cancel", "source_url", "status", "itinerary"];
 
 export async function saveTour(agencyId, form, id) {
   const row = pick(form, TOUR_FIELDS);
@@ -117,8 +118,58 @@ export async function fetchAgencyBookings(agencyId) {
   );
 }
 
+// одна заявка — для экрана заявки (в списке только 200 последних)
+export async function fetchAgencyBooking(id) {
+  return check(await supabase.from("booking_requests").select("*, tour:tours(title, images)").eq("id", id).maybeSingle());
+}
+
 export async function setBookingStatus(id, status) {
   check(await supabase.from("booking_requests").update({ status }).eq("id", id));
+}
+
+// подтвердить с деталями для туриста / поправить детали / отклонить с причиной
+// (какие переходы статуса можно — решает booking_guard в базе)
+export async function updateBooking(id, patch) {
+  const row = pick(patch, ["status", "guide_id", "meet_at", "agency_note", "decline_reason"]);
+  return check(await supabase.from("booking_requests").update(row).eq("id", id).select("*, tour:tours(title, images)").single());
+}
+
+// непрочитанные сообщения туристов по заявкам агентства: { booking_id: число }
+export async function fetchUnreadByBooking(agencyId) {
+  const rows = check(
+    await supabase
+      .from("booking_messages")
+      .select("booking_id, created_at, booking:booking_requests!inner(agency_id, agency_read_at)")
+      .eq("from_agency", false)
+      .eq("booking.agency_id", agencyId)
+      .order("created_at", { ascending: false })
+      .limit(500)
+  );
+  const out = {};
+  for (const r of rows) {
+    const seen = r.booking?.agency_read_at;
+    if (!seen || r.created_at > seen) out[r.booking_id] = (out[r.booking_id] || 0) + 1;
+  }
+  return out;
+}
+
+// ── гиды ───────────────────────────────────────────────────────
+export async function fetchGuides(agencyId) {
+  return check(await supabase.from("guides").select("*").eq("agency_id", agencyId).order("created_at"));
+}
+
+const GUIDE_FIELDS = ["name", "photo_url", "langs", "phone", "show_phone", "active"];
+
+export async function saveGuide(agencyId, form, id) {
+  const row = pick(form, GUIDE_FIELDS);
+  if (id) return check(await supabase.from("guides").update(row).eq("id", id).select().single());
+  return check(await supabase.from("guides").insert({ ...row, agency_id: agencyId }).select().single());
+}
+
+// гида в заявках удалить нельзя без потери истории — база сама обнулит guide_id (on delete set null)
+export async function deleteGuide(row) {
+  check(await supabase.from("guides").delete().eq("id", row.id));
+  if (row.photo_url) await removePhoto(row.photo_url).catch(() => {});
 }
 
 // ── админ платформы ────────────────────────────────────────────
