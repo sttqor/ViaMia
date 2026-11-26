@@ -20,6 +20,7 @@ export default {
   "card.inRoute": "✓ 已在路线中",
   "card.addRoute": "+ 加入路线",
   "map.search": "在地图上查找地点…",
+  "map.ideas": "值得一看",
   "map.locate": "我的位置",
   "map.locateError": "无法获取您的位置",
   "map.failedTitle": "地图暂时无法使用",

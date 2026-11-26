@@ -23,6 +23,7 @@ export default {
   "card.addRoute": "+ Marshrutga qoʻshish",
 
   "map.search": "Xaritadan joy qidiring…",
+  "map.ideas": "Nimani ko‘rish kerak",
   "map.locate": "Mening joylashuvim",
   "map.locateError": "Joylashuvingizni aniqlab boʻlmadi",
   "map.failedTitle": "Xarita vaqtincha ishlamayapti",

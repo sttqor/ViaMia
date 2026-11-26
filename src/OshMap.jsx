@@ -27,6 +27,7 @@ import { fallbackOf } from "./i18n";
 import { distKm, fetchRoute, getPosition } from "./routing";
 import { primeSpeech } from "./navigation";
 import { Navigator } from "./Navigator";
+import { Loader } from "./Status";
 import { useSettings } from "./settings-context";
 import { distanceM, twoGisPlace, walkMinutes } from "./twogis";
 import { cachedFetch, registerOshProtocol, toOsh } from "./offlineMap";
@@ -708,16 +709,39 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
     mapRef.current?.flyTo({ center: [p.lng, p.lat], zoom: Math.max(mapRef.current.getZoom(), 16), duration: 600 });
   }
 
-  // список под поиском, как в 2ГИС: сначала ближайшие
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    const list = PLACES.filter(
-      (p) => (cat === "all" || p.cat === cat) && `${p.name} ${p.name_en || ""} ${t(`map.cat.${p.cat}`)}`.toLowerCase().includes(q),
-    );
+  function openTour(raw) {
+    setSearchOpen(false);
+    setQuery("");
+    mapRef.current?.flyTo({ center: [raw.lng, raw.lat], zoom: Math.max(mapRef.current.getZoom(), 15), duration: 600 });
+    onOpenRef.current(raw);
+  }
+
+  // список под поиском: сначала туры (их ищут чаще всего), потом места — ближайшие сверху.
+  // Пустой запрос — подсказки «что посмотреть»: туры в черте Оша.
+  const q = query.trim().toLowerCase();
+  const { tourHits, placeHits } = useMemo(() => {
+    const showTours = cat === "all" || cat === "tours";
+    const inOsh = (raw) => raw.lat != null && raw.lng != null && distanceM(CENTER, [raw.lng, raw.lat]) < 15000;
+    if (!q) return { tourHits: showTours ? items.filter(inOsh).slice(0, 5) : [], placeHits: [] };
+    const tourHits = showTours
+      ? items
+          .filter((raw) => {
+            if (!inOsh(raw)) return false;
+            const e = loc(raw);
+            return `${e.title} ${e.place} ${raw.title} ${raw.place} ${raw.en?.title || ""}`.toLowerCase().includes(q);
+          })
+          .slice(0, 3)
+      : [];
+    const list =
+      cat === "tours"
+        ? []
+        : PLACES.filter(
+            (p) => (cat === "all" || p.cat === cat) && `${p.name} ${p.name_en || ""} ${t(`map.cat.${p.cat}`)}`.toLowerCase().includes(q),
+          );
     if (me) list.sort((a, b) => distanceM(me, [a.lng, a.lat]) - distanceM(me, [b.lng, b.lat]));
-    return list.slice(0, 8);
-  }, [query, cat, me, t]);
+    return { tourHits, placeHits: list.slice(0, 8) };
+  }, [q, cat, me, t, items, loc]);
+  const tourCat = CAT.tours;
 
   const pickedCat = picked ? CAT[picked.cat] : null;
 
@@ -744,7 +768,11 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
               setSearchOpen(true);
             }}
             onFocus={() => setSearchOpen(true)}
-            onKeyDown={(e) => e.key === "Enter" && results[0] && openPlace(results[0])}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" || !q) return;
+              if (tourHits[0]) openTour(tourHits[0]);
+              else if (placeHits[0]) openPlace(placeHits[0]);
+            }}
             placeholder={t("map.search")}
             enterKeyHint="search"
           />
@@ -754,9 +782,30 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
             </button>
           )}
         </div>
-        {searchOpen && results.length > 0 && (
+        {searchOpen && (q || tourHits.length > 0) && (
           <ul className="map-results card">
-            {results.map((p) => {
+            {!q && <li className="map-results-label">{t("map.ideas")}</li>}
+            {tourHits.map((raw) => {
+              const e = loc(raw);
+              return (
+                <li key={raw.id}>
+                  <button type="button" onClick={() => openTour(raw)}>
+                    <span className="map-sheet-icon is-sm" style={{ background: tourCat.color }}>
+                      <tourCat.Icon size={14} color="#fff" />
+                    </span>
+                    <span className="map-result-text">
+                      <b>{e.title}</b>
+                      <small>
+                        {e.type || e.place}
+                        {me && ` · ${distLabel(raw.lat, raw.lng)}`}
+                      </small>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+            {q && tourHits.length === 0 && placeHits.length === 0 && <li className="map-results-empty">{t("common.nothing")}</li>}
+            {placeHits.map((p) => {
               const c = CAT[p.cat];
               return (
                 <li key={p.id}>
@@ -917,9 +966,17 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
             {t("map.locateError")}
           </motion.div>
         )}
-        {!failed && count === 0 && (
+        {!failed && count === 0 && !(searchOpen && q) && (
           <motion.div key="nothing" className="map-locate-toast is-top" {...SHEET}>
             {t("common.nothing")}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {!ready && !failed && (
+          <motion.div key="loading" className="map-loading" initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
+            <Loader />
           </motion.div>
         )}
       </AnimatePresence>

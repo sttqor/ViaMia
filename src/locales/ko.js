@@ -23,6 +23,7 @@ export default {
   "card.addRoute": "+ 루트에 추가",
 
   "map.search": "지도에서 장소 찾기…",
+  "map.ideas": "볼거리",
   "map.locate": "내 위치",
   "map.locateError": "위치를 가져오지 못했어요",
   "map.failedTitle": "지도를 일시적으로 사용할 수 없어요",

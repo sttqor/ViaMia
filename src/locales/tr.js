@@ -23,6 +23,7 @@ export default {
   "card.addRoute": "+ Rotaya ekle",
 
   "map.search": "Haritada yer bul…",
+  "map.ideas": "Görülmeye değer",
   "map.locate": "Konumum",
   "map.locateError": "Konumunuz alınamadı",
   "map.failedTitle": "Harita geçici olarak kullanılamıyor",

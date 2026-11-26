@@ -244,3 +244,19 @@
 .map-result-text { min-width: 0; display: grid; }
 .map-result-text b { font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .map-result-text small { color: var(--muted); font-size: var(--fs-xs); font-weight: 600; }
+.map-results-label {
+  padding: 8px 10px 4px; color: var(--muted); font-size: var(--fs-xs); font-weight: 700;
+}
+.map-results-empty {
+  padding: 12px 10px; color: var(--muted); font-size: var(--fs-sm); font-weight: 600;
+}
+
+/* пока грузится стиль карты — тот же загрузчик, что и до загрузки кода карты */
+.map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  align-content: start;
+  background: var(--bg);
+}

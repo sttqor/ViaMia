@@ -23,6 +23,7 @@ export default {
   "card.addRoute": "+ ルートに追加",
 
   "map.search": "地図で場所を探す…",
+  "map.ideas": "見どころ",
   "map.locate": "現在地",
   "map.locateError": "現在地を取得できませんでした",
   "map.failedTitle": "地図は一時的にご利用いただけません",

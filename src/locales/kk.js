@@ -23,6 +23,7 @@ export default {
   "card.addRoute": "+ Маршрутқа қосу",
 
   "map.search": "Картадан орын іздеу…",
+  "map.ideas": "Не көруге болады",
   "map.locate": "Мен қайдамын",
   "map.locateError": "Орналасқан жеріңізді анықтау мүмкін болмады",
   "map.failedTitle": "Карта уақытша қолжетімсіз",

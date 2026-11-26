@@ -20,6 +20,7 @@ export default {
   "card.inRoute": "✓ Dans l’itinéraire",
   "card.addRoute": "+ Ajouter à l’itinéraire",
   "map.search": "Trouver un lieu sur la carte…",
+  "map.ideas": "À voir",
   "map.locate": "Ma position",
   "map.locateError": "Impossible d’obtenir votre position",
   "map.failedTitle": "Carte temporairement indisponible",

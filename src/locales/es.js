@@ -20,6 +20,7 @@ export default {
   "card.inRoute": "✓ En la ruta",
   "card.addRoute": "+ A la ruta",
   "map.search": "Buscar un lugar en el mapa…",
+  "map.ideas": "Qué ver",
   "map.locate": "Mi ubicación",
   "map.locateError": "No se pudo obtener la ubicación",
   "map.failedTitle": "Mapa no disponible por ahora",

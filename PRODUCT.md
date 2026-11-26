@@ -4,62 +4,71 @@
 
 ## Platform
 
-web
+adaptive
 
-Mobile web app (~430px), shipped to App Store and Google Play inside Capacitor (`android/`, `ios/`). The design language is web, not native iOS/Android; the one deliberate native borrowing is the iOS 26-style glass tab bar.
+Решение пользователя (25.11.2026): дизайн подстраивается под ОС — на iPhone ведёт себя как iOS, на Android — как Android. Сейчас код этого ещё не делает: сайт, Capacitor-сборка (`android/`, `ios/`) и Expo-версия (`mobile/`, «1-в-1 с сайтом») выглядят одинаково. Сайт в браузере остаётся web.
 
 ## Users
 
-Two linked audiences; neither is secondary, because each exists for the other:
+Две аудитории, **равноценные** (решение пользователя):
 
-- **Tourists in Osh without a guide**, foreign or Russian-speaking, phone in hand on the street, often with weak or no connection. Job: see what's worth seeing, build a plan for the day, get around, and book a tour they can trust.
-- **Local tour agencies in Osh**. Job: list their tours, pass verification, receive and confirm booking requests. They work from the agency cabinet (`/agency`), often on a computer.
+1. **Турист в Оше** — сам, без гида, с телефоном в руке прямо на улице. Смотрит места на карте, собирает маршрут на день, идёт по встроенному навигатору, бронирует тур. Часто без роуминга и без русского языка: интерфейс на 12 языках (ru, en, ky, kk, uz, tr, de, fr, es, zh, ja, ko).
+2. **Местное турагентство** — ведёт свои туры и заявки в кабинете внутри того же приложения (на сайте — `/agency`): анкета и документы → модерация → туры с программой по времени → заявки (подтвердить с гидом и временем, отклонить с причиной, чат с туристом), список гидов.
 
-ViaMia staff moderate agencies and tours from `/admin`.
+Третья роль, служебная — **модератор ViaMia** (`/admin`): проверяет агентства.
 
 ## Product Purpose
 
-A guide to Osh, Kyrgyzstan: places, a day route, interesting facts, local phrases and etiquette, weather, plus tours by local agencies booked as a request (no online payment yet: the agency confirms, the tourist pays on site). Success: a tourist plans and lives a day in Osh from one app, and verified agencies get real bookings through it.
+ViaMia — гид по Ошу (Кыргызстан): самостоятельный турист находит места и собирает день, а местные агентства получают заявки на туры. Успех — турист прошёл свой маршрут или съездил в тур, не потерявшись и без посредников; агентство получает подтверждаемые заявки и общается с туристом в приложении.
 
 ## Positioning
 
-- **Verified agencies.** Agencies submit documents, ViaMia moderates them and their tours, and the tourist sees a "verified" mark and the organizer. Tours that only come from an agency website are labeled as not verified.
-- **Local context.** Kyrgyz culture, etiquette tips, Kyrgyz phrases with transcription and speech, subtle Kyrgyz symbolism (tunduk, "kochkor muyuz" ornament).
-- **Works offline.** Tours, tickets, favorites and a downloadable Osh map work without internet.
+Подтверждено пользователем:
 
-Navigation itself is handed off to 2GIS ("open in 2GIS" / "route in 2GIS"); ViaMia does not compete with it as a map.
+- **Проверенные агентства.** Агентство проходит модерацию (анкета, документы), у его туров метка «проверено». Бронь — заявка: агентство подтверждает, после этого билет становится «поездкой» (встреча, гид, программа, связь, чат).
+- **Работает без интернета.** Карту Оша можно скачать заранее (~4 МБ), навигатор ведёт пешком и на машине; маршруты строятся внутри приложения, наружу — только кнопка «Открыть в 2ГИС».
+- **Местный контекст.** Фразы на кыргызском с транскрипцией и озвучкой, советы по этикету, факты о городе, погода с восходом и закатом, SOS.
 
 ## Operating Context
 
-- Tourist: outdoors, one hand, sun glare, roaming or no data; light and dark theme (follows the phone by default).
-- Agency: cabinet on desktop or phone; booking requests arrive with status new → confirmed / declined / done; contact by phone or Telegram.
-- Interface languages: Russian is primary; English and 10 more (ky, kk, uz, tr, de, fr, es, zh, ja, ko). Prices stored in USD, shown in the chosen currency with live rates.
-- Sign-in by email one-time code (phone codes only for test numbers until an SMS gateway exists).
+- Турист: телефон, улица, солнце, иногда без сети; экран должен читаться на ходу. Навигатор работает только при включённом экране (ограничение веба), на iOS в фоне не ведёт.
+- Бронь без оплаты: заявка → подтверждение агентством → встреча. Заявка без ответа 24 часа сгорает. Оплата в приложении (Freedom Pay) — позже, нужно юрлицо.
+- Аккаунт: вход по коду на почту или телефон (+996), по паролю, через Google (настроен 25.11.2026) и Apple (ждёт аккаунта разработчика). Гость может пользоваться без входа; бронь — только после входа. Избранное, маршрут, брони и настройки синхронизируются между устройствами.
+- Агентство и админ после входа сразу попадают в свой кабинет, без «назад» в туристическую часть.
+- Выпуск в App Store и Google Play — **15 декабря 2026**, аккаунты разработчика личные, юрлица нет.
 
 ## Capabilities and Constraints
 
-- Tabs: Guide / Map / Route / Tours / Profile. Saved, tips, tickets, booking flow, account deletion, privacy policy.
-- Backend: Supabase (tours, facts, agencies, booking requests, profiles, RLS). Hosting: Vercel. Crash reports: Sentry (no personal data).
-- Map: MapLibre + OpenFreeMap tiles, places from OpenStreetMap, offline via `osh://` protocol.
-- Not yet: online payment (Freedom Pay, needs a legal entity), push notifications, agency notifications (Telegram planned).
-- Launch target: December 15, 2026, App Store and Google Play.
+- Сайт: Vite + React 19 (JS), выкладка Vercel (https://osh-explorer2.vercel.app). Магазинная сборка к 15.12 — Capacitor 8; Expo / React Native (`mobile/`) заменит её после выпуска, тот же id `kg.viamia.app`.
+- Данные и права — Supabase (RLS + триггеры), карта — MapLibre + OpenFreeMap, маршруты — OSRM (FOSSGIS), места — выгрузка OpenStreetMap.
+- Все строки интерфейса только через переводы (`t()`), цены хранятся в USD и показываются в выбранной валюте по живому курсу.
+- Тёмная тема: «Светлая / Тёмная / Авто».
+- Не решено: push-уведомления, оплата и комиссия платформы, корзина.
 
 ## Brand Commitments
 
-- Name: **ViaMia**. App id `kg.viamia.app`.
-- The approved style stays as it is (user, 25.11.2026): terracotta single accent, indigo, small gold tags, sand background, Manrope + Playfair Display. Source of truth: `design/tokens.css` and `design/*.html`, rules in `CLAUDE.md`. Refinement only, no new visual world.
-- Bottom navigation is the iOS 26-style glass capsule (`src/TabBar.jsx`), the user's own decision overriding the mockup.
-- Interface copy only through `t()`; no hard-coded strings.
+- Название **ViaMia** (в старых местах — «Osh Guide»), id приложения `kg.viamia.app` (после первой загрузки в магазин не меняется).
+- Голос: по-русски, коротко и прямо, без канцелярита.
+- Почта поддержки: viamiasupp@gmail.com.
+- Визуальный стиль уже утверждён и описан в `CLAUDE.md` и `design/` (здесь не повторяется).
 
 ## Evidence on Hand
 
-- 18 published tours sourced from bestofosh.com (photos, texts, links) with agency names; none are registered agencies yet. Agency count at launch: 0 registered, 1-2 expected to self-register.
-- No reviews, testimonials, partner logos or press. Ratings shown on tours come from the source data. Do not fabricate agency prices, contacts, reviews or verification.
+- Туры и факты — `src/data.js` и база Supabase; часть фото и текстов туров взята с bestofosh.com (пользователь решил не трогать; риск, что автор или Apple попросят убрать, и их фото не грузятся в приложении).
+- Места на карте — `src/places-osm.json` (OpenStreetMap).
+- Тексты для магазинов — `playbooks/store-release/toolbox/store-listing.md`; политика — `/privacy` (`src/privacy-text.js`).
+- **Нет и не придумывать:** отзывов, числа пользователей, реальных цен и контактов агентств (только заглушки), партнёрств, наград, упоминаний в прессе.
 
 ## Product Principles
 
-1. Trust is the product: show what is verified and say plainly what is not.
-2. Useful without connection: anything a tourist needs on the street must survive offline.
-3. Local, not generic: Osh-specific context beats generic travel-app content.
-4. Hand off what others do better (navigation to 2GIS) instead of rebuilding it.
-5. Both sides must work: a tourist action that no agency can receive is a bug.
+1. Турист без гида не должен потеряться: каждый экран отвечает на «где я, куда дальше, как связаться».
+2. Доверие через проверку: агентство видно туристу только после модерации, бронь подтверждается человеком.
+3. Сначала работает без сети, потом — красиво.
+4. Местное — по-настоящему местное: язык, этикет и факты Оша, а не общий шаблон путеводителя.
+5. Обе стороны — клиенты: кабинет агентства так же важен, как экран туриста.
+
+## Accessibility & Inclusion
+
+- 12 языков интерфейса; запасной язык карточек — en (для ky / kk / uz — ru).
+- Тёмная тема по системе телефона.
+- Чтение на солнце и на ходу, крупные цели нажатия.

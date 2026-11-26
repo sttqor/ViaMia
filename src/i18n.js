@@ -87,6 +87,7 @@ export const DICT = {
     "card.addRoute": "+ В маршрут",
 
     "map.search": "Найти место на карте…",
+    "map.ideas": "Что посмотреть",
     "map.locate": "Моё местоположение",
     "map.locateError": "Не удалось определить местоположение",
     "map.failedTitle": "Карта временно недоступна",
@@ -548,6 +549,7 @@ export const DICT = {
     "card.addRoute": "+ Add to route",
 
     "map.search": "Find a place on the map…",
+    "map.ideas": "Worth seeing",
     "map.locate": "My location",
     "map.locateError": "Couldn't get your location",
     "map.failedTitle": "Map is temporarily unavailable",

@@ -41,8 +41,8 @@ export const EXPERIENCES = [
     reviews: null,
     lang: "EN",
     image: "https://bestofosh.com/wp-content/uploads/2019/05/Lenin-statue-in-Osh-e1559745162625.webp",
-    lat: 40.531,
-    lng: 72.795,
+    lat: 40.53238,
+    lng: 72.79813,
     agencyName: "Best of Osh",
     url: "https://bestofosh.com/osh-city-walking-tour/",
     meeting: "Детали встречи — по согласованию с Best of Osh",
@@ -154,8 +154,8 @@ export const EXPERIENCES = [
     badge: "Хит",
     lang: "EN",
     image: "https://bestofosh.com/wp-content/uploads/2019/05/Sulaiman-Too-House-of-Babur-1024x768.jpg",
-    lat: 40.5275,
-    lng: 72.7985,
+    lat: 40.52998,
+    lng: 72.79273,
     agencyName: "Best of Osh",
     url: "https://bestofosh.com/sulaiman-too-tour/",
     meeting: "Детали встречи — по согласованию с Best of Osh",
@@ -191,8 +191,8 @@ export const EXPERIENCES = [
     reviews: null,
     lang: "EN",
     image: "https://bestofosh.com/wp-content/uploads/2025/03/osh-food-tour.webp",
-    lat: 40.5233,
-    lng: 72.7969,
+    lat: 40.5394,
+    lng: 72.7968,
     agencyName: "Best of Osh",
     url: "https://bestofosh.com/food-tour/",
     meeting: "Детали встречи — по согласованию с Best of Osh",
@@ -686,9 +686,9 @@ export const EXPERIENCES = [
 ];
 
 export const ATTRACTIONS = [
-  { id: "a1", name: "Сулайман-Тоо", hint: "Гора ЮНЕСКО", lat: 40.5275, lng: 72.7985, image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80" },
-  { id: "a2", name: "Базар Джайма", hint: "Один из старейших базаров", lat: 40.5233, lng: 72.7969, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80" },
-  { id: "a3", name: "Мечеть Равзат", hint: "Главная мечеть города", lat: 40.526, lng: 72.794, image: "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80" },
+  { id: "a1", name: "Сулайман-Тоо", hint: "Гора ЮНЕСКО", lat: 40.52998, lng: 72.79273, image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80" },
+  { id: "a2", name: "Базар Джайма", hint: "Один из старейших базаров", lat: 40.5394, lng: 72.7968, image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80" },
+  { id: "a3", name: "Мечеть Рабат Абдуллахан", hint: "Одна из старейших мечетей Оша", lat: 40.53187, lng: 72.79181, image: "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80" },
 ];
 
 
