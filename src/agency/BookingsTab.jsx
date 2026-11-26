@@ -101,7 +101,10 @@ export function BookingsTab({ agency, onUnread }) {
           <span className="grow">
             <span className="row between gap-6">
               <span className="t-md b">{b.tour?.title || b.tour_id}</span>
-              <StatusBadge kind="bk" status={b.status} />
+              <span className="row gap-6">
+                {b.paid_at && <span className="ag-paid">{t("ag.bk.paid")}</span>}
+                <StatusBadge kind="bk" status={b.status} />
+              </span>
             </span>
             <span className="muted t-sm">
               {fmtDate(b.date)}
@@ -180,7 +183,10 @@ function BookingDetail({ agency, booking: b, onBack, onChanged }) {
       <section className="card ag-panel">
         <div className="row between gap-6">
           <h2>{b.tour?.title || b.tour_id}</h2>
-          <StatusBadge kind="bk" status={b.status} />
+          <span className="row gap-6">
+            {b.paid_at && <span className="ag-paid">{t("ag.bk.paidSum", { sum: `${b.paid_amount} ${b.paid_currency || ""}`.trim() })}</span>}
+            <StatusBadge kind="bk" status={b.status} />
+          </span>
         </div>
         <dl className="ag-kv">
           <dt>{t("ag.bk.date")}</dt><dd>{fmtDate(b.date)}{b.meet_at ? `, ${timeOsh(b.meet_at)}` : ""}</dd>

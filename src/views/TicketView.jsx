@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Calendar, Check, ChevronLeft, Clock, MapPin, Ticket, User, X } from "lucide-react";
+import { Calendar, Check, ChevronLeft, Clock, CreditCard, MapPin, Ticket, User, X } from "lucide-react";
 import { useSettings } from "../settings-context";
 import { EASE_OUT, SCREEN_IN, TAP } from "../components/shared";
 import { Reveal } from "../components/ui.jsx";
 import { TripBlock } from "../booking/TripBlock.jsx";
+import { paymentsOn, startPayment } from "../api";
 
 export function TicketView({ booking, onClose, onCancel, onNavigate }) {
   const { t, loc, money, plural, fmtDate } = useSettings();
@@ -12,6 +13,22 @@ export function TicketView({ booking, onClose, onCancel, onNavigate }) {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState(false);
+  // платить можно после подтверждения агентством, если цена известна и бронь уже в базе
+  const canPay = paymentsOn && booking.status === "confirmed" && !booking.paidAt && booking.total > 0 && booking.id;
+
+  async function pay() {
+    setPaying(true);
+    setPayError(false);
+    try {
+      window.location.href = await startPayment(booking.id); // страница оплаты Freedom Pay, потом вернёт на сайт
+    } catch (err) {
+      console.warn("Оплата не началась", err);
+      setPayError(true);
+      setPaying(false);
+    }
+  }
 
   async function doCancel() {
     setCancelling(true);
@@ -69,7 +86,11 @@ export function TicketView({ booking, onClose, onCancel, onNavigate }) {
               {booking.name && (
                 <div className="row muted"><User size={14} /> {booking.name} · {booking.contact}</div>
               )}
-              <div className="row muted"><Ticket size={14} /> {t("ticket.payOnSite")} <b className="ink">{booking.total == null ? t("price.request") : money(booking.total)}</b></div>
+              {booking.paidAt ? (
+                <div className="row ticket-paid"><CreditCard size={14} /> {t("ticket.paid")} <b className="ink">{money(booking.total)}</b></div>
+              ) : (
+                <div className="row muted"><Ticket size={14} /> {t("ticket.payOnSite")} <b className="ink">{booking.total == null ? t("price.request") : money(booking.total)}</b></div>
+              )}
             </div>
           </div>
           <div className="ticket-cut" />
@@ -83,13 +104,23 @@ export function TicketView({ booking, onClose, onCancel, onNavigate }) {
           <div className="card panel mt-16 t-sm">{t("bell.reason", { reason: booking.declineReason })}</div>
         )}
 
+        {canPay && (
+          <motion.button className="cta mt-16" whileTap={TAP} disabled={paying} onClick={pay}>
+            <CreditCard size={18} /> {paying ? t("ticket.paying") : t("ticket.pay", { total: money(booking.total) })}
+          </motion.button>
+        )}
+        <Reveal show={payError}>
+          <div className="form-error mt-16" role="alert">{t("ticket.payError")}</div>
+        </Reveal>
+
         <TripBlock booking={booking} onNavigate={onNavigate} />
 
         <Reveal show={cancelError}>
           <div className="form-error mt-16" role="alert">{t("ticket.cancelError")}</div>
         </Reveal>
 
-        {onCancel && ["pending", "confirmed"].includes(booking.status) && (
+        {booking.paidAt && booking.status === "confirmed" && <p className="muted t-xs mt-16">{t("ticket.paidCancel")}</p>}
+        {onCancel && !booking.paidAt && ["pending", "confirmed"].includes(booking.status) && (
           <AnimatePresence mode="wait" initial={false}>
             {confirmCancel ? (
               <motion.div

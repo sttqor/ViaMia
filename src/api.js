@@ -130,6 +130,7 @@ export function bookingFromRow(r, byId) {
     meetAt: r.meet_at,
     note: r.agency_note,
     declineReason: r.decline_reason,
+    paidAt: r.paid_at || null, // оплачено картой (Freedom Pay) — пишет только сервер
     createdAt: r.created_at,
     synced: true,
   };
@@ -204,4 +205,13 @@ export async function clearAvatars(userId, keep) {
   if (error) throw error;
   const paths = (data || []).map((o) => `${userId}/${o.name}`).filter((p) => p !== keep);
   if (paths.length) await supabase.storage.from("avatars").remove(paths);
+}
+
+// Оплата картой (Freedom Pay): включается VITE_PAYMENTS=freedompay, когда на сервере есть ключи.
+// Сервер (supabase/functions/pay-init) проверяет, что бронь своя и подтверждена, и отдаёт ссылку на оплату.
+export const paymentsOn = import.meta.env?.VITE_PAYMENTS === "freedompay";
+export async function startPayment(bookingId) {
+  const { data, error } = await supabase.functions.invoke("pay-init", { body: { booking_id: bookingId } });
+  if (error || !data?.url) throw error || new Error(data?.error || "no_url");
+  return data.url;
 }

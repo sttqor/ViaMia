@@ -189,3 +189,14 @@
 .ag-bk-row { border: 1px solid var(--line); border-radius: var(--radius-card); }
 .ag-back { display: inline-flex; align-items: center; gap: 4px; justify-self: start; }
 .ag-actions-flat { padding: 0; }
+
+/* заявка оплачена картой (Freedom Pay) */
+.ag-paid {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--green-bg);
+  color: var(--green);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  white-space: nowrap;
+}

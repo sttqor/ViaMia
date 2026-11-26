@@ -148,6 +148,8 @@ export const AGENCY_RU = {
 
   "ag.bk.how": "Заявка бесплатная. Подтвердите или отклоните её: турист увидит статус в своём билете. Оплата на месте.",
   "ag.bk.new": "Новые",
+  "ag.bk.paid": "Оплачено",
+  "ag.bk.paidSum": "Оплачено · {sum}",
   "ag.bk.all": "Все",
   "ag.bk.empty": "Заявок пока нет.",
   "ag.bk.emptyNew": "Новых заявок нет — все уже разобраны.",
@@ -406,6 +408,8 @@ export const AGENCY_EN = {
 
   "ag.bk.how": "Requests are free. Confirm or decline: the tourist sees the status in their ticket. Payment is on the spot.",
   "ag.bk.new": "New",
+  "ag.bk.paid": "Paid",
+  "ag.bk.paidSum": "Paid · {sum}",
   "ag.bk.all": "All",
   "ag.bk.empty": "No requests yet.",
   "ag.bk.emptyNew": "No new requests — all handled.",

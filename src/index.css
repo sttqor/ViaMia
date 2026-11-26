@@ -1381,3 +1381,6 @@ img.img-broken {
   bottom: calc(12px + env(safe-area-inset-bottom));
   z-index: 2;
 }
+
+/* билет: оплачено картой */
+.ticket-paid { color: var(--green); font-weight: 700; }
