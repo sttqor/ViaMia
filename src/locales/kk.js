@@ -260,6 +260,7 @@ export default {
   "login.errPhone": "Нөмір толық керек: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Қырғызстанда мұндай оператор коды жоқ. Нөмірді тексеріңіз.",
   "login.errSmsSoon": "SMS арқылы кіру жақында қосылады — әзірге поштамен кіріңіз.",
+  "booking.errRate": "Өтінім тым көп болды. {t} кейін қайталаңыз.",
   "profile.edit": "Профильді өзгерту",
   "profile.photoChange": "Фотоны ауыстыру",
   "profile.photoLoading": "Жүктелуде…",

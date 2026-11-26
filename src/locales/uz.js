@@ -260,6 +260,7 @@ export default {
   "login.errPhone": "Toʻliq raqam kerak: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Qirgʻizistonda bunday operator kodi yoʻq. Raqamni tekshiring.",
   "login.errSmsSoon": "SMS orqali kirish tez orada — hozircha pochta orqali kiring.",
+  "booking.errRate": "So‘rovlar juda ko‘p. {t} dan keyin qayta urinib ko‘ring.",
   "profile.edit": "Profilni tahrirlash",
   "profile.photoChange": "Rasmni almashtirish",
   "profile.photoLoading": "Yuklanmoqda…",

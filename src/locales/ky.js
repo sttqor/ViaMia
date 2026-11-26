@@ -260,6 +260,7 @@ export default {
   "login.errPhone": "Номер толук керек: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Кыргызстанда мындай оператор коду жок. Номерди текшериңиз.",
   "login.errSmsSoon": "SMS менен кирүү жакында иштейт — азырынча почта менен кириңиз.",
+  "booking.errRate": "Өтүнмөлөр өтө көп болуп кетти. {t} кийин кайталаңыз.",
   "profile.edit": "Профилди өзгөртүү",
   "profile.photoChange": "Сүрөттү алмаштыруу",
   "profile.photoLoading": "Жүктөлүүдө…",

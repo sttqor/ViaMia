@@ -68,7 +68,9 @@ export default function BookScreen() {
       router.push(`/ticket/${entry.code}`);
     } catch (err) {
       console.warn("Заявка не отправилась", err);
-      setSendError(true);
+      // лимит заявок в базе (04-hardening.sql): «rate_limited:7» — ждать 7 минут
+      const wait = String(err?.message).match(/rate_limited:(\d+)/);
+      setSendError(wait ? t("booking.errRate", { t: fmtDuration(Number(wait[1])) }) : t("booking.error"));
       inFlight.current = false;
       setSending(false);
     }
@@ -137,7 +139,7 @@ export default function BookScreen() {
           {field(nameRef, User, name, setName, t("booking.name"), tried && !nameOk, { autoComplete: "name", textContentType: "name" })}
           {field(contactRef, Bell, contact, setContact, t("booking.contact"), tried && !contactOk, { autoComplete: "tel", textContentType: "telephoneNumber" })}
           <Text style={{ fontFamily: FONT.ui, fontSize: 13, lineHeight: 19, color: c.muted }}>{t("booking.note")}</Text>
-          {sendError && <Text style={{ fontFamily: FONT.bold, color: c.accent }}>{t("booking.error")}</Text>}
+          {sendError && <Text style={{ fontFamily: FONT.bold, color: c.accent }}>{sendError}</Text>}
           {tried && (!nameOk || !contactOk) && <Text style={{ fontFamily: FONT.bold, color: c.accent }}>{t("booking.fillHint")}</Text>}
           <Button
             disabled={sending}

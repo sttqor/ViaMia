@@ -251,6 +251,7 @@ export default {
   "login.errPhone": "请输入完整号码：+996 (XXX) XX-XX-XX。",
   "login.errOperator": "吉尔吉斯斯坦没有这个运营商号段，请检查号码。",
   "login.errSmsSoon": "短信登录即将开放，请先用邮箱登录。",
+  "booking.errRate": "短时间内申请过多，请 {t} 后再试。",
   "profile.edit": "编辑资料",
   "profile.photoChange": "更换照片",
   "profile.photoLoading": "上传中…",

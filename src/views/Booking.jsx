@@ -61,7 +61,9 @@ export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
       });
     } catch (err) {
       console.warn("Заявка не отправилась", err);
-      setSendError(true);
+      // лимит заявок в базе (04-hardening.sql): «rate_limited:7» — ждать 7 минут
+      const wait = String(err?.message).match(/rate_limited:(\d+)/);
+      setSendError(wait ? t("booking.errRate", { t: fmtDuration(Number(wait[1])) }) : t("booking.error"));
       inFlight.current = false;
       setSending(false);
     }
@@ -161,7 +163,7 @@ export function Booking({ exp: raw, defaults, onBack, onConfirm }) {
         <div className="muted mb-16">{t("booking.note")}</div>
 
         <Reveal show={sendError}>
-          <div className="form-error" role="alert">{t("booking.error")}</div>
+          <div className="form-error" role="alert">{sendError || t("booking.error")}</div>
         </Reveal>
 
         <Reveal show={!canSubmit}>

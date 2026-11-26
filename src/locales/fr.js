@@ -267,6 +267,7 @@ export default {
   "login.errPhone": "Il faut le numéro complet : +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Ce code d’opérateur n’existe pas au Kirghizistan. Vérifiez le numéro.",
   "login.errSmsSoon": "La connexion par SMS arrive bientôt — connectez-vous par e-mail pour l’instant.",
+  "booking.errRate": "Trop de demandes d’affilée. Réessayez dans {t}.",
   "profile.edit": "Modifier le profil",
   "profile.photoChange": "Changer la photo",
   "profile.photoLoading": "Envoi…",

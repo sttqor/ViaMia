@@ -260,6 +260,7 @@ export default {
   "login.errPhone": "Numaranın tamamı gerekli: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Kırgızistan'da böyle bir operatör kodu yok. Numarayı kontrol edin.",
   "login.errSmsSoon": "SMS ile giriş yakında geliyor; şimdilik e-postayla giriş yapın.",
+  "booking.errRate": "Arka arkaya çok fazla talep. {t} sonra tekrar deneyin.",
   "profile.edit": "Profili düzenle",
   "profile.photoChange": "Fotoğrafı değiştir",
   "profile.photoLoading": "Yükleniyor…",

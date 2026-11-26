@@ -260,6 +260,7 @@ export default {
   "login.errPhone": "번호를 끝까지 입력해 주세요: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "키르기스스탄에 없는 통신사 번호예요. 번호를 확인해 주세요.",
   "login.errSmsSoon": "SMS 로그인은 곧 열려요. 지금은 이메일로 로그인해 주세요.",
+  "booking.errRate": "요청이 너무 많아요. {t} 후에 다시 시도해 주세요.",
   "profile.edit": "프로필 수정",
   "profile.photoChange": "사진 변경",
   "profile.photoLoading": "업로드 중…",

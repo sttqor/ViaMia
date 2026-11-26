@@ -251,6 +251,7 @@ export default {
   "login.errPhone": "Hace falta el número completo: +996 (XXX) XX-XX-XX.",
   "login.errOperator": "Ese prefijo de operador no existe en Kirguistán. Revisa el número.",
   "login.errSmsSoon": "El acceso por SMS llegará pronto; por ahora entra con tu correo.",
+  "booking.errRate": "Demasiadas solicitudes seguidas. Inténtalo de nuevo en {t}.",
   "profile.edit": "Editar perfil",
   "profile.photoChange": "Cambiar foto",
   "profile.photoLoading": "Subiendo…",
