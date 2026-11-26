@@ -83,6 +83,7 @@
 - Перед изменениями запускать `npm run lint`, после — `npm run build`.
 - Не коммитить и не пушить без просьбы пользователя.
 - Не придумывать реальные цены/контакты агентств — ставить заглушки.
+- В коммитах и PR — без подписи Claude: никаких `Co-Authored-By`, `Claude-Session`, «Generated with Claude Code».
 
 ## Граф кода (graphify)
 Граф проекта — `graphify-out/` (`GRAPH_REPORT.md`, `graph.json`). Если задача длиннее 17 слов — сначала смотреть в граф (`GRAPH_REPORT.md`, при необходимости `/graphify query`), потом в код. После каждого изменения кода обновлять граф (`/graphify --update`).
