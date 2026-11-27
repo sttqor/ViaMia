@@ -23,16 +23,22 @@ export default function AdminApp({ onExit, onOpenAgency }) {
   const admin = user && check.for === user.id ? check.admin : null; // null — проверяем
   const [tab, setTab] = useState("agencies");
 
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!user) return;
     let off = false;
+    let retry = null;
     fetchIsAdmin()
       .then((v) => !off && setCheck({ for: user.id, admin: v }))
-      .catch(() => !off && setCheck({ for: user.id, admin: false }));
+      // сбой сети — это не «нет доступа»: остаёмся в «проверяем» и пробуем снова
+      .catch(() => {
+        if (!off) retry = setTimeout(() => setAttempt((n) => n + 1), 4000);
+      });
     return () => {
       off = true;
+      clearTimeout(retry);
     };
-  }, [user]);
+  }, [user, attempt]);
 
   if (!enabled) {
     return (

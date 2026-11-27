@@ -659,7 +659,8 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
     const map = mapRef.current;
     if (map && coords?.length > 1) {
       const b = coords.reduce((acc, c) => acc.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
-      setTimeout(() => map.fitBounds(b, { padding: { top: 170, bottom: 270, left: 56, right: 56 }, maxZoom: 17, duration: 700 }), 650);
+      // ушли с вкладки за эти 650 мс — карты уже нет, mapRef пуст
+      setTimeout(() => mapRef.current?.fitBounds(b, { padding: { top: 170, bottom: 270, left: 56, right: 56 }, maxZoom: 17, duration: 700 }), 650);
     }
   }
 

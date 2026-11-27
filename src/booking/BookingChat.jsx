@@ -16,11 +16,15 @@ export function BookingChat({ bookingId, side, closed = false }) {
 
   useEffect(() => {
     let off = false;
-    const add = (m) => setList((l) => (l && !l.some((x) => x.id === m.id) ? [...l, m] : l));
+    const early = []; // пришли по realtime раньше, чем загрузилась история
+    const add = (m) => {
+      if (!early.some((x) => x.id === m.id)) early.push(m);
+      setList((l) => (l && !l.some((x) => x.id === m.id) ? [...l, m] : l));
+    };
     fetchMessages(bookingId)
       .then((d) => {
         if (off) return;
-        setList(d);
+        setList([...d, ...early.filter((m) => !d.some((x) => x.id === m.id))]);
         markChatRead(bookingId).catch(() => {});
       })
       .catch(() => !off && setError(true));

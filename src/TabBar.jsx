@@ -27,6 +27,8 @@ const RIPPLE = { duration: 0.5, ease: "easeOut" };
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
 function haptic() {
+  // без касания пользователя браузер вибро блокирует и пишет ошибку в консоль
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
   try {
     navigator.vibrate?.(8); // Android; iOS Safari вибро из браузера не даёт
   } catch {

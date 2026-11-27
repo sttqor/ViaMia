@@ -23,16 +23,22 @@ export function TripBlock({ booking, onNavigate }) {
   const exp = booking.exp;
   const canChat = Boolean(user && booking.id);
 
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!canChat) return;
     let off = false;
+    let retry = null;
     fetchTrip(booking.id)
       .then((d) => !off && setTrip(d))
-      .catch(() => {});
+      // нет сети — гид и программа подтянутся со следующей попытки (до 3 раз)
+      .catch(() => {
+        if (!off && attempt < 3) retry = setTimeout(() => setAttempt((n) => n + 1), 5000);
+      });
     return () => {
       off = true;
+      clearTimeout(retry);
     };
-  }, [booking.id, canChat, booking.status]);
+  }, [booking.id, canChat, booking.status, attempt]);
 
   const status = trip?.status || booking.status;
   const meetAt = trip?.meet_at || booking.meetAt;

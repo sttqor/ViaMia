@@ -20,6 +20,7 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
   const [account, setAccount] = useState(null); // имя и контакт для подстановки в бронь
   const pulledFor = useRef(null); // чьи данные начали тянуть
   const readyFor = useRef(null); // чьи данные уже слиты — только после этого можно писать
+  const [pullTry, setPullTry] = useState(0); // не загрузилось (нет сети) — пробуем снова
 
   // свежие значения для async-слияния (без них в замыкании остались бы старые)
   const latest = useRef(null);
@@ -50,6 +51,7 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
     pulledFor.current = uid;
 
     let cancelled = false;
+    let retry = null;
     (async () => {
       try {
         const [profile, remote] = await Promise.all([fetchProfile(uid), fetchMyBookings(uid, byId)]);
@@ -78,16 +80,22 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
       } catch (err) {
         // не смогли прочитать — ничего не пишем, чтобы не затереть аккаунт пустотой
         console.warn("Не удалось загрузить данные аккаунта", err);
+        // слияние не прошло — через 5 с ещё раз, иначе избранное и маршрут не попадут в аккаунт до перезахода
+        if (!cancelled && readyFor.current !== uid) {
+          pulledFor.current = null;
+          retry = setTimeout(() => setPullTry((n) => n + 1), 5000);
+        }
       }
     })();
     return () => {
       cancelled = true;
+      clearTimeout(retry);
       // прервали до конца слияния — следующий запуск эффекта должен попробовать снова
       if (readyFor.current !== uid) pulledFor.current = null;
     };
     // слияние — один раз на вход; остальные зависимости — стабильные сеттеры
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, byId]);
+  }, [user?.id, byId, pullTry]);
 
   // Агентство подтвердило / назначило гида / ответило — брони обновляются сразу (Supabase Realtime)
   useEffect(() => {
@@ -120,7 +128,7 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
   function rememberContact({ name, contact }) {
     if (!user || readyFor.current !== user.id) return;
     setAccount((a) => ({ ...(a || {}), name, contact }));
-    saveProfile(user.id, { name, contact }).catch(() => {});
+    saveProfile(user.id, { name, contact }).catch((err) => console.warn("Не удалось запомнить контакт", err));
   }
 
   // экран «Изменить профиль»: имя и фото. Пишет сразу (не ждёт задержку), ошибку отдаёт экрану
