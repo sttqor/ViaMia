@@ -300,3 +300,129 @@ export const TIPS = [
     },
   },
 ];
+
+// ДАСТАРХАН: предметы на столе → совет из TIPS. word — как предмет зовут по-кыргызски (подпись под рисунком).
+export const TABLE_ITEMS = [
+  { id: "tor", word: "төр", tip: "table-seat" },
+  { id: "teapot", word: "чайнек", tip: "table-tea" },
+  { id: "bread", word: "нан", tip: "table-bread" },
+  { id: "plate", word: "боорсок", tip: "table-try" },
+  { id: "piala", word: "пиала", tip: "table-enough" },
+  { id: "hands", word: "бата", tip: "table-omin" },
+];
+
+// СИТУАЦИИ: короткая история по шагам. Как добавить — объект с steps: [{ title, text, en: { title, text } }].
+export const SCENES = [
+  {
+    id: "guests",
+    Icon: Coffee,
+    title: "Вас позвали в гости",
+    en: { title: "You're invited to a home" },
+    steps: [
+      {
+        title: "Не с пустыми руками",
+        text: "Возьмите что-то к чаю: сладости, фрукты, торт. Дорогой подарок не нужен — важен жест.",
+        en: { title: "Don't come empty-handed", text: "Bring something for tea: sweets, fruit or a cake. It needn't be expensive — the gesture matters." },
+      },
+      {
+        title: "Обувь — у порога",
+        text: "Разуваются у входа, хозяева дадут тапочки. Носки лучше чистые: сидеть, возможно, придётся на полу.",
+        en: { title: "Shoes off at the door", text: "Take your shoes off at the entrance; hosts will offer slippers. Wear clean socks — you may sit on the floor." },
+      },
+      {
+        title: "Төр — для почётных",
+        text: "Место напротив входа — төр, самое почётное. Не садитесь сами: подождите, пока хозяин пригласит.",
+        en: { title: "Tör is the seat of honour", text: "The place facing the door is the tör, the seat of honour. Wait for the host to seat you rather than picking a place." },
+      },
+      {
+        title: "Сначала чай",
+        text: "Стол уже накрыт: лепёшки, сладости, салаты. Это только начало — горячее подадут позже, не наедайтесь сразу.",
+        en: { title: "Tea comes first", text: "The table is already laid with bread, sweets and salads. That's only the start — the hot dish comes later, so pace yourself." },
+      },
+      {
+        title: "Уходите после «оомийн»",
+        text: "В конце старший читает бата, все проводят ладонями по лицу. После этого можно благодарить хозяйку и прощаться.",
+        en: { title: "Leave after \"oomiyn\"", text: "At the end an elder says the bata blessing and everyone passes their palms over their face. Then thank the hostess and say goodbye." },
+      },
+    ],
+  },
+  {
+    id: "mosque",
+    Icon: MoonStar,
+    title: "Вы идёте в мечеть",
+    en: { title: "You're visiting a mosque" },
+    steps: [
+      {
+        title: "Закрытые плечи и колени",
+        text: "Мужчинам — брюки и рукава, женщинам — длинная юбка или брюки и платок на голову. Платок лучше взять с собой.",
+        en: { title: "Cover shoulders and knees", text: "Men: trousers and sleeves. Women: a long skirt or trousers and a headscarf — bring one with you." },
+      },
+      {
+        title: "Обувь — на полку",
+        text: "На ковры в обуви не заходят. Оставьте её на полке у двери.",
+        en: { title: "Shoes on the rack", text: "Nobody walks on the carpets in shoes. Leave them on the rack by the door." },
+      },
+      {
+        title: "Тише во время намаза",
+        text: "Если идёт молитва, встаньте у стены и подождите. Не проходите прямо перед молящимися.",
+        en: { title: "Quiet during prayer", text: "If prayer is under way, stand by the wall and wait. Don't walk directly in front of people praying." },
+      },
+      {
+        title: "Фото — с разрешения",
+        text: "Интерьер обычно можно снимать, людей — только спросив. Молящихся не снимают.",
+        en: { title: "Photos with permission", text: "The interior is usually fine to photograph; people only if you ask. Never photograph those praying." },
+      },
+    ],
+  },
+  {
+    id: "bazaar",
+    Icon: ShoppingBasket,
+    title: "Вы на базаре",
+    en: { title: "You're at the bazaar" },
+    steps: [
+      {
+        title: "Сначала пройдитесь",
+        text: "Не покупайте у первого прилавка. Пройдите ряд, посмотрите цены — так поймёте, сколько стоит на самом деле.",
+        en: { title: "Walk around first", text: "Don't buy at the first stall. Walk the row and compare prices to learn what things really cost." },
+      },
+      {
+        title: "«Канча турат?»",
+        text: "Так спрашивают «сколько стоит?». Продавцу приятно, когда гость говорит пару слов по-кыргызски.",
+        en: { title: "\"Kancha turat?\"", text: "That's \"how much is it?\". Sellers enjoy it when a visitor speaks a few words of Kyrgyz." },
+      },
+      {
+        title: "Торгуйтесь с улыбкой",
+        text: "Торг — часть покупки, а не спор. Назовите свою цену, уступите немного, и сойдётесь посередине.",
+        en: { title: "Bargain with a smile", text: "Haggling is part of buying, not a fight. Name your price, give a little, and you'll meet in the middle." },
+      },
+      {
+        title: "Наличные и мелкие купюры",
+        text: "Карты берут не везде. Держите сомы мелкими купюрами — сдачу с крупной может не найтись.",
+        en: { title: "Cash in small notes", text: "Not every stall takes cards. Carry som in small notes — change for a big one may be hard to find." },
+      },
+    ],
+  },
+  {
+    id: "taxi",
+    Icon: Bus,
+    title: "Вам нужно такси",
+    en: { title: "You need a taxi" },
+    steps: [
+      {
+        title: "Лучше через приложение",
+        text: "В приложении такси цена известна заранее и маршрут записан. Это проще, чем объяснять адрес.",
+        en: { title: "Use a ride app", text: "With a ride app the price is fixed upfront and the route is recorded — easier than explaining an address." },
+      },
+      {
+        title: "На улице — цена до посадки",
+        text: "Если ловите машину на улице, договоритесь о цене до того, как сядете.",
+        en: { title: "On the street — agree the fare first", text: "If you hail a car on the street, agree on the fare before you get in." },
+      },
+      {
+        title: "Покажите точку на карте",
+        text: "Водитель может не знать название по-русски или по-английски. Покажите место на карте в телефоне.",
+        en: { title: "Show the spot on a map", text: "The driver may not know the name in Russian or English. Show the place on your phone's map." },
+      },
+    ],
+  },
+];

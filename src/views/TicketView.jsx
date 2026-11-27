@@ -79,6 +79,7 @@ export function TicketView({ booking, onClose, onCancel, onNavigate }) {
                 <Clock size={16} /> {t("ticket.pending")}
               </div>
             )}
+            {booking.status === "confirmed" && <div className="ticket-akjol">{t("trip.akjol")}</div>}
             <div className="ticket-title">{exp.title}</div>
             <div className="ticket-lines">
               <div className="row muted"><Calendar size={14} /> {fmtDate(booking.date)} · {plural("pl.guests", booking.guests)}</div>

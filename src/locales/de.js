@@ -152,6 +152,17 @@ export default {
   "tips.kind.do": "Üblich",
   "tips.kind.dont": "Vermeiden",
   "tips.note": "Osch ist gastfreundlich: Wenn Ihnen ein Fauxpas passiert, lächeln Sie und sagen Sie „Kechiresiz“ (Verzeihung) – man wird es verstehen.",
+  "tips.table": "Am Dastarchan",
+  "tips.tableHint": "Tippen Sie auf etwas auf dem Tisch",
+  "tips.scenes": "Situationen",
+  "tips.all": "Alle Tipps",
+  "tips.step": "Schritt {i} von {n}",
+  "tips.next": "Weiter",
+  "tips.done": "Verstanden",
+  "tips.progress": "{n} von {total} gelesen",
+  "tips.ready": "bereit für Gäste",
+  "trip.akjol": "Ak jol! — gute Reise",
+  "map.tipHere": "Tipp",
   "pl.tips": {
     "one": "{n} Tipp",
     "other": "{n} Tipps"

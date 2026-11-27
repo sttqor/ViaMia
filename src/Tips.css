@@ -216,3 +216,139 @@
     animation: none;
   }
 }
+
+/* ── разделы экрана ────────────────────────────────────── */
+.tips-section {
+  margin: 28px 0 12px;
+  font-family: var(--display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ── пиала в шапке ─────────────────────────────────────── */
+.piala-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: var(--hit);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.piala-progress svg { width: 30px; height: 24px; overflow: visible; }
+.piala-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.piala-tea { fill: var(--gold); }
+.piala-progress.is-full { color: var(--terracotta-dark); }
+
+/* ── дастархан ─────────────────────────────────────────── */
+.dastarkhan-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.dastarkhan-art .cloth { fill: var(--card); stroke: var(--line); stroke-width: 1; }
+.dastarkhan-art .cloth-inner { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 1 5; stroke-linecap: round; }
+.table-item { cursor: pointer; outline: none; }
+.table-item .hit { fill: transparent; transition: fill 0.2s ease; }
+.table-item .art {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.2s ease;
+}
+.table-item .art .fill,
+.kind-glyph .fill { fill: currentColor; stroke: none; }
+.table-item .art { color: var(--ink); }
+.table-item .word {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--muted);
+}
+.table-item.is-on .hit,
+.table-item:focus-visible .hit { fill: var(--terracotta-glow); }
+.table-item.is-on .art { stroke: var(--terracotta); color: var(--terracotta); }
+.table-item.is-on .word { fill: var(--terracotta-dark); }
+@media (hover: hover) {
+  .table-item:hover .art { stroke: var(--terracotta); color: var(--terracotta); }
+}
+.dastarkhan-tip,
+.dastarkhan-hint {
+  min-height: 56px;
+  margin: 8px 4px 0;
+}
+.dastarkhan-hint { text-align: center; padding-top: 4px; }
+.dastarkhan-tip b { display: block; font-size: var(--fs-md); margin-bottom: 4px; }
+.dastarkhan-tip p { margin: 0; color: var(--ink-soft); font-size: var(--fs-sm); line-height: 1.55; }
+
+/* ── ситуации ──────────────────────────────────────────── */
+.scene-list { padding: 4px 16px; }
+.scene-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-md);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.scene-row + .scene-row { border-top: 1px solid var(--line); }
+.scene-row .kind-glyph { color: var(--terracotta); }
+
+.scene { padding-top: 8px; }
+.scene-title {
+  margin: 0 0 14px;
+  font-family: var(--display);
+  font-size: var(--fs-2xl);
+  line-height: 1.15;
+  color: var(--ink);
+}
+.scene-bars { display: flex; gap: 4px; margin-bottom: 28px; }
+.scene-bars span {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+  transition: background 0.3s ease;
+}
+.scene-bars span.is-on { background: var(--terracotta); }
+.scene-step-wrap { min-height: 220px; }
+.scene-step h3 {
+  margin: 6px 0 10px;
+  font-family: var(--display);
+  font-size: var(--fs-xl);
+  line-height: 1.25;
+  color: var(--ink);
+}
+.scene-step p { margin: 0; font-size: var(--fs-md); line-height: 1.6; color: var(--ink-soft); max-width: 60ch; }
+.scene-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 24px; }
+.scene-actions .cta:disabled { opacity: 0.4; }
+
+/* ── знак вида совета ─────────────────────────────────── */
+.kind-glyph {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tip-tag { display: inline-flex; align-items: center; gap: 5px; }

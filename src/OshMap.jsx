@@ -12,6 +12,7 @@ import {
   Car,
   Clock,
   Footprints,
+  Lightbulb,
   Globe,
   Map as MapIcon,
   Navigation,
@@ -29,6 +30,10 @@ import { primeSpeech } from "./navigation";
 import { Navigator } from "./Navigator";
 import { Loader } from "./Status";
 import { useSettings } from "./settings-context";
+import { TIPS } from "./tips-data.js";
+
+// у места на карте — один совет к случаю (мечеть, базар)
+const PLACE_TIP = { mosque: "mosque-shoes", market: "bazaar-haggle" };
 import { distanceM, twoGisPlace, walkMinutes } from "./twogis";
 import { cachedFetch, registerOshProtocol, toOsh } from "./offlineMap";
 import "./OshMap.css";
@@ -932,6 +937,11 @@ export function ExploreMap({ items, onOpen, nav, onNavEnd }) {
                 <X size={18} />
               </button>
             </div>
+            {PLACE_TIP[picked.cat] && (
+              <div className="map-sheet-row map-sheet-tip">
+                <Lightbulb size={14} /> <span>{loc(TIPS.find((x) => x.id === PLACE_TIP[picked.cat])).title}</span>
+              </div>
+            )}
             {picked.hours && (
               <div className="map-sheet-row">
                 <Clock size={14} /> <span>{picked.hours}</span>

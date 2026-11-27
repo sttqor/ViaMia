@@ -260,3 +260,6 @@
   align-content: start;
   background: var(--bg);
 }
+
+/* совет к месту (мечеть, базар) — тёплая строка над часами работы */
+.map-sheet-tip { color: var(--terracotta-dark); }

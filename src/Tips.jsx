@@ -1,13 +1,31 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, ChevronLeft, Shuffle } from "lucide-react";
 import { useSettings } from "./settings-context";
-import { TIP_TOPICS, TIPS } from "./tips-data.js";
+import { SCENES, TIP_TOPICS, TIPS } from "./tips-data.js";
+import { Dastarkhan, KindGlyph, PialaProgress, SceneList, SceneView } from "./TipsParts.jsx";
 import "./Tips.css";
 
 const SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 const EASE_OUT = [0.22, 1, 0.36, 1];
 const topicOf = (id) => TIP_TOPICS.find((x) => x.id === id) || TIP_TOPICS[0];
+
+// что уже прочитано — для пиалы в шапке; только удобство этого устройства, без сети
+const READ_KEY = "osh-tips-read";
+function loadRead() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(READ_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
+function saveRead(set) {
+  try {
+    localStorage.setItem(READ_KEY, JSON.stringify([...set]));
+  } catch {
+    /* приватный режим — пиала просто не запомнит */
+  }
+}
 
 function dayIndex() {
   const now = new Date();
@@ -16,7 +34,12 @@ function dayIndex() {
 
 function KindTag({ kind }) {
   const { t } = useSettings();
-  return <span className={`tip-tag is-${kind}`}>{t(`tips.kind.${kind}`)}</span>;
+  return (
+    <span className={`tip-tag is-${kind}`}>
+      <KindGlyph kind={kind} />
+      {t(`tips.kind.${kind}`)}
+    </span>
+  );
 }
 
 // Совет дня: меняется раз в сутки, кнопкой можно пролистать дальше
@@ -114,35 +137,76 @@ export function TipsScreen({ onBack }) {
   const { t, loc, plural } = useSettings();
   const [topic, setTopic] = useState("all");
   const [openIds, setOpenIds] = useState(() => new Set());
+  const [read, setRead] = useState(loadRead);
+  const [scene, setScene] = useState(null);
+  const scrollRef = useRef(null);
+  // ситуация и возврат из неё начинаются с верха экрана
+  const openScene = (s) => {
+    setScene(s);
+    scrollRef.current?.scrollTo({ top: 0 });
+  };
   const list = topic === "all" ? TIPS : TIPS.filter((x) => x.topic === topic);
+  const total = TIPS.length + SCENES.length;
 
-  const toggle = (id) =>
+  const markRead = (id) =>
+    setRead((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev).add(id);
+      saveRead(next);
+      return next;
+    });
+
+  const toggle = (id) => {
     setOpenIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+    markRead(id);
+  };
 
   return (
     <motion.div
+      ref={scrollRef}
       className="gyg-scroll screen tips-screen"
       initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.32, ease: EASE_OUT }}
     >
       <div className="screen-head">
-        <button className="icon-btn" onClick={onBack} aria-label={t("common.back")}>
+        <button className="icon-btn" onClick={scene ? () => openScene(null) : onBack} aria-label={t("common.back")}>
           <ChevronLeft size={20} />
         </button>
         <span className="grow">
           <b>{t("tips.title")}</b>
           <span className="muted t-xs">{t("tips.subtitle")}</span>
         </span>
+        <PialaProgress done={[...read].filter((id) => id.startsWith("scene:") || TIPS.some((x) => x.id === id)).length} total={total} />
       </div>
 
+      {scene ? (
+        <div className="screen-body">
+          <SceneView
+            key={scene.id}
+            scene={scene}
+            onDone={() => {
+              markRead(`scene:${scene.id}`);
+              openScene(null);
+            }}
+          />
+        </div>
+      ) : (
       <div className="screen-body">
         <TipOfDay />
+
+        <h2 className="tips-section">{t("tips.table")}</h2>
+        <Dastarkhan onRead={markRead} />
+
+        <h2 className="tips-section">{t("tips.scenes")}</h2>
+        <SceneList scenes={SCENES} read={read} onOpen={openScene} />
+
+        <h2 className="tips-section">{t("tips.all")}</h2>
 
         <div className="h-scroll tip-chips">
           {TIP_TOPICS.map((c) => {
@@ -176,6 +240,7 @@ export function TipsScreen({ onBack }) {
 
         <p className="tip-foot muted t-xs">{t("tips.note")}</p>
       </div>
+      )}
     </motion.div>
   );
 }

@@ -53,6 +53,7 @@ export function TripBlock({ booking, onNavigate }) {
       {status === "confirmed" && meetLabel && (
         <section className="card panel trip-meet">
           <div className="row gap-6"><Clock size={16} color="var(--terracotta)" /> <b>{t("trip.meet")}</b></div>
+          <div className="trip-akjol">{t("trip.akjol")}</div>
           <div className="t-lg b">{meetLabel}</div>
           {exp.meeting && <div className="muted t-sm">{exp.meeting}</div>}
           {exp.lat != null && onNavigate && (

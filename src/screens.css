@@ -906,3 +906,14 @@ a.row-btn { color: inherit; text-decoration: none; }
 }
 .settings-note { margin: -4px 0 10px 28px; }
 .settings-label { padding: 10px 0; }
+
+/* «Ак жол!» — тёплое пожелание после подтверждения брони (TicketView, TripBlock) */
+.ticket-akjol,
+.trip-akjol {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: var(--fs-md);
+  color: var(--terracotta-dark);
+}
+.ticket-akjol { margin: 2px 0 6px; }
+.trip-akjol { margin: -2px 0 4px; }
