@@ -17,6 +17,8 @@ export default defineConfig({
         globIgnores: ['**/splash*.mp4'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
+        // push-уведомления (public/push-sw.js)
+        importScripts: ['push-sw.js'],
         runtimeCaching: [
           {
             // фото туров: с сайтов агентств и из хранилища supabase

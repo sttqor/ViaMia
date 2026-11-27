@@ -4,6 +4,7 @@ import { EXPERIENCES } from "./data";
 import { useContent } from "./content-context";
 import { cancelBookingRequest, submitBookingRequest } from "./api";
 import { useAccountSync } from "./useAccountSync";
+import { onPushOpen } from "./push";
 import { useSettings } from "./settings-context";
 import { useRoles } from "./roles-context";
 import { TabBar } from "./TabBar";
@@ -25,16 +26,24 @@ import { Detail } from "./views/Detail.jsx";
 import { Booking } from "./views/Booking.jsx";
 import { TicketView } from "./views/TicketView.jsx";
 
-// Заставка при запуске: ролик с иконкой-дорогой. Пропускается тапом,
-// при prefers-reduced-motion не показывается вовсе.
+// Заставка при запуске: ролик с иконкой-дорогой, ускоренный до ~3 с. Лежит поверх приложения,
+// которое тем временем уже грузится, и плавно открывает его. Фон — цвет первого кадра ролика
+// (как у заглушки в index.html), чтобы видео не выглядело отдельным окном.
+// Пропускается тапом, при prefers-reduced-motion не показывается вовсе.
+const SPLASH_SPEED = 1.8;
+const SPLASH_START_MS = 1500; // не начал играть за это время — пропускаем
+const SPLASH_SAFETY_MS = 5000; // если видео зависло
+const SPLASH_FADE_MS = 320;
+
 function Splash({ onDone }) {
   const [hide, setHide] = useState(false);
   const doneRef = useRef(false);
+  const videoRef = useRef(null);
   const finish = () => {
     if (doneRef.current) return;
     doneRef.current = true;
     setHide(true);
-    setTimeout(onDone, 320);
+    setTimeout(onDone, SPLASH_FADE_MS);
   };
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -42,13 +51,37 @@ function Splash({ onDone }) {
       onDone();
       return;
     }
-    const safety = setTimeout(finish, 7000); // если видео не загрузилось
-    return () => clearTimeout(safety);
+    const v = videoRef.current;
+    if (v) {
+      v.defaultPlaybackRate = SPLASH_SPEED;
+      v.playbackRate = SPLASH_SPEED;
+      // автозапуск запрещён (режим энергосбережения на iOS и т.п.) — сразу в приложение, без пустого экрана
+      v.play()?.catch(finish);
+    }
+    // ролик так и не пошёл — не держим пустой фон
+    const noStart = setTimeout(() => {
+      if (!v || v.paused || v.currentTime === 0) finish();
+    }, SPLASH_START_MS);
+    const safety = setTimeout(finish, SPLASH_SAFETY_MS);
+    return () => {
+      clearTimeout(noStart);
+      clearTimeout(safety);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <div className={`splash ${hide ? "splash-hide" : ""}`} onClick={finish}>
-      <video src={splashVideo} autoPlay muted playsInline onEnded={finish} onError={finish} />
+      <video
+        ref={videoRef}
+        src={splashVideo}
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        onLoadedMetadata={(e) => (e.currentTarget.playbackRate = SPLASH_SPEED)}
+        onEnded={finish}
+        onError={finish}
+      />
     </div>
   );
 }
@@ -92,10 +125,12 @@ const DEFAULT_ROUTE = ["self-sulaiman", "self-center", "self-jayma"];
 // ГЛАВНЫЙ ЭКСПОРТ
 // Слой «полёта в маршрут» живёт рядом с экранами, чтобы работать и на экранах без нижней панели
 export default function App() {
+  const [splash, setSplash] = useState(true);
   return (
     <>
       <AppScreens />
       <FlyLayer />
+      {splash && <Splash onDone={() => setSplash(false)} />}
     </>
   );
 }
@@ -112,7 +147,6 @@ function AppScreens() {
   const [ticket, setTicket] = useState(null);
   const [bookings, setBookings] = useState(() => initialStore?.bookings || []);
   const [navMin, setNavMin] = useMinimizeOnScroll();
-  const [splash, setSplash] = useState(true);
   // экран поверх вкладок без своего тура: "saved" | "tips" | null
   const [page, setPage] = useState(null);
   // агентство и админ работают в своём кабинете, а не в туристическом приложении
@@ -142,6 +176,21 @@ function AppScreens() {
     onSignedOut: () => setTicket(null),
     defaultRoute: DEFAULT_ROUTE,
   });
+
+  // Нажали на push брони: /?ticket=КОД при запуске или сообщение от воркера, если приложение открыто.
+  // Билет открываем, когда бронь есть в списке (после входа она подтягивается из базы).
+  const [pendingTicket, setPendingTicket] = useState(() => {
+    const code = new URLSearchParams(window.location.search).get("ticket");
+    if (code) window.history.replaceState(window.history.state, "", window.location.pathname);
+    return code;
+  });
+  useEffect(() => onPushOpen((url) => setPendingTicket(url.searchParams.get("ticket"))), []);
+  const pushBooking = pendingTicket ? bookings.find((x) => x.code === pendingTicket) : null;
+  if (pushBooking) {
+    // смена состояния во время рендера — так React советует подстраиваться под новые данные
+    setPendingTicket(null);
+    setTicket(pushBooking);
+  }
 
   useEffect(() => {
     try {
@@ -221,7 +270,6 @@ function AppScreens() {
     setTicket(null);
   }
 
-  if (splash) return <Splash onDone={() => setSplash(false)} />;
   if (roles.home) {
     // у админа со своим агентством кабинет агентства открывается из модерации и закрывается назад в неё
     const inAgency = roles.home === "/agency" || page === "agency";

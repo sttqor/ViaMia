@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { MotionConfig } from "motion/react";
 import App from "./App.jsx";
 import { ContentProvider } from "./ContentProvider.jsx";
@@ -11,6 +11,11 @@ const AgencyApp = lazy(() => import("./agency/AgencyApp.jsx"));
 const AdminApp = lazy(() => import("./agency/AdminApp.jsx"));
 
 export default function Root() {
+  // заглушка из index.html (цвет заставки) — убрать, когда первый экран уже на месте:
+  // у туриста это заставка того же цвета, поэтому шва не видно
+  useEffect(() => {
+    document.getElementById("boot-splash")?.remove();
+  }, []);
   const path = window.location.pathname.replace(/\/+$/, "");
   const Screen = path === "/agency" ? AgencyApp : path === "/admin" ? AdminApp : null;
   // /privacy — открытая ссылка на политику для App Store и Google Play

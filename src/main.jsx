@@ -7,6 +7,8 @@ import { SettingsProvider } from './SettingsProvider.jsx'
 import { AuthProvider } from './AuthProvider.jsx'
 import { RolesProvider } from './RolesProvider.jsx'
 import { initNative, isNative, nativeOAuth } from './native.js'
+import { unsubscribePush } from './push.js'
+import { PushSync } from './PushSync.jsx'
 
 // фото не загрузилось (нет сети) — вместо значка битой картинки песочная плашка (.img-broken в index.css)
 window.addEventListener('error', (e) => {
@@ -16,8 +18,9 @@ window.addEventListener('error', (e) => {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SettingsProvider>
-      <AuthProvider oauth={isNative() ? nativeOAuth : undefined}>
+      <AuthProvider oauth={isNative() ? nativeOAuth : undefined} beforeSignOut={unsubscribePush}>
         <RolesProvider>
+          <PushSync />
           <Root />
         </RolesProvider>
       </AuthProvider>

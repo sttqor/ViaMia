@@ -30,6 +30,7 @@
   --muted-2: #9a9184;
   --line: #e8e0d4;
   --bg: #faf6f0;
+  --splash-bg: #faf6f1; /* фон заставки: как в splash.mp4, в тёмной теме не меняется */
   --card: #ffffff;
   --green: #1f6b45;
   --green-bg: #e8f3ec;
@@ -1048,7 +1049,8 @@ img {
   position: fixed;
   inset: 0;
   z-index: 3000;
-  background: var(--bg);
+  /* цвет первого и последнего кадра splash.mp4 — один и тот же в обеих темах (как заглушка в index.html) */
+  background: var(--splash-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1056,11 +1058,15 @@ img {
   transition: opacity 0.3s ease;
 }
 
+/* ролик на весь экран, без рамки-колонки: края кадра сливаются с фоном */
 .splash video {
   width: 100%;
-  max-width: 430px;
   height: 100%;
   object-fit: cover;
+}
+/* на широком экране (компьютер) — колонка как у приложения, иначе cover обрезает логотип */
+@media (min-aspect-ratio: 3/4) {
+  .splash video { max-width: 430px; }
 }
 
 .splash-hide {

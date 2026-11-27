@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Bell, Building2, Check, ChevronLeft, ChevronRight, DollarSign, Globe, Heart, HelpCircle, LogOut, Moon, Pencil, Search, ShieldCheck, Ticket, Trash2, User } from "lucide-react";
+import { Building2, Check, ChevronLeft, ChevronRight, DollarSign, Globe, Heart, HelpCircle, LogOut, Moon, Pencil, Search, ShieldCheck, Ticket, Trash2, User } from "lucide-react";
 import { useContent } from "../content-context";
 import { deleteMyAccount, fetchAccountRoles } from "../api";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName } from "../i18n";
@@ -12,6 +12,7 @@ import { prettyPhone } from "../phone";
 import { useAuth } from "../auth-context";
 import { SUPPORT_EMAIL } from "../privacy-text";
 import { OfflineMapRow } from "../OfflineMapRow.jsx";
+import { NotifsRow } from "../NotifsRow.jsx";
 import { EventsBell } from "../booking/EventsBell.jsx";
 import { SPRING, SCREEN_IN, STAGGER, RISE, TAP, priceText } from "../components/shared";
 import { ProfileEdit } from "./ProfileEdit.jsx";
@@ -77,10 +78,9 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
     setLang,
     currency,
     setCurrency,
-    notifs,
-    setNotifs,
     theme,
     setTheme,
+    locale,
   } = useSettings();
   const [screen, setScreen] = useState(null); // null | "lang" | "currency" | "link-email" | "link-phone" | "link-password"
   // удаление аккаунта: первый тап — спросить, второй — удалить
@@ -105,6 +105,35 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
   const currentLang = LANGUAGES.find((l) => l.code === lang);
   const { allTours } = useContent();
   const savedRaw = allTours.filter((e) => saved.has(e.id));
+
+  // предстоящие — ждут ответа или подтверждены и дата ещё не прошла; остальное — история
+  const [tripsTab, setTripsTab] = useState("upcoming");
+  const today = new Date().toLocaleDateString("en-CA");
+  const isUpcoming = (b) => ["pending", "confirmed", undefined].includes(b.status) && !(b.date < today);
+  const upcoming = bookings.filter(isUpcoming);
+  const history = bookings
+    .filter((b) => !isUpcoming(b))
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const showHistory = tripsTab === "history" && history.length > 0;
+  const boughtAt = (iso) =>
+    new Date(iso).toLocaleString(locale, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  const bookingRow = (b) => {
+    const exp = loc(b.exp);
+    const status = b.status || "pending";
+    return (
+      <motion.button key={b.code} layout className="booking-row" whileTap={TAP} onClick={() => onOpenTicket(b)}>
+        <img src={exp.image} alt="" />
+        <span className="grow">
+          <span className="booking-row-title">{exp.title}</span>
+          <span className="muted t-xs">
+            {fmtDate(b.date)} · {plural("pl.guests", b.guests)} · {b.code}
+          </span>
+          <span className={`trip-status is-${status}`}>{t(`trip.status.${status}`)}</span>
+        </span>
+        <ChevronRight size={16} color="var(--muted-2)" />
+      </motion.button>
+    );
+  };
 
   if (screen === "edit" && authUser) {
     return <ProfileEdit account={account} onSave={onSaveAccount} onBack={() => setScreen(null)} />;
@@ -212,33 +241,43 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
           <Ticket size={16} color="var(--terracotta)" />
           <b>{t("profile.tickets", { n: bookings.length })}</b>
         </div>
-        {bookings.length === 0 ? (
+        {history.length > 0 && (
+          <div className="mb-12">
+            <Segmented
+              label={t("profile.tickets", { n: bookings.length })}
+              value={showHistory ? "history" : "upcoming"}
+              onChange={(v) => setTripsTab(v)}
+              options={[
+                { value: "upcoming", label: t("profile.upcoming", { n: upcoming.length }) },
+                { value: "history", label: t("profile.history", { n: history.length }) },
+              ]}
+            />
+          </div>
+        )}
+        {showHistory ? (
+          <div className="stack-8">
+            {history.map((b) => (
+              <div key={b.code}>
+                {b.createdAt && (
+                  <div className="wave-divider">
+                    <span>{boughtAt(b.createdAt)}</span>
+                  </div>
+                )}
+                {bookingRow(b)}
+              </div>
+            ))}
+          </div>
+        ) : upcoming.length === 0 ? (
           <div className="empty-cta">
             <div className="muted">{t("profile.noTickets")}</div>
             <button className="cta cta-sm" onClick={onGoToTours}>{t("profile.seeTours")}</button>
           </div>
         ) : (
           <div className="stack-8">
-            {bookings.map((b) => {
-              const exp = loc(b.exp);
-              return (
-                <motion.button key={b.code} layout className="booking-row" whileTap={TAP} onClick={() => onOpenTicket(b)}>
-                  <img src={exp.image} alt="" />
-                  <span className="grow">
-                    <span className="booking-row-title">{exp.title}</span>
-                    <span className="muted t-xs">
-                      {fmtDate(b.date)} · {plural("pl.guests", b.guests)} · {b.code}
-                    </span>
-                    <span className={`trip-status is-${b.status || "pending"}`}>{t(`trip.status.${b.status || "pending"}`)}</span>
-                  </span>
-                  <ChevronRight size={16} color="var(--muted-2)" />
-                </motion.button>
-              );
-            })}
+            {upcoming.map((b) => bookingRow(b))}
           </div>
         )}
       </motion.div>
-
 
       <motion.div className="card panel" variants={RISE}>
         <motion.button className="row-btn saved-open" whileTap={{ scale: 0.98 }} onClick={onOpenSavedList}>
@@ -327,18 +366,7 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
       </motion.div>
 
       <motion.div className="card panel" variants={RISE}>
-        <label className="row-btn">
-          <span className="row">
-            <Bell size={16} color="var(--terracotta)" />
-            <span>{t("profile.notifs")}</span>
-          </span>
-          <input
-            type="checkbox"
-            checked={notifs}
-            onChange={(e) => setNotifs(e.target.checked)}
-            className="switch"
-          />
-        </label>
+        <NotifsRow />
         <a className="row-btn row-btn-divided" href={`mailto:${SUPPORT_EMAIL}`}>
           <span className="row">
             <HelpCircle size={16} color="var(--terracotta)" />

@@ -1,7 +1,7 @@
 // Политика конфиденциальности — для App Store / Google Play и экрана в профиле.
 // Меняете, что собираем (новый сервис, аналитика, push) — обновите текст и дату.
 // Адрес для магазинов: https://osh-explorer2.vercel.app/privacy
-export const PRIVACY_UPDATED = "2026-11-25";
+export const PRIVACY_UPDATED = "2026-11-27";
 export const SUPPORT_EMAIL = "viamiasupp@gmail.com";
 
 export const PRIVACY = {
@@ -20,6 +20,7 @@ export const PRIVACY = {
           "Заявку на бронь: имя, контакт для связи, дату и число гостей. Её видит агентство, которое проводит тур, — чтобы подтвердить и связаться с вами.",
           "Переписку по брони — сообщения в чате с агентством. Их видите вы и агентство, которое проводит тур.",
           "Для турагентств: данные организации и документы для проверки (их видят только само агентство и модератор ViaMia), фото туров (видны всем) и данные гидов — имя, телефон, фото (их видит турист после подтверждения брони).",
+          "Push-уведомления — только если вы разрешили их в браузере. Храним адрес подписки вашего браузера и язык, чтобы сообщать о брони и сообщениях агентства. В уведомлении — название тура, дата и начало сообщения; их доставляет push-сервис браузера (Google, Apple, Mozilla). Выключить — Профиль → «Уведомления о турах» или выйти из аккаунта.",
           "Геолокацию — только когда вы нажимаете «Где я», строите маршрут или включаете навигатор. На наш сервер она не отправляется; чтобы построить путь, координаты точек уходят в сервис маршрутов (см. ниже).",
         ],
       },
@@ -78,6 +79,7 @@ export const PRIVACY = {
           "Booking requests: name, contact, date and number of guests. The agency running the tour sees them to confirm and contact you.",
           "Booking chat — messages with the agency. Only you and the agency running the tour can see them.",
           "For tour agencies: company details and documents for verification (only the agency and the ViaMia moderator see them), tour photos (public) and guide details — name, phone, photo (shown to the tourist after a booking is confirmed).",
+          "Push notifications — only if you allow them in the browser. We store your browser's subscription address and language to tell you about bookings and agency messages. A notification contains the tour name, date and the start of a message; it is delivered by your browser's push service (Google, Apple, Mozilla). Turn off — Profile → “Tour notifications”, or sign out.",
           "Location — only when you tap “My location”, build a route or start the navigator. It is never sent to our server; to build a route, the route points are sent to a routing service (see below).",
         ],
       },

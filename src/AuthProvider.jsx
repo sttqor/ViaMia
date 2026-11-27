@@ -21,7 +21,8 @@ async function webOAuth(provider) {
   if (error) throw error;
 }
 
-export function AuthProvider({ children, oauth = webOAuth }) {
+// beforeSignOut — что сделать, пока вход ещё есть (сайт: отписать push этого браузера, src/push.js)
+export function AuthProvider({ children, oauth = webOAuth, beforeSignOut }) {
   const [user, setUser] = useState(null);
   // какие входы через Google / Apple включены в Supabase — выключенные кнопки не показываем
   const [providers, setProviders] = useState({});
@@ -82,11 +83,16 @@ export function AuthProvider({ children, oauth = webOAuth }) {
 
   const signOut = useCallback(async () => {
     try {
+      await beforeSignOut?.();
+    } catch {
+      /* не мешаем выходу */
+    }
+    try {
       await supabase.auth.signOut();
     } catch {
       /* нет сети — локальная сессия всё равно стёрта supabase-js */
     }
-  }, []);
+  }, [beforeSignOut]);
 
   const value = useMemo(
     () => ({
