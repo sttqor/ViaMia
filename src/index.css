@@ -1013,6 +1013,7 @@ img {
 .switch:checked::after {
   transform: translateX(18px);
 }
+.switch:disabled { opacity: .45; cursor: not-allowed; }
 
 @media (prefers-reduced-motion: reduce) {
   *,

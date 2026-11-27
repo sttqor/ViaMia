@@ -897,3 +897,12 @@ a.row-btn { color: inherit; text-decoration: none; }
 .wave-divider + .booking-row {
   border-top: none;
 }
+
+/* профиль: настройки одной карточкой (ProfileView) — строки через тонкую линию */
+.settings-item {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+.settings-note { margin: -4px 0 10px 28px; }
+.settings-label { padding: 10px 0; }

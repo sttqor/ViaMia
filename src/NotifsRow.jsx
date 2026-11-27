@@ -17,10 +17,12 @@ export function NotifsRow() {
     if (on && perm === "default") setPerm(await askPushPermission());
   }
 
+  // запрет в браузере — тумблер честно выключен и заблокирован, пока не разрешат в настройках сайта
+  const blocked = perm === "denied";
   let hint = null;
-  if (notifs) {
+  if (blocked) hint = t("profile.notifsBlocked");
+  else if (notifs) {
     if (perm === "unsupported" && needsHomeScreen()) hint = t("profile.notifsHome");
-    else if (perm === "denied") hint = t("profile.notifsBlocked");
     else if (authOn && !user && perm !== "unsupported") hint = t("profile.notifsLogin");
   }
 
@@ -31,7 +33,7 @@ export function NotifsRow() {
           <Bell size={16} color="var(--terracotta)" />
           <span>{t("profile.notifs")}</span>
         </span>
-        <input type="checkbox" checked={notifs} onChange={handleChange} className="switch" />
+        <input type="checkbox" checked={notifs && !blocked} disabled={blocked} onChange={handleChange} className="switch" />
       </label>
       {hint && <div className="muted t-xs notifs-hint">{hint}</div>}
     </>

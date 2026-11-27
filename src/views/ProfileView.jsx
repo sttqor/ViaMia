@@ -239,12 +239,12 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
       <motion.div className="card panel" variants={RISE}>
         <div className="panel-head">
           <Ticket size={16} color="var(--terracotta)" />
-          <b>{t("profile.tickets", { n: bookings.length })}</b>
+          <b>{t("profile.trips")}</b>
         </div>
         {bookings.length > 0 && (
           <div className="mb-12">
             <Segmented
-              label={t("profile.tickets", { n: bookings.length })}
+              label={t("profile.trips")}
               value={showHistory ? "history" : "upcoming"}
               onChange={(v) => setTripsTab(v)}
               options={[
@@ -262,7 +262,7 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
               <div key={b.code}>
                 {b.createdAt && (
                   <div className="wave-divider">
-                    <span>{boughtAt(b.createdAt)}</span>
+                    <span>{t("profile.boughtAt", { time: boughtAt(b.createdAt) })}</span>
                   </div>
                 )}
                 {bookingRow(b)}
@@ -287,10 +287,12 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
             <Heart size={16} color="var(--terracotta)" />
             <b>{t("profile.saved", { n: savedRaw.length })}</b>
           </span>
-          <span className="row gap-4 saved-open-all">
-            {t("saved.all")}
-            <ChevronRight size={18} />
-          </span>
+          {savedRaw.length > 0 && (
+            <span className="row gap-4 saved-open-all">
+              {t("saved.all")}
+              <ChevronRight size={18} />
+            </span>
+          )}
         </motion.button>
         {savedRaw.length === 0 ? (
           <div className="muted">{t("profile.noSaved")}</div>
@@ -312,64 +314,67 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
         )}
       </motion.div>
 
-      <motion.div className="card panel" variants={RISE}>
+      {/* все настройки — одной карточкой: строки через разделитель, порядок — от нужного в дороге к оформлению */}
+      <motion.div className="card panel settings-card" variants={RISE}>
+        <div className="panel-head">
+          <b>{t("profile.settings")}</b>
+        </div>
         <button className="row-btn" onClick={() => setScreen("lang")}>
           <span className="row">
             <Globe size={16} color="var(--terracotta)" />
-            <b>{t("profile.language")}</b>
+            <span>{t("profile.language")}</span>
           </span>
           <span className="row gap-6 muted">
             {currentLang?.native || lang}
-            <ChevronRight size={18} color="var(--muted-2)" />
+            <ChevronRight size={16} color="var(--muted-2)" />
           </span>
         </button>
-      </motion.div>
-
-      <motion.div className="card panel" variants={RISE}>
-        <button className="row-btn" onClick={() => setScreen("currency")}>
-          <span className="row">
-            <DollarSign size={16} color="var(--terracotta)" />
-            <b>{t("profile.currency")}</b>
-          </span>
-          <span className="row gap-6 muted">
-            {currencySymbol(currency, lang)} {currency}
-            <ChevronRight size={18} color="var(--muted-2)" />
-          </span>
-        </button>
-        {currency !== "USD" && (
-          <div className="muted t-xs mt-8">
-            {ratesDate
-              ? t("profile.ratesLive", { rate: fmtRate(currency), date: fmtDate(ratesDate) })
-              : t("profile.ratesNote")}
-          </div>
-        )}
-      </motion.div>
-
-      <motion.div className="card panel" variants={RISE}>
-        <div className="panel-head">
-          <Moon size={16} color="var(--terracotta)" />
-          <b>{t("profile.theme")}</b>
+        <div className="settings-item">
+          <button className="row-btn" onClick={() => setScreen("currency")}>
+            <span className="row">
+              <DollarSign size={16} color="var(--terracotta)" />
+              <span>{t("profile.currency")}</span>
+            </span>
+            <span className="row gap-6 muted">
+              {currencySymbol(currency, lang)} {currency}
+              <ChevronRight size={16} color="var(--muted-2)" />
+            </span>
+          </button>
+          {currency !== "USD" && (
+            <div className="muted t-xs settings-note">
+              {ratesDate
+                ? t("profile.ratesLive", { rate: fmtRate(currency), date: fmtDate(ratesDate) })
+                : t("profile.ratesNote")}
+            </div>
+          )}
         </div>
-        <Segmented
-          label={t("profile.theme")}
-          value={theme}
-          onChange={setTheme}
-          options={[
-            { value: "light", label: t("theme.light") },
-            { value: "dark", label: t("theme.dark") },
-            { value: "system", label: t("theme.system") },
-          ]}
-        />
-        {theme === "system" && <div className="muted t-xs mt-8">{t("theme.systemNote")}</div>}
+        <div className="settings-item">
+          <OfflineMapRow />
+        </div>
+        <div className="settings-item">
+          <NotifsRow />
+        </div>
+        <div className="settings-item">
+          <div className="row settings-label">
+            <Moon size={16} color="var(--terracotta)" />
+            <span>{t("profile.theme")}</span>
+          </div>
+          <Segmented
+            label={t("profile.theme")}
+            value={theme}
+            onChange={setTheme}
+            options={[
+              { value: "light", label: t("theme.light") },
+              { value: "dark", label: t("theme.dark") },
+              { value: "system", label: t("theme.system") },
+            ]}
+          />
+          {theme === "system" && <div className="muted t-xs mt-8">{t("theme.systemNote")}</div>}
+        </div>
       </motion.div>
 
       <motion.div className="card panel" variants={RISE}>
-        <OfflineMapRow />
-      </motion.div>
-
-      <motion.div className="card panel" variants={RISE}>
-        <NotifsRow />
-        <a className="row-btn row-btn-divided" href={`mailto:${SUPPORT_EMAIL}`}>
+        <a className="row-btn" href={`mailto:${SUPPORT_EMAIL}`}>
           <span className="row">
             <HelpCircle size={16} color="var(--terracotta)" />
             <span className="grow">
