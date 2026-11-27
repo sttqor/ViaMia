@@ -26,11 +26,12 @@ import { Detail } from "./views/Detail.jsx";
 import { Booking } from "./views/Booking.jsx";
 import { TicketView } from "./views/TicketView.jsx";
 
-// Заставка при запуске: ролик с иконкой-дорогой, ускоренный до ~3 с. Лежит поверх приложения,
+// Заставка при запуске: ролик с иконкой-дорогой — дорога идёт быстро, сборка логотипа в обычном темпе. Лежит поверх приложения,
 // которое тем временем уже грузится, и плавно открывает его. Фон — цвет первого кадра ролика
 // (как у заглушки в index.html), чтобы видео не выглядело отдельным окном.
 // Пропускается тапом, при prefers-reduced-motion не показывается вовсе.
-const SPLASH_SPEED = 2; // ролик 5,6 с → ~2,8 с, проигрывается целиком
+const SPLASH_SPEED = 2.5; // дорога до логотипа ускорена
+const SPLASH_LOGO_AT = 3.4; // с этой секунды ролика дорога сворачивается в логотип — играем как есть
 const SPLASH_START_MS = 1500; // не начал играть за это время — пропускаем
 const SPLASH_SAFETY_MS = 7000; // только если видео зависло
 const SPLASH_FADE_MS = 280; // = transition в .splash (index.css)
@@ -63,7 +64,18 @@ function Splash({ onDone }) {
       if (!v || v.paused || v.currentTime === 0) finish();
     }, SPLASH_START_MS);
     const safety = setTimeout(finish, SPLASH_SAFETY_MS);
+    // скорость по кадру ролика: быстро до логотипа, потом 1×; заодно чинит сброс скорости на iOS
+    let raf = 0;
+    const tick = () => {
+      if (v) {
+        const rate = v.currentTime < SPLASH_LOGO_AT ? SPLASH_SPEED : 1;
+        if (v.playbackRate !== rate) v.playbackRate = rate;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
     return () => {
+      cancelAnimationFrame(raf);
       clearTimeout(noStart);
       clearTimeout(safety);
     };
@@ -78,10 +90,6 @@ function Splash({ onDone }) {
         muted
         playsInline
         preload="auto"
-        onLoadedMetadata={(e) => (e.currentTarget.playbackRate = SPLASH_SPEED)}
-        onPlay={(e) => (e.currentTarget.playbackRate = SPLASH_SPEED)}
-        onPlaying={(e) => (e.currentTarget.playbackRate = SPLASH_SPEED)}
-        onRateChange={(e) => e.currentTarget.playbackRate !== SPLASH_SPEED && (e.currentTarget.playbackRate = SPLASH_SPEED)}
         onEnded={finish}
         onError={finish}
       />
