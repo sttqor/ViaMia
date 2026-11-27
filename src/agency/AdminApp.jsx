@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { BadgeCheck, Ban, Building2, FileText, LogOut, X } from "lucide-react";
+import { safeHttp } from "../components/shared";
 import { useAuth } from "../auth-context";
 import { useSettings } from "../settings-context";
 import { LoginScreen } from "../Login";
@@ -257,7 +258,7 @@ function ToursReview() {
           {r.agency && r.agency.status !== "approved" && <span className="ag-reason">{t("adm.agencyNotApproved")}</span>}
           <div className="ag-photos">
             {r.images.map((u) => (
-              <a key={u} className="ag-photo" href={u} target="_blank" rel="noopener noreferrer"><img src={u} alt="" /></a>
+              <a key={u} className="ag-photo" href={safeHttp(u)} target="_blank" rel="noopener noreferrer"><img src={u} alt="" /></a>
             ))}
           </div>
           <div className="muted t-sm">
@@ -282,8 +283,8 @@ function ToursReview() {
               {t("adm.onMap")} ↗
             </a>
           </div>
-          {r.source_url && (
-            <a className="route-link t-sm" href={r.source_url} target="_blank" rel="noopener noreferrer">{r.source_url}</a>
+          {safeHttp(r.source_url) && (
+            <a className="route-link t-sm" href={safeHttp(r.source_url)} target="_blank" rel="noopener noreferrer">{r.source_url}</a>
           )}
           {r.reject_reason && <span className="ag-reason">{t("ag.reason")}: {r.reject_reason}</span>}
           <div className="row wrap gap-6">

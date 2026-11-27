@@ -13,6 +13,10 @@ export const isNative = () => Capacitor.isNativePlatform();
 // ссылка kg.viamia.app://auth (Info.plist / AndroidManifest; адрес разрешён в Supabase →
 // URL Configuration). Сайт и Expo-версия входят своими способами (AuthProvider, mobile/lib/oauth.js).
 const OAUTH_RETURN = "kg.viamia.app://auth";
+// возврат принимаем, только если вход начали мы сами и недавно — иначе чужая ссылка
+// kg.viamia.app://auth#access_token=… могла бы молча войти в чужой аккаунт
+const OAUTH_STARTED = "osh-oauth-started";
+const OAUTH_WINDOW_MS = 10 * 60 * 1000;
 
 export async function nativeOAuth(provider) {
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -20,6 +24,11 @@ export async function nativeOAuth(provider) {
     options: { redirectTo: OAUTH_RETURN, skipBrowserRedirect: true },
   });
   if (error) throw error;
+  try {
+    localStorage.setItem(OAUTH_STARTED, String(Date.now()));
+  } catch {
+    /* без хранилища вход всё равно откроется, но возврат не примем */
+  }
   const { Browser } = await import("@capacitor/browser");
   await Browser.open({ url: data.url, presentationStyle: "popover" });
 }
@@ -29,6 +38,14 @@ export async function nativeOAuth(provider) {
 async function finishOAuth(url) {
   const { Browser } = await import("@capacitor/browser");
   Browser.close().catch(() => {}); // на android окно уже закрыто
+  let started = 0;
+  try {
+    started = Number(localStorage.getItem(OAUTH_STARTED)) || 0;
+    localStorage.removeItem(OAUTH_STARTED);
+  } catch {
+    /* нет хранилища — считаем, что вход не начинали */
+  }
+  if (Date.now() - started > OAUTH_WINDOW_MS) return;
   const u = new URL(url);
   const code = u.searchParams.get("code");
   const hash = new URLSearchParams(u.hash.slice(1));

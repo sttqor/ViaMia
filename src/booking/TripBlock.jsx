@@ -13,7 +13,7 @@ const TZ = "Asia/Bishkek";
 const digits = (p) => (p || "").replace(/[^\d+]/g, "");
 const tgLink = (tg) => {
   const v = (tg || "").trim().replace(/^https?:\/\/t\.me\//, "").replace(/^@/, "");
-  return v ? `https://t.me/${v}` : null;
+  return /^[A-Za-z0-9_]{5,32}$/.test(v) ? `https://t.me/${v}` : null; // только имя пользователя Telegram
 };
 
 export function TripBlock({ booking, onNavigate }) {

@@ -26,6 +26,9 @@ export const RISE = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, t
 export const HERO_IMG = { initial: { scale: 1.08 }, animate: { scale: 1 }, transition: { duration: 1.1, ease: EASE_OUT } };
 export const TAP = { scale: 0.97 };
 
+// ссылка из базы (сайт агентства, фото) — только http(s), иначе не ссылка вовсе
+export const safeHttp = (u) => (/^https?:\/\//i.test(u || "") ? u : undefined);
+
 // «от $17» или «цена по запросу»
 export function priceText(exp, t, money) {
   if (exp.selfGuided) return t("price.free");

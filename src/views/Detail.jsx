@@ -4,7 +4,7 @@ import { durationMinutes } from "../i18n";
 import { useSettings } from "../settings-context";
 import { flyToRoute } from "../flyToRoute";
 import { twoGisPlace } from "../twogis";
-import { SPRING, SCREEN_IN, STAGGER, RISE, HERO_IMG, TAP } from "../components/shared";
+import { SPRING, SCREEN_IN, STAGGER, RISE, HERO_IMG, TAP, safeHttp } from "../components/shared";
 import { MiniMap, SaveHeart, Ticker, StarRow } from "../components/ui.jsx";
 
 // 5. ДЕТАЛЬНЫЙ ЭКРАН И БРОНИРОВАНИЕ
@@ -92,8 +92,8 @@ export function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggl
             </a>
           </div>
         )}
-        {!self && exp.url && (
-          <a className="route-link mt-12" href={exp.url} target="_blank" rel="noopener noreferrer">
+        {!self && safeHttp(exp.url) && (
+          <a className="route-link mt-12" href={safeHttp(exp.url)} target="_blank" rel="noopener noreferrer">
             {t("detail.agencySite", { name: exp.agencyName || "" })} →
           </a>
         )}
@@ -127,9 +127,9 @@ export function Detail({ exp: raw, saved, inRoute, onBack, onToggleSave, onToggl
           >
             <Ticker value={inRoute ? t("card.inRoute") : t("card.addRoute")} />
           </motion.button>
-        ) : !raw.agencyId && exp.url ? (
+        ) : !raw.agencyId && safeHttp(exp.url) ? (
           // у тура с сайта нет агентства в ViaMia — заявку некому принять, бронь на их сайте
-          <a className="cta" href={exp.url} target="_blank" rel="noopener noreferrer">{t("detail.bookOnSite")}</a>
+          <a className="cta" href={safeHttp(exp.url)} target="_blank" rel="noopener noreferrer">{t("detail.bookOnSite")}</a>
         ) : (
           <motion.button className="cta" whileTap={TAP} onClick={() => onBook(raw)}>{t("detail.pickDate")}</motion.button>
         )}
