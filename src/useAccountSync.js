@@ -83,7 +83,7 @@ export function useAccountSync({ byId, saved, setSaved, routeIds, setRouteIds, s
         // слияние не прошло — через 5 с ещё раз, иначе избранное и маршрут не попадут в аккаунт до перезахода
         if (!cancelled && readyFor.current !== uid) {
           pulledFor.current = null;
-          retry = setTimeout(() => setPullTry((n) => n + 1), 5000);
+          retry = setTimeout(() => setPullTry((n) => n + 1), Math.min(60000, 5000 * 2 ** pullTry)); // 5, 10, 20 … 60 с
         }
       }
     })();

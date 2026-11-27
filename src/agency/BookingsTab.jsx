@@ -17,7 +17,7 @@ const timeOsh = (iso) =>
 
 function contactHref(c) {
   const v = (c || "").trim();
-  if (/^@\w+/.test(v)) return `https://t.me/${v.slice(1)}`;
+  if (/^@\w{5,32}$/.test(v)) return `https://t.me/${v.slice(1)}`; // только чистый ник, без хвостов «/../»
   if (/@/.test(v)) return `mailto:${v}`;
   if (/^\+?[\d\s()-]{7,}$/.test(v)) return `tel:${v.replace(/[^\d+]/g, "")}`;
   return null;

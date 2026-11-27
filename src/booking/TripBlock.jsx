@@ -12,7 +12,7 @@ import "./booking.css";
 const TZ = "Asia/Bishkek";
 const digits = (p) => (p || "").replace(/[^\d+]/g, "");
 const tgLink = (tg) => {
-  const v = (tg || "").trim().replace(/^https?:\/\/t\.me\//, "").replace(/^@/, "");
+  const v = (tg || "").trim().replace(/^(?:https?:\/\/)?t\.me\//i, "").replace(/^@/, "").replace(/\/+$/, "");
   return /^[A-Za-z0-9_]{5,32}$/.test(v) ? `https://t.me/${v}` : null; // только имя пользователя Telegram
 };
 

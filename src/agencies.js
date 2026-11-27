@@ -2,7 +2,8 @@
 // Общее для веба (ToursView) и телефона (mobile).
 function siteOf(url) {
   try {
-    return new URL(url).origin;
+    const u = new URL(url);
+    return /^https?:$/.test(u.protocol) ? u.origin : null; // javascript: и прочее — не ссылка
   } catch {
     return null;
   }

@@ -86,6 +86,23 @@ begin
 end $$;
 revoke all on function public.message_fill() from public, anon, authenticated;
 
+-- 4б. …и не читает заявки (имя, контакт туриста) и переписку.
+drop policy if exists booking_read_agency on public.booking_requests;
+create policy booking_read_agency on public.booking_requests for select to authenticated
+  using (agency_id in (select id from public.agencies where owner_user_id = auth.uid() and status <> 'blocked'));
+
+create or replace function public.can_see_booking(p_booking uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.booking_requests b
+     where b.id = p_booking
+       and (b.user_id = auth.uid()
+            or b.agency_id in (select id from public.agencies where owner_user_id = auth.uid() and status <> 'blocked')
+            or public.is_admin()));
+$$;
+revoke all on function public.can_see_booking(uuid) from public, anon;
+grant execute on function public.can_see_booking(uuid) to authenticated;
+
 -- 5. Одобренное агентство сменило название или логотип — снова на проверку
 --    (иначе можно переименоваться в чужое агентство и сохранить метку «проверено»).
 --    Та же функция, что в 01-agency.sql, в список полей добавлены name и logo_url.

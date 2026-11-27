@@ -31,9 +31,11 @@ export default function AdminApp({ onExit, onOpenAgency }) {
     let retry = null;
     fetchIsAdmin()
       .then((v) => !off && setCheck({ for: user.id, admin: v }))
-      // сбой сети — это не «нет доступа»: остаёмся в «проверяем» и пробуем снова
+      // сбой сети — это не сразу «нет доступа»: ещё 3 попытки, потом «нет доступа» (как раньше)
       .catch(() => {
-        if (!off) retry = setTimeout(() => setAttempt((n) => n + 1), 4000);
+        if (off) return;
+        if (attempt < 3) retry = setTimeout(() => setAttempt((n) => n + 1), 4000);
+        else setCheck({ for: user.id, admin: false });
       });
     return () => {
       off = true;

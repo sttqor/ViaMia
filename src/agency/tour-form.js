@@ -62,7 +62,8 @@ export function toRow(f, status) {
     lat: f.lat,
     lng: f.lng,
     free_cancel: f.free_cancel,
-    source_url: f.source_url.trim() || null,
+    // «www.agency.kg» без https — дописываем, иначе ссылку у тура не показать (safeHttp)
+    source_url: f.source_url.trim() ? f.source_url.trim().replace(/^(?!https?:\/\/)/i, "https://") : null,
     status,
   };
 }
