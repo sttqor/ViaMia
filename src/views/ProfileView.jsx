@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Building2, Check, ChevronLeft, ChevronRight, DollarSign, Globe, Heart, HelpCircle, LogOut, Moon, Pencil, Search, ShieldCheck, Ticket, Trash2, User } from "lucide-react";
+import { Building2, Check, FileText, ChevronLeft, ChevronRight, DollarSign, Globe, Heart, HelpCircle, LogOut, Moon, Pencil, Search, ShieldCheck, Ticket, Trash2, User } from "lucide-react";
 import { useContent } from "../content-context";
 import { deleteMyAccount, fetchAccountRoles } from "../api";
 import { CURRENCIES, LANGUAGES, currencySymbol, displayName } from "../i18n";
@@ -65,7 +65,7 @@ function PickerScreen({ title, items, activeCode, onSelect, onBack }) {
   );
 }
 
-export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, onOpenBooking, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours, onOpenAgency, onOpenAdmin, onOpenPrivacy }) {
+export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, onOpenBooking, saved, onOpenSaved, onOpenSavedList, onOpenLogin, onGoToTours, onOpenAgency, onOpenAdmin, onOpenPrivacy, onOpenTerms }) {
   const {
     t,
     loc,
@@ -388,6 +388,13 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
           <span className="row">
             <ShieldCheck size={16} color="var(--terracotta)" />
             <span>{t("profile.privacy")}</span>
+          </span>
+          <ChevronRight size={16} color="var(--muted-2)" />
+        </button>
+        <button className="row-btn row-btn-divided" onClick={onOpenTerms}>
+          <span className="row">
+            <FileText size={16} color="var(--terracotta)" />
+            <span>{t("profile.terms")}</span>
           </span>
           <ChevronRight size={16} color="var(--muted-2)" />
         </button>

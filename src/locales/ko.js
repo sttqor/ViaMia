@@ -361,6 +361,8 @@ export default {
   "theme.system": "자동",
   "theme.systemNote": "\"자동\"은 휴대폰 설정을 따라요",
   "profile.help": "도움말 및 지원",
+  "profile.privacy": "개인정보 처리방침",
+  "profile.terms": "이용약관",
   "profile.helpSoon": "고객 지원은 곧 시작돼요. 연락처는 나중에 추가할게요.",
 
   "detail.freeCancel": "✓ 24시간 전까지 무료 취소",

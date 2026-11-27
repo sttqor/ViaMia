@@ -352,6 +352,8 @@ export default {
   "theme.system": "Auto",
   "theme.systemNote": "«Auto» sigue los ajustes del teléfono",
   "profile.help": "Ayuda y soporte",
+  "profile.privacy": "Política de privacidad",
+  "profile.terms": "Condiciones de uso",
   "profile.helpSoon": "El soporte llegará pronto. Añadiremos un contacto más adelante.",
   "detail.freeCancel": "✓ Cancelación gratuita hasta 24 h antes",
   "detail.whatsOn": "Qué harás",

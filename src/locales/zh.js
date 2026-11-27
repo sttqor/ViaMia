@@ -352,6 +352,8 @@ export default {
   "theme.system": "自动",
   "theme.systemNote": "“自动”跟随手机设置",
   "profile.help": "帮助与支持",
+  "profile.privacy": "隐私政策",
+  "profile.terms": "使用条款",
   "profile.helpSoon": "客服即将上线，联系方式稍后添加。",
   "detail.freeCancel": "✓ 出行前 24 小时可免费取消",
   "detail.whatsOn": "行程内容",

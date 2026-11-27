@@ -361,6 +361,8 @@ export default {
   "theme.system": "Авто",
   "theme.systemNote": "«Авто» телефонуңуздун жөндөөлөрүнө ылайык",
   "profile.help": "Жардам жана колдоо",
+  "profile.privacy": "Купуялык саясаты",
+  "profile.terms": "Колдонуу шарттары",
   "profile.helpSoon": "Колдоо кызматы жакында иштейт. Байланыш кийинчерээк кошулат.",
 
   "detail.freeCancel": "✓ 24 саатка чейин акысыз жокко чыгаруу",

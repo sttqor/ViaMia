@@ -8,6 +8,7 @@
 - **возраст:** 4+ / «Для всех»
 - **поддержка:** viamiasupp@gmail.com
 - **политика:** https://osh-explorer2.vercel.app/privacy
+- **условия использования (EULA / Terms):** https://osh-explorer2.vercel.app/terms — в тексте есть заглушки [ТРЕБУЕТ ПРОВЕРКИ ЮРИСТОМ], заполнить до отправки
 - **id приложения:** `kg.viamia.app` (после первой загрузки поменять нельзя)
 
 ## полное описание (ru)
@@ -43,6 +44,7 @@ ViaMia is a pocket guide to Osh, Kyrgyzstan, for travellers without a tour guide
 ## анкеты магазинов (что отвечать)
 - **apple «App Privacy»:** собираем «Contact Info → Email / Phone» (для входа, привязано к пользователю, не для трекинга), «Contact Info → Name» (только при входе через apple / google), «User Content → Other» (заявки на бронь), «User Content → Other User Content» (чат с агентством по брони, привязан к пользователю), «Identifiers → User ID». Трекинга нет. «Location → Precise Location» — для маршрутов и навигатора координаты уходят в сервис маршрутов OpenStreetMap (FOSSGIS), не привязано к пользователю, не для трекинга. ИИ не используем. «Diagnostics → Crash Data» (sentry, если задан `VITE_SENTRY_DSN`): не привязано к пользователю, не для трекинга.
 - **google «Data safety»:** то же + «App info and performance → Crash logs» (sentry, не передаётся третьим лицам для рекламы) + «Messages → Other in-app messages» (чат с агентством) + «Location → Precise location» (передаётся сервису маршрутов для функции, не хранится); шифрование при передаче — да (https); удаление — да, в приложении и по почте.
+- **дополнить анкеты (28.11):** фото профиля — apple «User Content → Photos or Videos» / google «Photos and videos → Photos» (по желанию, привязано к пользователю, видит только владелец); когда включат оплату картой (Freedom Pay) — apple «Financial Info → Purchase History» / google «Financial info → Purchase history» (сумма, время, номер платежа; данные карты не получаем). Push в веб-версии — адрес подписки браузера; в Capacitor/Expo push пока нет.
 - **пароли (если спросят):** приложение пароль не хранит. supabase держит только bcrypt-хэш (`auth.users.encrypted_password`, проверено 25.11.2026), сам пароль из него не восстановить. на устройстве — только сессия supabase-js и флаг `has_password`. минимум 8 символов.
 - **для проверки apple (App Review Information):** демо-вход — тестовый номер +996 555 000 002, код 123456 (`supabase/auth-setup.md`); в заметке: «Booking creates a request to a local agency, payment happens offline. No in-app purchases.»
 - **оплата:** покупок в приложении нет; туры — услуги в реальном мире, правило apple 3.1.3(e), apple-оплата не нужна.

@@ -355,6 +355,7 @@ function AppScreens() {
   }
   if (page === "tips") return <TipsScreen onBack={closeScreen} />;
   if (page === "privacy") return <PrivacyScreen onBack={closeScreen} />;
+  if (page === "terms") return <PrivacyScreen kind="terms" onBack={closeScreen} />;
   if (page === "login") return <LoginScreen onBack={closeScreen} />;
   if (page === "agency" || page === "admin") {
     const Screen = page === "agency" ? AgencyScreen : AdminScreen;
@@ -419,6 +420,7 @@ function AppScreens() {
           onOpenAgency={() => setPage("agency")}
           onOpenAdmin={() => setPage("admin")}
           onOpenPrivacy={() => setPage("privacy")}
+          onOpenTerms={() => setPage("terms")}
           onGoToTours={() => setTab("tours")}
         />
       )}

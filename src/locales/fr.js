@@ -368,6 +368,8 @@ export default {
   "theme.system": "Auto",
   "theme.systemNote": "« Auto » suit les réglages de votre téléphone",
   "profile.help": "Aide et assistance",
+  "profile.privacy": "Politique de confidentialité",
+  "profile.terms": "Conditions d'utilisation",
   "profile.helpSoon": "L’assistance arrive bientôt. Un contact sera ajouté plus tard.",
   "detail.freeCancel": "✓ Annulation gratuite jusqu’à 24 h avant",
   "detail.whatsOn": "Au programme",

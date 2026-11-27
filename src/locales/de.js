@@ -364,6 +364,8 @@ export default {
   "theme.system": "Auto",
   "theme.systemNote": "„Auto“ folgt den Einstellungen Ihres Telefons",
   "profile.help": "Hilfe & Support",
+  "profile.privacy": "Datenschutzerklärung",
+  "profile.terms": "Nutzungsbedingungen",
   "profile.helpSoon": "Der Support folgt in Kürze. Ein Kontakt wird später ergänzt.",
   "detail.freeCancel": "✓ Kostenlose Stornierung bis 24 Std. vorher",
   "detail.whatsOn": "Was Sie erleben",

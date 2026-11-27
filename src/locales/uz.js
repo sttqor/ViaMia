@@ -361,6 +361,8 @@ export default {
   "theme.system": "Avto",
   "theme.systemNote": "«Avto» telefon sozlamalariga amal qiladi",
   "profile.help": "Yordam va qoʻllab-quvvatlash",
+  "profile.privacy": "Maxfiylik siyosati",
+  "profile.terms": "Foydalanish shartlari",
   "profile.helpSoon": "Qoʻllab-quvvatlash tez orada ishga tushadi. Aloqa maʼlumotlari keyinroq qoʻshiladi.",
 
   "detail.freeCancel": "✓ 24 soatgacha bepul bekor qilish",

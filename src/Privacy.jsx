@@ -1,12 +1,16 @@
-// Экран политики конфиденциальности: из профиля и по ссылке /privacy (для магазинов).
+// Экран политики конфиденциальности и условий использования: из профиля и по ссылкам /privacy, /terms (для магазинов).
 import { ChevronLeft, Mail } from "lucide-react";
 import { useSettings } from "./settings-context";
 import { fallbackOf } from "./i18n";
 import { PRIVACY, PRIVACY_UPDATED, SUPPORT_EMAIL } from "./privacy-text";
+import { TERMS, TERMS_UPDATED } from "./terms-text";
 
-export function PrivacyScreen({ onBack }) {
+const DOCS = { privacy: [PRIVACY, PRIVACY_UPDATED], terms: [TERMS, TERMS_UPDATED] };
+
+export function PrivacyScreen({ onBack, kind = "privacy" }) {
   const { t, lang, fmtDate } = useSettings();
-  const doc = PRIVACY[lang] || PRIVACY[fallbackOf(lang)] || PRIVACY.en;
+  const [texts, updated] = DOCS[kind];
+  const doc = texts[lang] || texts[fallbackOf(lang)] || texts.en;
   return (
     <div className="gyg-scroll screen privacy">
       <div className="screen-head">
@@ -15,7 +19,7 @@ export function PrivacyScreen({ onBack }) {
         </button>
         <span className="grow">
           <b>{doc.title}</b>
-          <span className="muted t-xs">{t("privacy.updated", { date: fmtDate(PRIVACY_UPDATED) })}</span>
+          <span className="muted t-xs">{t("privacy.updated", { date: fmtDate(updated) })}</span>
         </span>
       </div>
       <div className="screen-body">

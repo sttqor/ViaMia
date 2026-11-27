@@ -1,7 +1,7 @@
 // Политика конфиденциальности — для App Store / Google Play и экрана в профиле.
 // Меняете, что собираем (новый сервис, аналитика, push) — обновите текст и дату.
 // Адрес для магазинов: https://osh-explorer2.vercel.app/privacy
-export const PRIVACY_UPDATED = "2026-11-27";
+export const PRIVACY_UPDATED = "2026-11-28";
 export const SUPPORT_EMAIL = "viamiasupp@gmail.com";
 
 export const PRIVACY = {
@@ -21,6 +21,7 @@ export const PRIVACY = {
           "Переписку по брони — сообщения в чате с агентством. Их видите вы и агентство, которое проводит тур.",
           "Для турагентств: данные организации и документы для проверки (их видят только само агентство и модератор ViaMia), фото туров (видны всем) и данные гидов — имя, телефон, фото (их видит турист после подтверждения брони).",
           "Push-уведомления — только если вы разрешили их в браузере. Храним адрес подписки вашего браузера и язык, чтобы сообщать о брони и сообщениях агентства. В уведомлении — название тура, дата и начало сообщения; их доставляет push-сервис браузера (Google, Apple, Mozilla). Выключить — Профиль → «Уведомления о турах» или выйти из аккаунта.",
+          "Оплату картой — только если для тура она включена. Данные карты вы вводите на странице Freedom Pay, мы их не видим и не храним; у брони сохраняются только сумма, валюта, время и номер платежа — для сверки и возврата.",
           "Геолокацию — только когда вы нажимаете «Где я», строите маршрут или включаете навигатор. На наш сервер она не отправляется; чтобы построить путь, координаты точек уходят в сервис маршрутов (см. ниже).",
         ],
       },
@@ -60,7 +61,10 @@ export const PRIVACY = {
       },
       {
         h: "Связь",
-        p: ["Вопросы и запросы на удаление — на почту поддержки ниже. Если политика изменится, мы обновим дату вверху."],
+        p: [
+          "Оператор данных: [ФИО / ЮРЛИЦО, АДРЕС — ТРЕБУЕТ ПРОВЕРКИ ЮРИСТОМ].",
+          "Вопросы и запросы на удаление — на почту поддержки ниже. Если политика изменится, мы обновим дату вверху.",
+        ],
       },
     ],
   },
@@ -80,6 +84,7 @@ export const PRIVACY = {
           "Booking chat — messages with the agency. Only you and the agency running the tour can see them.",
           "For tour agencies: company details and documents for verification (only the agency and the ViaMia moderator see them), tour photos (public) and guide details — name, phone, photo (shown to the tourist after a booking is confirmed).",
           "Push notifications — only if you allow them in the browser. We store your browser's subscription address and language to tell you about bookings and agency messages. A notification contains the tour name, date and the start of a message; it is delivered by your browser's push service (Google, Apple, Mozilla). Turn off — Profile → “Tour notifications”, or sign out.",
+          "Card payment — only if it is enabled for a tour. You enter card details on the Freedom Pay page; we never see or store them. The booking keeps only the amount, currency, time and payment number — for reconciliation and refunds.",
           "Location — only when you tap “My location”, build a route or start the navigator. It is never sent to our server; to build a route, the route points are sent to a routing service (see below).",
         ],
       },
@@ -119,7 +124,10 @@ export const PRIVACY = {
       },
       {
         h: "Contact",
-        p: ["Questions and deletion requests — email support below. If this policy changes, we'll update the date at the top."],
+        p: [
+          "Data controller: [NAME / LEGAL ENTITY, ADDRESS — REQUIRES LEGAL REVIEW].",
+          "Questions and deletion requests — email support below. If this policy changes, we'll update the date at the top.",
+        ],
       },
     ],
   },

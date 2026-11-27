@@ -361,6 +361,8 @@ export default {
   "theme.system": "Авто",
   "theme.systemNote": "«Авто» телефоныңыздың баптауларын ұстанады",
   "profile.help": "Көмек және қолдау",
+  "profile.privacy": "Құпиялылық саясаты",
+  "profile.terms": "Пайдалану шарттары",
   "profile.helpSoon": "Қолдау қызметі жақында іске қосылады. Байланыс кейінірек қосылады.",
 
   "detail.freeCancel": "✓ 24 сағатқа дейін тегін бас тарту",

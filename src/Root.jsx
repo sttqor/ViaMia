@@ -18,11 +18,11 @@ export default function Root() {
   }, []);
   const path = window.location.pathname.replace(/\/+$/, "");
   const Screen = path === "/agency" ? AgencyApp : path === "/admin" ? AdminApp : null;
-  // /privacy — открытая ссылка на политику для App Store и Google Play
-  if (path === "/privacy") {
+  // /privacy и /terms — открытые ссылки на политику и условия для App Store и Google Play
+  if (path === "/privacy" || path === "/terms") {
     return (
       <MotionConfig reducedMotion="user">
-        <PrivacyScreen onBack={() => window.location.assign("/")} />
+        <PrivacyScreen kind={path.slice(1)} onBack={() => window.location.assign("/")} />
       </MotionConfig>
     );
   }

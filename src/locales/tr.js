@@ -361,6 +361,8 @@ export default {
   "theme.system": "Otomatik",
   "theme.systemNote": "“Otomatik” telefon ayarlarını izler",
   "profile.help": "Yardım ve destek",
+  "profile.privacy": "Gizlilik politikası",
+  "profile.terms": "Kullanım koşulları",
   "profile.helpSoon": "Destek yakında geliyor. İletişim bilgisi daha sonra eklenecek.",
 
   "detail.freeCancel": "✓ 24 saate kadar ücretsiz iptal",
