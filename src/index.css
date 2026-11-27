@@ -1024,7 +1024,8 @@ img {
   }
 }
 
-.cta-sm { width: auto; min-height: 44px; padding: 0 18px; font-size: var(--fs-sm); }
+/* 15px жирным — «крупный» текст: белый на терракоте проходит контраст 3:1, а 13px не проходил 4.5 */
+.cta-sm { width: auto; min-height: 44px; padding: 0 18px; font-size: var(--fs-md); }
 .empty-cta { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .form-error { margin-bottom: 12px; padding: 10px 12px; border-radius: var(--radius-thumb); background: var(--terracotta-glow); color: var(--terracotta-dark); font-size: var(--fs-sm); font-weight: 700; }
 

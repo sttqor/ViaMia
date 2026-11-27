@@ -21,7 +21,7 @@ import "./TabBar.css";
 const SPRING = { type: "spring", bounce: 0, duration: 0.3 };
 const LAYOUT_SPRING = { type: "spring", bounce: 0, duration: 0.32 };
 const DRAG_THRESHOLD = 6;
-const BUMP_SPRING = { type: "spring", stiffness: 500, damping: 12 };
+const BUMP_SPRING = { type: "spring", bounce: 0, duration: 0.3 };
 const RIPPLE = { duration: 0.5, ease: "easeOut" };
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));

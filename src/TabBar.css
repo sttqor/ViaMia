@@ -154,13 +154,14 @@
   padding: 0 2px;
 }
 
+/* подписи 11px: чистая терракота даёт контраст 3.9, нужен 4.5 — берём тёмный акцентный (в тёмной теме он светлее) */
 .tabbar-item.is-on {
-  color: var(--terracotta);
+  color: var(--terracotta-dark);
 }
 
 /* выделенная вкладка «Маршрут»: терракотовый кружок, подпись всегда терракотовая */
 .tabbar-item.is-accent {
-  color: var(--terracotta);
+  color: var(--terracotta-dark);
 }
 
 .tabbar-accent-icon {
@@ -175,7 +176,7 @@
     0 4px 12px rgba(212, 83, 43, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.35),
     inset 0 -1px 1px rgba(0, 0, 0, 0.12);
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
 .tabbar-item.is-accent.is-on .tabbar-accent-icon {

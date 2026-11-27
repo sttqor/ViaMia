@@ -64,7 +64,7 @@ export function TicketView({ booking, onClose, onCancel, onNavigate }) {
                   className="ico"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 14, delay: 0.35 }}
+                  transition={{ type: "spring", bounce: 0, duration: 0.3, delay: 0.35 }}
                 >
                   <Check size={16} />
                 </motion.span>

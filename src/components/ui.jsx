@@ -38,7 +38,7 @@ export function SaveHeart({ saved }) {
       className="ico"
       initial={saved ? { scale: 0.5 } : false}
       animate={{ scale: 1 }}
-      transition={{ type: "spring", stiffness: 520, damping: 14 }}
+      transition={{ type: "spring", bounce: 0, duration: 0.3 }}
     >
       <Heart size={18} fill={saved ? "var(--terracotta)" : "none"} color={saved ? "var(--terracotta)" : "var(--ink)"} />
     </motion.span>
