@@ -30,9 +30,9 @@ import { TicketView } from "./views/TicketView.jsx";
 // которое тем временем уже грузится, и плавно открывает его. Фон — цвет первого кадра ролика
 // (как у заглушки в index.html), чтобы видео не выглядело отдельным окном.
 // Пропускается тапом, при prefers-reduced-motion не показывается вовсе.
-const SPLASH_SPEED = 1.8;
+const SPLASH_SPEED = 2; // ролик 5,6 с → ~2,8 с, проигрывается целиком
 const SPLASH_START_MS = 1500; // не начал играть за это время — пропускаем
-const SPLASH_MAX_MS = 2600; // дольше не держим, даже если телефон не ускорил ролик
+const SPLASH_SAFETY_MS = 7000; // только если видео зависло
 const SPLASH_FADE_MS = 280; // = transition в .splash (index.css)
 
 function Splash({ onDone }) {
@@ -62,7 +62,7 @@ function Splash({ onDone }) {
     const noStart = setTimeout(() => {
       if (!v || v.paused || v.currentTime === 0) finish();
     }, SPLASH_START_MS);
-    const safety = setTimeout(finish, SPLASH_MAX_MS);
+    const safety = setTimeout(finish, SPLASH_SAFETY_MS);
     return () => {
       clearTimeout(noStart);
       clearTimeout(safety);
@@ -80,6 +80,8 @@ function Splash({ onDone }) {
         preload="auto"
         onLoadedMetadata={(e) => (e.currentTarget.playbackRate = SPLASH_SPEED)}
         onPlay={(e) => (e.currentTarget.playbackRate = SPLASH_SPEED)}
+        onPlaying={(e) => (e.currentTarget.playbackRate = SPLASH_SPEED)}
+        onRateChange={(e) => e.currentTarget.playbackRate !== SPLASH_SPEED && (e.currentTarget.playbackRate = SPLASH_SPEED)}
         onEnded={finish}
         onError={finish}
       />
