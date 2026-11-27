@@ -329,6 +329,7 @@ export default {
   "profile.history": "Tarix ({n})",
   "profile.upcoming": "Kutilayotgan ({n})",
   "profile.noTickets": "Hozircha bronlar yoʻq. Turni tanlang — bilet shu yerda paydo boʻladi.",
+  "profile.noHistory": "Oʻtgan va bekor qilingan sayohatlar shu yerda chiqadi.",
   "profile.seeTours": "Turlarni koʻrish",
   "profile.saved": "Saralanganlar ({n})",
   "profile.noSaved": "Hozircha boʻsh. Saqlash uchun tur kartochkasidagi ♥ tugmasini bosing.",

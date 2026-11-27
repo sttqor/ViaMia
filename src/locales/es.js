@@ -320,6 +320,7 @@ export default {
   "profile.history": "Historial ({n})",
   "profile.upcoming": "Próximos ({n})",
   "profile.noTickets": "Aún no hay reservas. Elige un tour y tu entrada aparecerá aquí.",
+  "profile.noHistory": "Aquí aparecerán los viajes pasados y cancelados.",
   "profile.seeTours": "Ver tours",
   "profile.saved": "Guardados ({n})",
   "profile.noSaved": "Aún no hay nada. Toca ♥ en la tarjeta de un tour para guardarlo.",

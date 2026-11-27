@@ -329,6 +329,7 @@ export default {
   "profile.history": "Тарих ({n})",
   "profile.upcoming": "Алдағы ({n})",
   "profile.noTickets": "Әзірге брондау жоқ. Турды таңдаңыз — билетіңіз осы жерде пайда болады.",
+  "profile.noHistory": "Өткен және бас тартылған сапарлар осында шығады.",
   "profile.seeTours": "Турларды көру",
   "profile.saved": "Сақталғандар ({n})",
   "profile.noSaved": "Әзірге бос. Сақтау үшін тур карточкасындағы ♥ түймесін басыңыз.",

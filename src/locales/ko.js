@@ -329,6 +329,7 @@ export default {
   "profile.history": "지난 예약 ({n})",
   "profile.upcoming": "예정 ({n})",
   "profile.noTickets": "아직 예약이 없어요. 투어를 선택하면 티켓이 여기에 표시돼요.",
+  "profile.noHistory": "지난 여행과 취소된 여행이 여기에 표시돼요.",
   "profile.seeTours": "투어 둘러보기",
   "profile.saved": "저장함 ({n})",
   "profile.noSaved": "아직 아무것도 없어요. 투어 카드에서 ♥를 눌러 저장해 보세요.",

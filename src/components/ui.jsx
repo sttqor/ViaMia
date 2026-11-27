@@ -153,9 +153,7 @@ export function ExperienceCard({ exp: raw, saved, inRoute, onOpen, onToggleSave,
         <button className="exp-title" onClick={() => onOpen(raw)}>
           {exp.title}
         </button>
-        {exp.selfGuided ? (
-          <span className="mode-label self">{t("label.self")}</span>
-        ) : exp.agencyName ? (
+        {exp.selfGuided ? null : exp.agencyName ? (
           <span className={`exp-org ${raw.agencyVerified ? "is-verified" : ""}`}>
             {raw.agencyVerified && <BadgeCheck size={14} aria-label={t("label.verified")} />}
             {raw.agencyVerified ? `${t("label.verified")} · ${exp.agencyName}` : exp.agencyName}

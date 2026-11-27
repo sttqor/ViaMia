@@ -114,7 +114,7 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
   const history = bookings
     .filter((b) => !isUpcoming(b))
     .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
-  const showHistory = tripsTab === "history" && history.length > 0;
+  const showHistory = tripsTab === "history";
   const boughtAt = (iso) =>
     new Date(iso).toLocaleString(locale, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
   const bookingRow = (b) => {
@@ -241,7 +241,7 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
           <Ticket size={16} color="var(--terracotta)" />
           <b>{t("profile.tickets", { n: bookings.length })}</b>
         </div>
-        {history.length > 0 && (
+        {bookings.length > 0 && (
           <div className="mb-12">
             <Segmented
               label={t("profile.tickets", { n: bookings.length })}
@@ -254,7 +254,9 @@ export function ProfileView({ account, onSaveAccount, bookings, onOpenTicket, on
             />
           </div>
         )}
-        {showHistory ? (
+        {showHistory && history.length === 0 ? (
+          <div className="muted">{t("profile.noHistory")}</div>
+        ) : showHistory ? (
           <div className="stack-8">
             {history.map((b) => (
               <div key={b.code}>

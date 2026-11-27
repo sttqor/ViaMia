@@ -1055,7 +1055,8 @@ img {
   align-items: center;
   justify-content: center;
   opacity: 1;
-  transition: opacity 0.3s ease;
+  /* выход — «пролёт» сквозь логотип в приложение: слой тает, ролик чуть приближается */
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ролик на весь экран, без рамки-колонки: края кадра сливаются с фоном */
@@ -1063,7 +1064,9 @@ img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.splash-hide video { transform: scale(1.06); }
 /* на широком экране (компьютер) — колонка как у приложения, иначе cover обрезает логотип */
 @media (min-aspect-ratio: 3/4) {
   .splash video { max-width: 430px; }

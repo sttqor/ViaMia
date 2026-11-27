@@ -336,6 +336,7 @@ export default {
   "profile.history": "Historique ({n})",
   "profile.upcoming": "À venir ({n})",
   "profile.noTickets": "Aucune réservation. Choisissez une visite et votre billet apparaîtra ici.",
+  "profile.noHistory": "Les voyages passés et annulés apparaîtront ici.",
   "profile.seeTours": "Voir les visites",
   "profile.saved": "Favoris ({n})",
   "profile.noSaved": "Rien ici pour l’instant. Touchez ♥ sur une visite pour l’enregistrer.",

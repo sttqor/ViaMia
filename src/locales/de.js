@@ -332,6 +332,7 @@ export default {
   "profile.history": "Verlauf ({n})",
   "profile.upcoming": "Bevorstehend ({n})",
   "profile.noTickets": "Noch keine Buchungen. Wählen Sie eine Tour, dann erscheint Ihr Ticket hier.",
+  "profile.noHistory": "Hier erscheinen vergangene und stornierte Reisen.",
   "profile.seeTours": "Touren ansehen",
   "profile.saved": "Gemerkt ({n})",
   "profile.noSaved": "Noch nichts hier. Tippen Sie auf ♥ bei einer Tour, um sie zu merken.",

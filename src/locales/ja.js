@@ -329,6 +329,7 @@ export default {
   "profile.history": "履歴（{n}）",
   "profile.upcoming": "予定（{n}）",
   "profile.noTickets": "予約はまだありません。ツアーを選ぶと、チケットがここに表示されます。",
+  "profile.noHistory": "終了・キャンセルした旅行はここに表示されます。",
   "profile.seeTours": "ツアーを見る",
   "profile.saved": "保存済み（{n}）",
   "profile.noSaved": "まだ何もありません。ツアーカードの ♥ をタップして保存しましょう。",

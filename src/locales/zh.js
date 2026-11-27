@@ -320,6 +320,7 @@ export default {
   "profile.history": "历史（{n}）",
   "profile.upcoming": "即将出行（{n}）",
   "profile.noTickets": "暂无预订。选择一个行程，票券就会出现在这里。",
+  "profile.noHistory": "已结束和已取消的行程会显示在这里。",
   "profile.seeTours": "浏览行程",
   "profile.saved": "收藏（{n}）",
   "profile.noSaved": "这里还没有内容。点按行程卡片上的 ♥ 即可收藏。",

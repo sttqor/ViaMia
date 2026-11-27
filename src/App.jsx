@@ -32,8 +32,8 @@ import { TicketView } from "./views/TicketView.jsx";
 // Пропускается тапом, при prefers-reduced-motion не показывается вовсе.
 const SPLASH_SPEED = 1.8;
 const SPLASH_START_MS = 1500; // не начал играть за это время — пропускаем
-const SPLASH_SAFETY_MS = 5000; // если видео зависло
-const SPLASH_FADE_MS = 320;
+const SPLASH_MAX_MS = 2600; // дольше не держим, даже если телефон не ускорил ролик
+const SPLASH_FADE_MS = 280; // = transition в .splash (index.css)
 
 function Splash({ onDone }) {
   const [hide, setHide] = useState(false);
@@ -62,7 +62,7 @@ function Splash({ onDone }) {
     const noStart = setTimeout(() => {
       if (!v || v.paused || v.currentTime === 0) finish();
     }, SPLASH_START_MS);
-    const safety = setTimeout(finish, SPLASH_SAFETY_MS);
+    const safety = setTimeout(finish, SPLASH_MAX_MS);
     return () => {
       clearTimeout(noStart);
       clearTimeout(safety);
@@ -79,6 +79,7 @@ function Splash({ onDone }) {
         playsInline
         preload="auto"
         onLoadedMetadata={(e) => (e.currentTarget.playbackRate = SPLASH_SPEED)}
+        onPlay={(e) => (e.currentTarget.playbackRate = SPLASH_SPEED)}
         onEnded={finish}
         onError={finish}
       />

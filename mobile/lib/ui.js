@@ -122,9 +122,7 @@ export function TourCard({ item: raw, onPress }) {
           <Text style={{ fontFamily: FONT.heavy, fontSize: 15, lineHeight: 19.5, color: c.ink, marginBottom: 8 }}>{e.title}</Text>
         </Pressable>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 12 }}>
-          {e.selfGuided ? (
-            <ModeLabel self>{t("label.self")}</ModeLabel>
-          ) : e.agencyName ? (
+          {e.selfGuided ? <View /> : e.agencyName ? (
             <ModeLabel verified={raw.agencyVerified}>{t("label.guided", { agency: e.agencyName })}</ModeLabel>
           ) : (
             <StarRow rating={e.rating} />

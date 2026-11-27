@@ -329,6 +329,7 @@ export default {
   "profile.history": "Geçmiş ({n})",
   "profile.upcoming": "Yaklaşan ({n})",
   "profile.noTickets": "Henüz rezervasyon yok. Bir tur seçin, biletiniz burada görünecek.",
+  "profile.noHistory": "Geçmiş ve iptal edilen geziler burada görünecek.",
   "profile.seeTours": "Turlara göz at",
   "profile.saved": "Kaydedilenler ({n})",
   "profile.noSaved": "Henüz boş. Kaydetmek için bir tur kartındaki ♥ simgesine dokunun.",
